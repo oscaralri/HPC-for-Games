@@ -2,7 +2,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "Shader.h"
+#include "Camera.h"
 #include "stb_image.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 int SCR_WIDTH = 800;
 int SCR_HEIGHT = 600;
@@ -10,10 +14,16 @@ int SCR_HEIGHT = 600;
 unsigned int VBO, VAO;
 unsigned int texture;
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float fov = 45.f;
+
 // methods
-void framebuffer_size_callback(GLFWwindow* window, int SCR_WIDTH, int SCR_HEIGHT);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
-void render(); 
 
 int main(int argc, char* argv[])
 {
@@ -39,11 +49,15 @@ int main(int argc, char* argv[])
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-	
+		
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-
+		
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	
+	glEnable(GL_DEPTH_TEST);
+
+	// Camera
+	Camera camera(cameraPos, cameraUp);
 	
 	// Triangle
 	/*
@@ -104,8 +118,9 @@ int main(int argc, char* argv[])
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
+
 	// Shader
-	Shader shader1("shaders/v2.vert", "shaders/v2.frag"); // la ubicacion empieza donde esta el main 
+	Shader shader1("shaders/v3.vert", "shaders/v3.frag"); // la ubicacion empieza donde esta el main 
 	shader1.use();
 
 	// Texture
@@ -129,15 +144,36 @@ int main(int argc, char* argv[])
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
+	
+	
+	std::cout << "antes de render" << std::endl;
 
+
+	// Render
 	while (!glfwWindowShouldClose(window))
 	{
 		//shader1.use();
 		processInput(window);
 		
-		render();
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glBindVertexArray(VAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		shader1.setMat4("projection", projection);
+
+		// camera/view transformation
+		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		shader1.setMat4("view", view);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
+		std::cout << "final de render" << std::endl;
+
 	}
 
 	glDeleteVertexArrays(1, &VAO);
@@ -157,14 +193,4 @@ void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-}
-
-void render()
-{
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glBindVertexArray(VAO);
-	//glDrawArrays(GL_TRIANGLES, 0, 3);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

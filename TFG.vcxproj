@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\oscar\Desktop\miops\libraries\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\oscar\Desktop\miops\libraries\Libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\oscar\Desktop\miops\TFG\libraries\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\oscar\Desktop\miops\TFG\libraries\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -132,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -139,6 +140,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Downloads\stb_image.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +148,8 @@
     <None Include="shaders\v1.vert" />
     <None Include="shaders\v2.frag" />
     <None Include="shaders\v2.vert" />
+    <None Include="shaders\v3.frag" />
+    <None Include="shaders\v3.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
