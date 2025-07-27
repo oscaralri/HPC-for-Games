@@ -13,9 +13,8 @@
 int SCR_WIDTH = 800;
 int SCR_HEIGHT = 600;
 
-unsigned int VBO, VAO;
-unsigned int texture;
 // camera
+// TODO ESTO SON COSAS QUE DEBERIAN ESTAR EN LA CLASE CAMERA (lo estan pero no se usan)
 bool firstMouse = true;
 float yaw = -90.0f;	
 float pitch = 0.0f;
@@ -30,7 +29,6 @@ float lastY = 600.0 / 2.0;
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
 
-
 // methods
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -39,13 +37,11 @@ void processInput(GLFWwindow* window);
 
 int main(int argc, char* argv[])
 {
-	// inicializacion de glfw
+	// glfw
 	glfwInit();			
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// crear ventana con glfw
 	GLFWwindow* window = glfwCreateWindow(800, 600, "TFG", NULL, NULL);
 	if (window == NULL)
 	{
@@ -55,7 +51,7 @@ int main(int argc, char* argv[])
 	}	
 	glfwMakeContextCurrent(window);
 	
-	// cosas input 
+	// input 
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -72,9 +68,6 @@ int main(int argc, char* argv[])
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	
 	glEnable(GL_DEPTH_TEST);
-
-	// Camera
-	Camera camera(cameraPos, cameraUp);
 	
 	// Triangle
 	/*
@@ -116,7 +109,7 @@ int main(int argc, char* argv[])
 		1, 2, 3    
 	};
 
-	unsigned int EBO;
+	unsigned int EBO, VAO, VBO;
 	glGenBuffers(1, &EBO);
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
@@ -135,12 +128,12 @@ int main(int argc, char* argv[])
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-
 	// Shader
-	Shader shader1("shaders/v3.vert", "shaders/v3.frag"); // la ubicacion empieza donde esta el main 
+	Shader shader1("shaders/v3.vert", "shaders/v3.frag"); 
 	shader1.use();
 
 	// Texture
+	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -161,11 +154,15 @@ int main(int argc, char* argv[])
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
+
+	// model
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	unsigned int modelLoc = glGetUniformLocation(shader1.ID, "model");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
 	
 	
-	std::cout << "antes de render" << std::endl;
-
-
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
@@ -174,7 +171,7 @@ int main(int argc, char* argv[])
 		lastFrame = currentFrame;
 
 		//shader1.use();
-		processInput(window);
+		processInput(window); // este deberia ser el de camera
 		
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -182,12 +179,6 @@ int main(int argc, char* argv[])
 		glBindVertexArray(VAO);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		// model
-		glm::mat4 model = glm::mat4(1.0f); 
-		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		unsigned int modelLoc = glGetUniformLocation(shader1.ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 		// projection
 		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -199,9 +190,6 @@ int main(int argc, char* argv[])
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-
-		std::cout << "final de render" << std::endl;
-
 	}
 
 	glDeleteVertexArrays(1, &VAO);
