@@ -29,6 +29,9 @@ float lastY = 600.0 / 2.0;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// extra variables (for test/debug/wip)
+glm::vec3 lightPos = glm::vec3(2.5f, 0.f, 0.f);
+
 // methods
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -69,32 +72,6 @@ int main(int argc, char* argv[])
 
 	glEnable(GL_DEPTH_TEST);
 
-	// Triangle
-	/*
-	float triVertices[] = {
-	-0.5f, -0.5f, 0.0f,
-	 0.5f, -0.5f, 0.0f,
-	 0.0f,  0.5f, 0.0f
-	};
-
-	//vbo
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triVertices), triVertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	//vao
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triVertices), triVertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	*/
 
 	// EBO
 	float vertices[] = {
@@ -164,9 +141,9 @@ int main(int argc, char* argv[])
 	glEnableVertexAttribArray(1);
 
 	// Shader
-	Shader shader1("shaders/v3.vert", "shaders/v3.frag");
-	shader1.use();
-
+	Shader basicColor("shaders/texWithPlainColor.vert", "shaders/texWithPlainColor.frag");
+	Shader basicLighting("shaders/basicLighting.vert", "shaders/basicLighting.frag");
+	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
 	// Texture
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -193,10 +170,8 @@ int main(int argc, char* argv[])
 	// model
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	unsigned int modelLoc = glGetUniformLocation(shader1.ID, "model");
+	unsigned int modelLoc = glGetUniformLocation(basicColor.ID, "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-
 
 	// Render
 	while (!glfwWindowShouldClose(window))
@@ -205,17 +180,36 @@ int main(int argc, char* argv[])
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		//shader1.use();
 		processInput(window); 
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glBindVertexArray(VAO);
-
+		
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
+		
+		basicColor.use();
+		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		basicColor.setMat4("projection", projection);
+		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		basicColor.setMat4("view", view);
 
+		basicLighting.use();
+		basicLighting.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		basicLighting.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		basicLighting.setVec3("lightPos",lightPos);
+		basicLighting.setMat4("projection", projection);
+		basicLighting.setMat4("view", view);
+		basicLighting.setVec3("viewPos", cameraPos);
+
+		// world transformation
+		glm::mat4 model = glm::mat4(1.0f);
+		basicLighting.setMat4("model", model);
+		
+		glBindVertexArray(VAO);
+		
+		
 		for (unsigned int i = 0; i < 3; i++)
 		{
 			// calculate the model matrix for each object and pass it to shader before drawing
@@ -223,18 +217,31 @@ int main(int argc, char* argv[])
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			shader1.setMat4("model", model);
+			//basicColor.use();
+			//basicColor.setMat4("model", model);
+			basicLighting.use();
+			basicLighting.setMat4("model", model);
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
+		
 
+		plainColor.use();
+		plainColor.setMat4("view", view);
+		plainColor.setMat4("projection", projection);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f));
+		plainColor.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		
 		// projection
-		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		shader1.setMat4("projection", projection);
+		//glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		//basicColor.setMat4("projection", projection);
 
 		// camera/view transformation
-		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		shader1.setMat4("view", view);
+		//glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		//basicColor.setMat4("view", view);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -266,6 +273,17 @@ void processInput(GLFWwindow* window)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	
+	// TEST: Move light
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		lightPos.z += cameraSpeed * lightPos.z;
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		lightPos.z -= cameraSpeed * lightPos.z;
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		lightPos.x -= cameraSpeed * lightPos.x;
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		lightPos.x += cameraSpeed * lightPos.x;
+
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

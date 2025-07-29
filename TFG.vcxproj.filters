@@ -64,5 +64,23 @@
     <None Include="shaders\v3.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\basicLighting.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\basicLighting.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\texWithPlainColor.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\texWithPlainColor.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\plainColor.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\plainColor.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -144,6 +144,12 @@
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\basicLighting.frag" />
+    <None Include="shaders\basicLighting.vert" />
+    <None Include="shaders\plainColor.frag" />
+    <None Include="shaders\plainColor.vert" />
+    <None Include="shaders\texWithPlainColor.frag" />
+    <None Include="shaders\texWithPlainColor.vert" />
     <None Include="shaders\v1.frag" />
     <None Include="shaders\v1.vert" />
     <None Include="shaders\v2.frag" />
