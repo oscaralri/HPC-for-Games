@@ -88,5 +88,11 @@
     <None Include="shaders\materialLight.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\lightingMaps.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\lightingMaps.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
