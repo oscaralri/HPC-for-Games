@@ -153,7 +153,8 @@ int main(int argc, char* argv[])
 
 	// Texture
 	unsigned int diffuseMap = loadTexture("textures/diffuseMap.png");
-	
+	unsigned int specularMap = loadTexture("textures/specularMap.png");
+
 
 	// Render
 	while (!glfwWindowShouldClose(window))
@@ -178,31 +179,16 @@ int main(int argc, char* argv[])
 		lightingMap.setInt("material.diffuse", 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-		lightingMap.setVec3("material.specular", glm::vec3(0.633f, 0.727811f, 0.633f));
+		lightingMap.setInt("material.specular", 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
 		lightingMap.setFloat("material.shininess", 0.6f);
 
 		lightingMap.setVec3("light.position", lightPos);
-		lightingMap.setVec3("light.ambient", glm::vec3(0.5f, 0.5f, 0.5f));
+		lightingMap.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
 		lightingMap.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		lightingMap.setVec3("light.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		lightingMap.setVec3("light.specular", glm::vec3(1.f, 1.f, 1.f));
 		lightingMap.setVec3("viewPos", cameraPos);
-
-		// emerald
-		/*
-		materialLight.use();
-		materialLight.setMat4("view", view);
-		materialLight.setMat4("projection", projection);
-
-		materialLight.setVec3("material.ambient", glm::vec3(0.0215f, 0.1745f, 0.0215f));
-		materialLight.setVec3("material.diffuse", glm::vec3(0.07568f, 0.61424f, 0.07568f));
-		materialLight.setVec3("material.specular", glm::vec3(0.633f, 0.727811f, 0.633f));
-		materialLight.setFloat("material.shininess", 0.6f);
-
-		materialLight.setVec3("light.position", lightPos);
-		materialLight.setVec3("light.ambient", glm::vec3(0.5f, 0.5f, 0.5f));
-		materialLight.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		materialLight.setVec3("light.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-		*/
 
 		glBindVertexArray(VAO);
 		
