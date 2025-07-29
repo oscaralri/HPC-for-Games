@@ -146,6 +146,8 @@
   <ItemGroup>
     <None Include="shaders\basicLighting.frag" />
     <None Include="shaders\basicLighting.vert" />
+    <None Include="shaders\materialLight.frag" />
+    <None Include="shaders\materialLight.vert" />
     <None Include="shaders\plainColor.frag" />
     <None Include="shaders\plainColor.vert" />
     <None Include="shaders\texWithPlainColor.frag" />

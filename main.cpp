@@ -142,8 +142,10 @@ int main(int argc, char* argv[])
 
 	// Shader
 	Shader basicColor("shaders/texWithPlainColor.vert", "shaders/texWithPlainColor.frag");
-	Shader basicLighting("shaders/basicLighting.vert", "shaders/basicLighting.frag");
+	//Shader basicLighting("shaders/basicLighting.vert", "shaders/basicLighting.frag");
 	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
+	Shader materialLight("shaders/materialLight.vert", "shaders/materialLight.frag");
+
 	// Texture
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -182,19 +184,17 @@ int main(int argc, char* argv[])
 
 		processInput(window); 
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.f, 0.f, 0.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		//glDrawArrays(GL_TRIANGLES, 0, 36);
 		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		
-		
-		basicColor.use();
+		// matrices
 		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		basicColor.setMat4("projection", projection);
 		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		basicColor.setMat4("view", view);
 
+		/*
 		basicLighting.use();
 		basicLighting.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		basicLighting.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -203,12 +203,26 @@ int main(int argc, char* argv[])
 		basicLighting.setMat4("view", view);
 		basicLighting.setVec3("viewPos", cameraPos);
 
-		// world transformation
 		glm::mat4 model = glm::mat4(1.0f);
 		basicLighting.setMat4("model", model);
-		
+		*/
+
+		// emerald
+		materialLight.use();
+		materialLight.setMat4("view", view);
+		materialLight.setMat4("projection", projection);
+
+		materialLight.setVec3("material.ambient", glm::vec3(0.0215f, 0.1745f, 0.0215f));
+		materialLight.setVec3("material.diffuse", glm::vec3(0.07568f, 0.61424f, 0.07568f));
+		materialLight.setVec3("material.specular", glm::vec3(0.633f, 0.727811f, 0.633f));
+		materialLight.setFloat("material.shininess", 0.6f);
+
+		materialLight.setVec3("light.position", lightPos);
+		materialLight.setVec3("light.ambient", glm::vec3(0.5f, 0.5f, 0.5f));
+		materialLight.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		materialLight.setVec3("light.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+
 		glBindVertexArray(VAO);
-		
 		
 		for (unsigned int i = 0; i < 3; i++)
 		{
@@ -217,14 +231,13 @@ int main(int argc, char* argv[])
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			//basicColor.use();
-			//basicColor.setMat4("model", model);
-			basicLighting.use();
-			basicLighting.setMat4("model", model);
+			//basicLighting.use();
+			//basicLighting.setMat4("model", model);
+			materialLight.use();
+			materialLight.setMat4("model", model); 
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		
 
 		plainColor.use();
 		plainColor.setMat4("view", view);
@@ -234,14 +247,6 @@ int main(int argc, char* argv[])
 		model = glm::scale(model, glm::vec3(0.2f));
 		plainColor.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
-		// projection
-		//glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		//basicColor.setMat4("projection", projection);
-
-		// camera/view transformation
-		//glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		//basicColor.setMat4("view", view);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -275,15 +280,19 @@ void processInput(GLFWwindow* window)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	
 	// TEST: Move light
+	float lightSpeed = 0.001f;
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		lightPos.z += cameraSpeed * lightPos.z;
+		lightPos.z = lightPos.z - lightSpeed;
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		lightPos.z -= cameraSpeed * lightPos.z;
+		lightPos.z = lightPos.z + lightSpeed;
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		lightPos.x -= cameraSpeed * lightPos.x;
+		lightPos.x = lightPos.x - lightSpeed;
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		lightPos.x += cameraSpeed * lightPos.x;
-
+		lightPos.x = lightSpeed + lightPos.x;
+	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+		lightPos.y = lightSpeed + lightPos.y;
+	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+		lightPos.y = lightPos.y - lightSpeed;
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
