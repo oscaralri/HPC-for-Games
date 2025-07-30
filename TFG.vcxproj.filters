@@ -94,5 +94,11 @@
     <None Include="shaders\lightingMaps.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\multipleLights.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\multipleLights.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

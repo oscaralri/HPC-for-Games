@@ -73,6 +73,13 @@ int main(int argc, char* argv[])
 
 	glEnable(GL_DEPTH_TEST);
 
+	// light positions
+	glm::vec3 pointLightPositions[] = {
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
+	};
 
 	// EBO
 	float vertices[] = {
@@ -121,10 +128,17 @@ int main(int argc, char* argv[])
 	};
 
 	glm::vec3 cubePositions[] = {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f)
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(4.3f,  1.7f, -3.8f),
+	glm::vec3(-2.6f,  3.1f, -7.4f),
+	glm::vec3(1.2f, -4.5f, -10.0f),
+	glm::vec3(-3.8f,  0.2f, -4.5f),   
+	glm::vec3(0.7f,   3.3f, -6.0f),   
+	glm::vec3(2.5f,  -1.0f, -8.5f)
 	};
+
 
 	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
@@ -143,13 +157,10 @@ int main(int argc, char* argv[])
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-
 	// Shader
-	Shader basicColor("shaders/texWithPlainColor.vert", "shaders/texWithPlainColor.frag");
-	//Shader basicLighting("shaders/basicLighting.vert", "shaders/basicLighting.frag");
 	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
-	//Shader materialLight("shaders/materialLight.vert", "shaders/materialLight.frag");
 	Shader lightingMap("shaders/lightingMaps.vert", "shaders/lightingMaps.frag");
+	Shader multipleLights("shaders/multipleLights.vert", "shaders/multipleLights.frag");
 
 	// Texture
 	unsigned int diffuseMap = loadTexture("textures/diffuseMap.png");
@@ -172,47 +183,65 @@ int main(int argc, char* argv[])
 		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
-		lightingMap.use();
-		lightingMap.setMat4("view", view);
-		lightingMap.setMat4("projection", projection);
-
-		lightingMap.setInt("material.diffuse", 0);
+		// multipleLights
+		multipleLights.use();
+		multipleLights.setMat4("view", view);
+		multipleLights.setMat4("projection", projection);
+		multipleLights.setVec3("viewPos", cameraPos);
+		multipleLights.setInt("material.diffuse", 0);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-		lightingMap.setInt("material.specular", 1);
+		multipleLights.setInt("material.specular", 1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
-		lightingMap.setFloat("material.shininess", 0.6f);
+		multipleLights.setFloat("material.shininess", 0.6f);
 
-		lightingMap.setVec3("light.position", lightPos);
-		lightingMap.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-		lightingMap.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
-		lightingMap.setVec3("light.specular", glm::vec3(1.f, 1.f, 1.f));
-		lightingMap.setVec3("viewPos", cameraPos);
-
+		// directional
+		multipleLights.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+		multipleLights.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+		multipleLights.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+		multipleLights.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+		
+		
+		// point lights
+		for (int i = 0; i < 4; i++)
+		{
+			std::string index = std::to_string(i);
+			multipleLights.setVec3("pointLights[" + index + "].position", pointLightPositions[i]);
+			multipleLights.setVec3("pointLights[" + index + "].ambient", 0.05f, 0.05f, 0.05f);
+			multipleLights.setVec3("pointLights[" + index + "].diffuse", 0.8f, 0.8f, 0.8f);
+			multipleLights.setVec3("pointLights[" + index + "].specular", 1.0f, 1.0f, 1.0f);
+			multipleLights.setFloat("pointLights[" + index + "].constant", 1.0f);
+			multipleLights.setFloat("pointLights[" + index + "].linear", 0.09f);
+			multipleLights.setFloat("pointLights[" + index + "].quadratic", 0.032f);
+		}
+		
+		
+		// spotlight
+		multipleLights.setVec3("spotLight.position", cameraPos);
+		multipleLights.setVec3("spotLight.direction", cameraFront);
+		multipleLights.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+		multipleLights.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+		multipleLights.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+		multipleLights.setFloat("spotLight.constant", 1.0f);
+		multipleLights.setFloat("spotLight.linear", 0.09f);
+		multipleLights.setFloat("spotLight.quadratic", 0.032f);
+		multipleLights.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		multipleLights.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+		
 		glBindVertexArray(VAO);
 		
-		for (unsigned int i = 0; i < 3; i++)
+		int numCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
+		for (unsigned int i = 0; i < numCubes; i++)
 		{
-			lightingMap.use();
+			multipleLights.use();
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			lightingMap.setMat4("model", model);
-
+			multipleLights.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-
-		// light cube 
-		plainColor.use();
-		plainColor.setMat4("view", view);
-		plainColor.setMat4("projection", projection);
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-		plainColor.setMat4("model", model);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

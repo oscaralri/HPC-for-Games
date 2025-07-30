@@ -150,6 +150,8 @@
     <None Include="shaders\lightingMaps.vert" />
     <None Include="shaders\materialLight.frag" />
     <None Include="shaders\materialLight.vert" />
+    <None Include="shaders\multipleLights.frag" />
+    <None Include="shaders\multipleLights.vert" />
     <None Include="shaders\plainColor.frag" />
     <None Include="shaders\plainColor.vert" />
     <None Include="shaders\texWithPlainColor.frag" />
