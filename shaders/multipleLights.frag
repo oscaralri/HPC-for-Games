@@ -80,7 +80,6 @@ void main()
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
-    if(light == NULL) return;
     vec3 lightDir = normalize(-light.direction);
     // diffuse 
     float diff = max(dot(normal, lightDir), 0.0);
@@ -97,8 +96,6 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
-    if(light == NULL) return;
-
     vec3 lightDir = normalize(light.position - fragPos);
     // diffuse 
     float diff = max(dot(normal, lightDir), 0.0);
@@ -120,8 +117,6 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
-    if(light == NULL) return;
-
     vec3 lightDir = normalize(light.position - fragPos);
     // diffuse 
     float diff = max(dot(normal, lightDir), 0.0);

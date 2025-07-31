@@ -1,3 +1,3 @@
 ﻿  main.cpp
-C:\Users\oscar\Desktop\miops\TFG\main.cpp(236,30): warning C4018: '<': signed/unsigned mismatch
+C:\Users\oscar\Desktop\miops\TFG\main.cpp(235,30): warning C4018: '<': signed/unsigned mismatch
   TFG.vcxproj -> C:\Users\oscar\Desktop\miops\TFG\x64\Debug\TFG.exe
