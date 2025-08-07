@@ -1,0 +1,43 @@
+# Archivos de Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+
+# Archivos intermedios y binarios
+*.obj
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ipch
+*.pch
+
+# Carpetas de compilación
+Debug/
+Release/
+x64/
+x86/
+ipch/
+out/
+
+# Archivos de configuración local
+*.log
+*.tlog
+*.cache
+*.ilk
+
+# Archivos temporales del sistema operativo
+*.tmp
+*.bak
+*.swp
+Thumbs.db
+.DS_Store
+
+# Archivos de CMake (si lo usas)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+build/

@@ -36,6 +36,9 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -48,6 +51,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -104,6 +110,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\multipleLights.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\modelLoading.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\modelLoading.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
