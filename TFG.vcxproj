@@ -160,6 +160,8 @@
     <None Include="shaders\multipleLights.vert" />
     <None Include="shaders\plainColor.frag" />
     <None Include="shaders\plainColor.vert" />
+    <None Include="shaders\skybox.frag" />
+    <None Include="shaders\skybox.vert" />
     <None Include="shaders\texWithPlainColor.frag" />
     <None Include="shaders\texWithPlainColor.vert" />
     <None Include="shaders\v1.frag" />

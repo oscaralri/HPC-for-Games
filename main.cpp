@@ -15,7 +15,6 @@ int SCR_WIDTH = 800;
 int SCR_HEIGHT = 600;
 
 // camera
-// TODO ESTO SON COSAS QUE DEBERIAN ESTAR EN LA CLASE CAMERA (lo estan pero no se usan)
 Camera camera(glm::vec3(0.0f, 0.0f, 7.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -33,7 +32,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
-unsigned int loadTexture(const char* path);
+//unsigned int loadTexture(const char* path);
+unsigned int loadCubemap(std::vector<std::string> faces);
 
 int main(int argc, char* argv[])
 {
@@ -67,8 +67,14 @@ int main(int argc, char* argv[])
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	glEnable(GL_DEPTH_TEST);
-
+	glEnable(GL_DEPTH_TEST);	// depth
+	glEnable(GL_STENCIL_TEST);	// stencil
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glFrontFace(GL_CW); // con el modelo que tengo ahora si pongo CCW da problemas
+	
 	// light positions
 	glm::vec3 pointLightPositions[] = {
 		glm::vec3(0.7f,  0.2f,  2.0f),
@@ -158,13 +164,14 @@ int main(int argc, char* argv[])
 	Shader multipleLights("shaders/multipleLights.vert", "shaders/multipleLights.frag");
 	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
 
+
 	// Texture
 	//unsigned int diffuseMap = loadTexture("textures/diffuseMap.png");
 	//unsigned int specularMap = loadTexture("textures/specularMap.png");
 
 	// Model
 	Model backpack("models/backpack/backpack.obj");
-
+	
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
@@ -175,8 +182,10 @@ int main(int argc, char* argv[])
 		processInput(window); 
 
 		glClearColor(0.f, 0.f, 0.f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		plainColor.use();
+
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 model;
@@ -189,18 +198,28 @@ int main(int argc, char* argv[])
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); 
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
 		modelLoading.setMat4("model", model);
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 		backpack.Draw(modelLoading);
 		
-		glBindVertexArray(VAO);
-		
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);  
+		glDisable(GL_DEPTH_TEST);
 		plainColor.use();
 		plainColor.setMat4("projection", projection);
 		plainColor.setMat4("view", view);
+		float scale = 1.02f;
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, cubePositions[1]);
+		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
+		model = glm::scale(model, glm::vec3(scale, scale, scale));
 		plainColor.setMat4("model", model);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		backpack.Draw(plainColor);
 
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		glEnable(GL_DEPTH_TEST);
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
