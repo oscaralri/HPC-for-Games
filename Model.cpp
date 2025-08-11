@@ -6,6 +6,7 @@ void Model::Draw(Shader& shader)
 	{
 		meshes[i].Draw(shader);
 	}
+	//std::cout << "Model::Draw" << std::endl;
 }
 
 void Model::loadModel(std::string const& path)
