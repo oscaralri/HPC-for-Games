@@ -273,7 +273,6 @@ int main(int argc, char* argv[])
 		// Skybox
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.use();
-		//view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 
 		view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // no translation
 		skyboxShader.setMat4("view", view);
@@ -284,9 +283,7 @@ int main(int argc, char* argv[])
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS); // depth default
-		
-		std::cout << "SKYBOX: " << view[0].x << " " << view[0].y << " " << view[0].z << std::endl;
-		
+				
 		// Debug
 		//std::cout << "Camera Pos: " << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
 
