@@ -124,5 +124,11 @@
     <None Include="shaders\skybox.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\skyReflect.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\skyReflect.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
