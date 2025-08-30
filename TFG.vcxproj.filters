@@ -130,5 +130,20 @@
     <None Include="shaders\skyReflect.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\glslTests.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\glslTests.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\normals.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\normals.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\normals.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -150,6 +150,8 @@
   <ItemGroup>
     <None Include="shaders\basicLighting.frag" />
     <None Include="shaders\basicLighting.vert" />
+    <None Include="shaders\glslTests.frag" />
+    <None Include="shaders\glslTests.vert" />
     <None Include="shaders\lightingMaps.frag" />
     <None Include="shaders\lightingMaps.vert" />
     <None Include="shaders\materialLight.frag" />
@@ -158,6 +160,9 @@
     <None Include="shaders\modelLoading.vert" />
     <None Include="shaders\multipleLights.frag" />
     <None Include="shaders\multipleLights.vert" />
+    <None Include="shaders\normals.frag" />
+    <None Include="shaders\normals.geom" />
+    <None Include="shaders\normals.vert" />
     <None Include="shaders\plainColor.frag" />
     <None Include="shaders\plainColor.vert" />
     <None Include="shaders\skybox.frag" />

@@ -77,6 +77,7 @@ int main(int argc, char* argv[])
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
 	//Shader skyReflect("shaders/skyReflect.vert", "shaders/skyReflect.frag");
 	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
+	Shader normalGeometry("shaders/normals.vert", "shaders/normals.geom", "shaders/normals.frag");
 
 	// Skybox
 	float skyboxVertices[] = {
@@ -185,6 +186,13 @@ int main(int argc, char* argv[])
 		modelLoading.setMat4("model", model);
 
 		backpack.Draw(modelLoading);
+
+		normalGeometry.use();
+		normalGeometry.setMat4("projection", projection);
+		normalGeometry.setMat4("view", view);
+		normalGeometry.setMat4("model", model);
+
+		backpack.Draw(normalGeometry);
 
 		// Skybox	
 		glDepthFunc(GL_LEQUAL);
