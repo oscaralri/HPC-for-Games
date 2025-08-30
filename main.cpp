@@ -75,7 +75,8 @@ int main(int argc, char* argv[])
 	// Shader
 	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
-	Shader skyReflect("shaders/skyReflect.vert", "shaders/skyReflect.frag");
+	//Shader skyReflect("shaders/skyReflect.vert", "shaders/skyReflect.frag");
+	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
 
 	// Skybox
 	float skyboxVertices[] = {
@@ -145,8 +146,8 @@ int main(int argc, char* argv[])
 	skyboxShader.use();
 	skyboxShader.setInt("skybox", 0);
 
-	skyReflect.use();
-	skyReflect.setInt("skybox", 0);
+	//skyReflect.use();
+	//skyReflect.setInt("skybox", 0);
 
 	// Texture
 	//unsigned int diffuseMap = loadTexture("textures/diffuseMap.png");
@@ -173,20 +174,19 @@ int main(int argc, char* argv[])
 		glm::mat4 model;
 
 		// Backpack
-		skyReflect.use();
-		skyReflect.setMat4("projection", projection);
-		skyReflect.setMat4("view", view);
-		skyReflect.setVec3("cameraPos", camera.Position);
+		modelLoading.use();
+		modelLoading.setMat4("projection", projection);
+		modelLoading.setMat4("view", view);
+		modelLoading.setVec3("cameraPos", camera.Position);
 
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-		skyReflect.setMat4("model", model);
+		modelLoading.setMat4("model", model);
 
+		backpack.Draw(modelLoading);
 
-		backpack.Draw(skyReflect);
-
-		// Skybox
+		// Skybox	
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.use();
 
