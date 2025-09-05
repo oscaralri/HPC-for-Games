@@ -12,7 +12,7 @@ void Model::Draw(Shader& shader)
 void Model::loadModel(std::string const& path)
 {
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | /*aiProcess_FlipUVs | */ aiProcess_CalcTangentSpace); // convertir caras a triangulos || invertir cordsUV
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |  aiProcess_CalcTangentSpace); // convertir caras a triangulos || invertir cordsUV
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{

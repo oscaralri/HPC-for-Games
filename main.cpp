@@ -1,6 +1,9 @@
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "stb_image.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,9 +13,10 @@
 #include "Model.h"
 
 #include <iostream>
+#include <stdlib.h>     /* srand, rand */
 
-int SCR_WIDTH = 800;
-int SCR_HEIGHT = 600;
+int SCR_WIDTH = 1366;
+int SCR_HEIGHT = 768;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 7.0f));
@@ -24,16 +28,22 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+double lastTime = 0.0;
+int nbFrames = 0;
+
+
 // extra variables (for test/debug/wip)
 glm::vec3 lightPos = glm::vec3(2.5f, 0.f, 0.f);
 
 // methods
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
 unsigned int loadCubemap(std::vector<std::string> faces);
+void showFPS(GLFWwindow* window);
 
 int main(int argc, char* argv[])
 {
@@ -42,7 +52,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(800, 600, "TFG", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "TFG", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -54,7 +64,9 @@ int main(int argc, char* argv[])
 	// input 
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // GLFW_CURSOR_DISABLED GLFW_CURSOR_HIDDEN GLFW_CURSOR_NORMAL
+	
 
 	// glad
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -67,10 +79,10 @@ int main(int argc, char* argv[])
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	glEnable(GL_DEPTH_TEST);	// depth
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	glFrontFace(GL_CW); // con el modelo que tengo ahora si pongo CCW da problemas
+	glFrontFace(GL_CW); // con el modelo backpack si pongo CCW da problemas
 
 	// Shader
 	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
@@ -78,6 +90,7 @@ int main(int argc, char* argv[])
 	//Shader skyReflect("shaders/skyReflect.vert", "shaders/skyReflect.frag");
 	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
 	Shader normalGeometry("shaders/normals.vert", "shaders/normals.geom", "shaders/normals.frag");
+	Shader instancing("shaders/instancing.vert", "shaders/instancing.frag");
 
 	// Skybox
 	float skyboxVertices[] = {
@@ -155,44 +168,125 @@ int main(int argc, char* argv[])
 	//unsigned int specularMap = loadTexture("textures/specularMap.png");
 
 	// Model
-	Model backpack("models/backpack/backpack.obj");
+	Model gargoyle("models/gargoyle/gargoyle.obj");
+
+	// instanced array
+	unsigned int amount = 1000;
+	glm::mat4* modelMatrices = new glm::mat4[amount];
+	srand(glfwGetTime());
+	for (unsigned int i = 0; i < amount; i++)
+	{
+		glm::mat4 model = glm::mat4(1.f);
+		float x = (rand() % 2000 - 1000) / 10.0f;
+		float y = (rand() % 2000 - 1000) / 10.0f;
+		float z = (rand() % 2000 - 1000) / 10.0f;
+		model = glm::translate(model, glm::vec3(x, y, z));
+		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		modelMatrices[i] = model;
+	}
+
+	unsigned int buffer;
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
+	for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
+	{
+		unsigned int VAO = gargoyle.meshes[i].VAO;
+		glBindVertexArray(VAO);
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+		glEnableVertexAttribArray(5);
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+		glEnableVertexAttribArray(6);
+		glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+		glVertexAttribDivisor(3, 1);
+		glVertexAttribDivisor(4, 1);
+		glVertexAttribDivisor(5, 1);
+		glVertexAttribDivisor(6, 1);
+
+		glBindVertexArray(0);
+	}
+
+	// Initialize ImGUI
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init();
+
 
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
+		glClearColor(0.f, 0.f, 0.f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		processInput(window);
+		
+		showFPS(window);
+
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		processInput(window);
-
-		glClearColor(0.f, 0.f, 0.f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// IMGUI
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::ShowDemoWindow();
 
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 model;
 
-		// Backpack
+		// gargoyle
+		/*
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
 		modelLoading.setVec3("cameraPos", camera.Position);
 
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(0.025f, 0.025, 0.025));
 		modelLoading.setMat4("model", model);
 
-		backpack.Draw(modelLoading);
+		gargoyle.Draw(modelLoading);
+		*/
 
+		instancing.use();
+		instancing.setMat4("projection", projection);
+		instancing.setMat4("view", view);
+
+		for(unsigned int i = 0; i < gargoyle.meshes.size(); i++)
+		{
+			glBindVertexArray(gargoyle.meshes[i].VAO);
+			glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
+			glBindVertexArray(0);
+		}
+
+		// normals drawing
+		/* 
 		normalGeometry.use();
 		normalGeometry.setMat4("projection", projection);
 		normalGeometry.setMat4("view", view);
 		normalGeometry.setMat4("model", model);
 
-		backpack.Draw(normalGeometry);
+		gargoyle.Draw(normalGeometry);
+		*/
 
 		// Skybox	
 		glDepthFunc(GL_LEQUAL);
@@ -211,9 +305,16 @@ int main(int argc, char* argv[])
 		// Debug
 		//std::cout << "Camera Pos: " << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
 
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	glDeleteVertexArrays(1, &skyboxVAO);
 	glDeleteBuffers(1, &skyboxVBO);
@@ -231,7 +332,7 @@ void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-
+	
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -348,4 +449,32 @@ unsigned int loadTexture(char const* path)
 	}
 
 	return textureID;
+}
+
+void showFPS(GLFWwindow* window) {
+	double currentTime = glfwGetTime();
+	nbFrames++;
+
+	if (currentTime - lastTime >= 1.0) {
+		double fps = double(nbFrames) / (currentTime - lastTime);
+
+		std::cout << "FPS: " << fps << std::endl;
+
+		nbFrames = 0;
+		lastTime = currentTime;
+	}
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS) {
+		int cursorState = glfwGetInputMode(window, GLFW_CURSOR);
+
+		if (cursorState == GLFW_CURSOR_DISABLED) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else if (cursorState == GLFW_CURSOR_NORMAL) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+	}
 }

@@ -13,7 +13,6 @@ class Model
 {
 private:
 	std::vector<Texture> textures_loaded; // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-	std::vector<Mesh> meshes;
 	std::string directory;
 	bool gammaCorrection;
 	
@@ -24,6 +23,8 @@ private:
 	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 public:
+	std::vector<Mesh> meshes; // CAMBIAR ESTO A PRIVATE !!
+
 	Model(std::string const& path, bool gamma = false) : gammaCorrection(gamma)
 	{
 		loadModel(path);
