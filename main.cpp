@@ -31,9 +31,9 @@ float lastFrame = 0.0f;
 double lastTime = 0.0;
 int nbFrames = 0;
 
-
 // extra variables (for test/debug/wip)
 glm::vec3 lightPos = glm::vec3(2.5f, 0.f, 0.f);
+bool moveEnabled = true;
 
 // methods
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 	Model gargoyle("models/gargoyle/gargoyle.obj");
 
 	// instanced array
-	unsigned int amount = 1000;
+	unsigned int amount = 500;
 	glm::mat4* modelMatrices = new glm::mat4[amount];
 	srand(glfwGetTime());
 	for (unsigned int i = 0; i < amount; i++)
@@ -244,7 +244,10 @@ int main(int argc, char* argv[])
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGui::ShowDemoWindow();
+		ImGui::Begin("ImGUI");
+		//ImGui::ShowDemoWindow(); 
+
+		ImGui::Text("Hello, world!"); 
 
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -304,7 +307,8 @@ int main(int argc, char* argv[])
 
 		// Debug
 		//std::cout << "Camera Pos: " << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
-
+		
+		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -330,6 +334,8 @@ void framebuffer_size_callback(GLFWwindow* window, int SCR_WIDTH, int SCR_HEIGHT
 
 void processInput(GLFWwindow* window)
 {
+	if (!moveEnabled) return;
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	
@@ -360,6 +366,8 @@ void processInput(GLFWwindow* window)
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
+	if (!moveEnabled) return;
+
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 
@@ -476,5 +484,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		else if (cursorState == GLFW_CURSOR_NORMAL) {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
+
+		moveEnabled = !moveEnabled;
 	}
 }
