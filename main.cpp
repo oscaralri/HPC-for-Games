@@ -67,7 +67,6 @@ int main(int argc, char* argv[])
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // GLFW_CURSOR_DISABLED GLFW_CURSOR_HIDDEN GLFW_CURSOR_NORMAL
 	
-
 	// glad
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -91,6 +90,7 @@ int main(int argc, char* argv[])
 	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
 	Shader normalGeometry("shaders/normals.vert", "shaders/normals.geom", "shaders/normals.frag");
 	Shader instancing("shaders/instancing.vert", "shaders/instancing.frag");
+	Shader screenShader("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
 
 	// Skybox
 	float skyboxVertices[] = {
@@ -160,11 +160,34 @@ int main(int argc, char* argv[])
 	skyboxShader.use();
 	skyboxShader.setInt("skybox", 0);
 
+	// Quad
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	unsigned int quadVAO, quadVBO;
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
 	//skyReflect.use();
 	//skyReflect.setInt("skybox", 0);
 
 	// Texture
-	//unsigned int diffuseMap = loadTexture("textures/diffuseMap.png");
+	unsigned int gargoyleTexture = loadTexture("models/gargoyle/gargoyle_256.png");
 	//unsigned int specularMap = loadTexture("textures/specularMap.png");
 
 	// Model
@@ -213,101 +236,110 @@ int main(int argc, char* argv[])
 		glBindVertexArray(0);
 	}
 
+	unsigned int framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	
+	unsigned int textureColorbuffer;
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); 
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); 
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	// Initialize ImGUI
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 
-
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
-		glClearColor(0.f, 0.f, 0.f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		processInput(window);
-		
-		showFPS(window);
-
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		processInput(window);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glEnable(GL_DEPTH_TEST); // ns si es neccesario
+		//glDepthFunc(GL_LESS);
+		glClearColor(0.f, 0.f, 0.f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+
+		showFPS(window);
+
+		//std::cout << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
 
 		// IMGUI
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::Begin("ImGUI");
-		//ImGui::ShowDemoWindow(); 
-
 		ImGui::Text("Hello, world!"); 
 
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
+		glm::mat4 skyboxView = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 model;
-
-		// gargoyle
-		/*
-		modelLoading.use();
-		modelLoading.setMat4("projection", projection);
-		modelLoading.setMat4("view", view);
-		modelLoading.setVec3("cameraPos", camera.Position);
-
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(0.025f, 0.025, 0.025));
-		modelLoading.setMat4("model", model);
-
-		gargoyle.Draw(modelLoading);
-		*/
-
-		instancing.use();
-		instancing.setMat4("projection", projection);
-		instancing.setMat4("view", view);
-
-		for(unsigned int i = 0; i < gargoyle.meshes.size(); i++)
-		{
-			glBindVertexArray(gargoyle.meshes[i].VAO);
-			glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
-			glBindVertexArray(0);
-		}
-
-		// normals drawing
-		/* 
-		normalGeometry.use();
-		normalGeometry.setMat4("projection", projection);
-		normalGeometry.setMat4("view", view);
-		normalGeometry.setMat4("model", model);
-
-		gargoyle.Draw(normalGeometry);
-		*/
 
 		// Skybox	
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.use();
 
-		view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // no translation
-		skyboxShader.setMat4("view", view);
+		skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix())); // no translation
+		skyboxShader.setMat4("view", skyboxView);
 		skyboxShader.setMat4("projection", projection);
 		glBindVertexArray(skyboxVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glDepthFunc(GL_LESS); // depth default
 
-		// Debug
-		//std::cout << "Camera Pos: " << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
+		// Instancing gargoyles
+		instancing.use();
+		instancing.setMat4("projection", projection);
+		instancing.setMat4("view", view);
+
+		for(unsigned int i = 0; i < gargoyle.meshes.size(); i++)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, gargoyleTexture);
+			glBindVertexArray(gargoyle.meshes[i].VAO);
+			glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
+			glBindVertexArray(0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
 		
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST); 
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		screenShader.use();
+		glBindVertexArray(quadVAO);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	
+		glDrawArrays(GL_TRIANGLES, 0, 6); 
+
 		ImGui::End();
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

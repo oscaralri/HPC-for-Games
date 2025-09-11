@@ -166,6 +166,8 @@
   <ItemGroup>
     <None Include="shaders\basicLighting.frag" />
     <None Include="shaders\basicLighting.vert" />
+    <None Include="shaders\framebuffer_screen.frag" />
+    <None Include="shaders\framebuffer_screen.vert" />
     <None Include="shaders\glslTests.frag" />
     <None Include="shaders\glslTests.vert" />
     <None Include="shaders\instancing.frag" />
