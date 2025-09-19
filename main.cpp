@@ -12,7 +12,7 @@
 #include "Camera.h"
 #include "Model.h"
 
-#include <iostream>
+#include <iostream>	
 #include <stdlib.h>     /* srand, rand */
 
 int SCR_WIDTH = 1366;
@@ -24,6 +24,11 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
+Camera sceneCamera(glm::vec3(5.0f, 0.0f, 5.0f));
+
+float near = 0.1f;
+float far = 1000.f; 
+
 // time
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -32,8 +37,19 @@ double lastTime = 0.0;
 int nbFrames = 0;
 
 // extra variables (for test/debug/wip)
-glm::vec3 lightPos = glm::vec3(2.5f, 0.f, 0.f);
 bool moveEnabled = true;
+float top = near * tan(camera.Zoom / 2.0f);
+float right = top * (SCR_WIDTH / SCR_HEIGHT);
+glm::mat4 projectionMat = glm::mat4(
+	(2*near)/(right - (-right)), 0.0f, 0.0f, 0.0f,   
+	0.0f, (2 * near) / (top - (-top)), 0.0f, 0.0f,
+	(right + (-right)), (top + (- top)) / (top - (-top)), (-(far + near))/(far - near), -1.f,
+	0.0f, 0.0f, (-2 * far * near) / (far - near), 0.f
+);
+unsigned int linesVAO, linesVBO;
+
+
+
 
 // methods
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -47,6 +63,14 @@ void showFPS(GLFWwindow* window);
 
 int main(int argc, char* argv[])
 {
+	// debug
+	for (int row = 0; row < 4; row++) {
+		for (int col = 0; col < 4; col++) {
+			std::cout << projectionMat[col][row] << " ";
+		}
+		std::cout << std::endl;
+	}
+
 	// glfw
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -91,6 +115,7 @@ int main(int argc, char* argv[])
 	Shader normalGeometry("shaders/normals.vert", "shaders/normals.geom", "shaders/normals.frag");
 	Shader instancing("shaders/instancing.vert", "shaders/instancing.frag");
 	Shader screenShader("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
+	Shader basic("shaders/v1.vert", "shaders/v1.frag");
 
 	// Skybox
 	float skyboxVertices[] = {
@@ -193,6 +218,23 @@ int main(int argc, char* argv[])
 	// Model
 	Model gargoyle("models/gargoyle/gargoyle.obj");
 
+	// Lines
+	float linesVertices[] = { //[fila][columna]
+		projectionMat[0][0], projectionMat[0][1],
+		projectionMat[2][2], projectionMat[0][0]
+	};
+
+	glGenVertexArrays(1, &linesVAO);
+	glGenBuffers(1, &linesVAO);
+
+	glBindVertexArray(linesVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, linesVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(linesVertices), linesVertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
 	// instanced array
 	unsigned int amount = 500;
 	glm::mat4* modelMatrices = new glm::mat4[amount];
@@ -263,7 +305,7 @@ int main(int argc, char* argv[])
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 
-	// Setup Platform/Renderer backends
+	// Setup Platform/Renderer backends	
 	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 
@@ -294,51 +336,109 @@ int main(int argc, char* argv[])
 		ImGui::Begin("ImGUI");
 		ImGui::Text("Hello, world!"); 
 
-		// projection / view
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
-		glm::mat4 skyboxView = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
-		glm::mat4 model;
-
-		// Skybox	
-		glDepthFunc(GL_LEQUAL);
-		skyboxShader.use();
-
-		skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix())); // no translation
-		skyboxShader.setMat4("view", skyboxView);
-		skyboxShader.setMat4("projection", projection);
-		glBindVertexArray(skyboxVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDepthFunc(GL_LESS); // depth default
-
-		// Instancing gargoyles
-		instancing.use();
-		instancing.setMat4("projection", projection);
-		instancing.setMat4("view", view);
-
-		for(unsigned int i = 0; i < gargoyle.meshes.size(); i++)
+		if (moveEnabled)
 		{
+			// projection / view
+			glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+			glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
+			glm::mat4 skyboxView = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
+			glm::mat4 model;
+
+
+			// Skybox	
+			glDepthFunc(GL_LEQUAL);
+			skyboxShader.use();
+
+			skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix())); // no translation
+			skyboxShader.setMat4("view", skyboxView);
+			skyboxShader.setMat4("projection", projection);
+			glBindVertexArray(skyboxVAO);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, gargoyleTexture);
-			glBindVertexArray(gargoyle.meshes[i].VAO);
-			glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 			glBindTexture(GL_TEXTURE_2D, 0);
+			glDepthFunc(GL_LESS); // depth default
+
+			
+			// Draw lines
+			basic.use();
+			glBindVertexArray(linesVAO);
+			glDrawArrays(GL_LINES, 0, 2);
+
+			// Instancing gargoyles
+			instancing.use();
+			instancing.setMat4("projection", projection);
+			instancing.setMat4("view", view);
+
+			for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
+			{
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, gargoyleTexture);
+				glBindVertexArray(gargoyle.meshes[i].VAO);
+				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
+				glBindVertexArray(0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDisable(GL_DEPTH_TEST);
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			screenShader.use();
+			glBindVertexArray(quadVAO);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+		else 
+		{
+			glm::mat4 projection = glm::perspective(glm::radians(sceneCamera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+			glm::mat4 view = glm::lookAt(sceneCamera.Position, sceneCamera.Position + sceneCamera.Front, sceneCamera.Up);
+			glm::mat4 skyboxView = glm::lookAt(sceneCamera.Position, sceneCamera.Position + sceneCamera.Front, sceneCamera.Up);
+
+			// Skybox	
+			glDepthFunc(GL_LEQUAL);
+			skyboxShader.use();
+
+			skyboxView = glm::mat4(glm::mat3(sceneCamera.GetViewMatrix())); // no translation
+			skyboxShader.setMat4("view", skyboxView);
+			skyboxShader.setMat4("projection", projection);
+			glBindVertexArray(skyboxVAO);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glDepthFunc(GL_LESS); // depth default
+
+			// Instancing gargoyles
+			instancing.use();
+			instancing.setMat4("projection", projection);
+			instancing.setMat4("view", view);
+
+			for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
+			{
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, gargoyleTexture);
+				glBindVertexArray(gargoyle.meshes[i].VAO);
+				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
+				glBindVertexArray(0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDisable(GL_DEPTH_TEST);
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			screenShader.use();
+			glBindVertexArray(quadVAO);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST); 
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f); 
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		screenShader.use();
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	
-		glDrawArrays(GL_TRIANGLES, 0, 6); 
 
 		ImGui::End();
 		ImGui::Render();
@@ -379,21 +479,6 @@ void processInput(GLFWwindow* window)
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
-
-	// TEST: Move light
-	float lightSpeed = 0.001f;
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		lightPos.z = lightPos.z - lightSpeed;
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		lightPos.z = lightPos.z + lightSpeed;
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		lightPos.x = lightPos.x - lightSpeed;
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		lightPos.x = lightSpeed + lightPos.x;
-	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-		lightPos.y = lightSpeed + lightPos.y;
-	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-		lightPos.y = lightPos.y - lightSpeed;
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
