@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
 	glEnableVertexAttribArray(0);
 
 	// instanced array
-	unsigned int amount = 500;
+	unsigned int amount = 5000;
 	glm::mat4* modelMatrices = new glm::mat4[amount];
 	srand(glfwGetTime());
 	for (unsigned int i = 0; i < amount; i++)
