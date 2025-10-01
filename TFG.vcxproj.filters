@@ -66,6 +66,9 @@
     <ClCompile Include="libraries\Include\imgui\imgui_tables.cpp">
       <Filter>Archivos de origen\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="LODSystem.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -109,6 +112,9 @@
     </ClInclude>
     <ClInclude Include="libraries\Include\imgui\imstb_truetype.h">
       <Filter>Archivos de encabezado\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="LODSystem.h">
+      <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

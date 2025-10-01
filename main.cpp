@@ -87,10 +87,11 @@ int main(int argc, char* argv[])
 	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
 	//Shader skyReflect("shaders/skyReflect.vert", "shaders/skyReflect.frag");
-	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
 	Shader normalGeometry("shaders/normals.vert", "shaders/normals.geom", "shaders/normals.frag");
 	Shader instancing("shaders/instancing.vert", "shaders/instancing.frag");
 	Shader screenShader("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
+	Shader basic("shaders/v1.vert", "shaders/v1.frag");
+	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
 
 	// Skybox
 	float skyboxVertices[] = {
@@ -193,7 +194,8 @@ int main(int argc, char* argv[])
 	// Model
 	Model gargoyle("models/gargoyle/gargoyle.obj");
 
-	// instanced array
+	/*
+	// instanced array para gargoyles
 	unsigned int amount = 500;
 	glm::mat4* modelMatrices = new glm::mat4[amount];
 	srand(glfwGetTime());
@@ -209,7 +211,7 @@ int main(int argc, char* argv[])
 
 		modelMatrices[i] = model;
 	}
-
+	
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -235,7 +237,9 @@ int main(int argc, char* argv[])
 
 		glBindVertexArray(0);
 	}
+	*/
 
+	// FBO
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -277,12 +281,11 @@ int main(int argc, char* argv[])
 		processInput(window);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		glEnable(GL_DEPTH_TEST); // ns si es neccesario
+		glEnable(GL_DEPTH_TEST); 
 		//glDepthFunc(GL_LESS);
 		glClearColor(0.f, 0.f, 0.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-
 		showFPS(window);
 
 		//std::cout << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
@@ -295,7 +298,7 @@ int main(int argc, char* argv[])
 		ImGui::Text("Hello, world!"); 
 
 		// projection / view
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 skyboxView = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 model;
@@ -315,13 +318,27 @@ int main(int argc, char* argv[])
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDepthFunc(GL_LESS); // depth default
 
+		// Gargoyle
+		modelLoading.use();
+		modelLoading.setMat4("projection", projection);
+		modelLoading.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f, -2.f, -5.f));
+		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelLoading.setMat4("model", model);
+		gargoyle.Draw(modelLoading);	
+
+		/*
 		// Instancing gargoyles
 		instancing.use();
 		instancing.setMat4("projection", projection);
 		instancing.setMat4("view", view);
-
-		for(unsigned int i = 0; i < gargoyle.meshes.size(); i++)
+			
+		// para cada mesh del modelo hace un drawInstanced
+		for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
 		{
+			std::cout << gargoyle.meshes.size() << std::endl;
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, gargoyleTexture);
 			glBindVertexArray(gargoyle.meshes[i].VAO);
@@ -329,6 +346,17 @@ int main(int argc, char* argv[])
 			glBindVertexArray(0);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
+		*/
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		screenShader.use();
+		glBindVertexArray(quadVAO);
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST); 
