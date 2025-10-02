@@ -14,6 +14,7 @@
 
 #include <iostream>	
 #include <stdlib.h>     /* srand, rand */
+#include "GameObject.h"
 
 int SCR_WIDTH = 1366;
 int SCR_HEIGHT = 768;
@@ -216,7 +217,7 @@ int main(int argc, char* argv[])
 	//unsigned int specularMap = loadTexture("textures/specularMap.png");
 
 	// Model
-	Model gargoyle("models/gargoyle/gargoyle.obj");
+	Model gargoyle("models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj");
 
 	/*
 	// instanced array para gargoyles
@@ -289,10 +290,10 @@ int main(int argc, char* argv[])
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 
 	// Setup Platform/Renderer backends	
-	ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 
 	// Render
@@ -318,8 +319,7 @@ int main(int argc, char* argv[])
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGui::Begin("ImGUI");
-		ImGui::Text("Hello, world!"); 
+		
 
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
@@ -343,15 +343,24 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS); // depth default
 
 		// Gargoyle
+		GameObject gargoyleGO(glm::vec3(0.f, -2.f, -5.f), gargoyle);
+		gargoyleGO.checkLODS(camera.Position);
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f, -2.f, -5.f));
+		model = glm::translate(model, gargoyleGO.getPosition());
 		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		modelLoading.setMat4("model", model);
 		gargoyle.Draw(modelLoading);	
+
+		ImGui::Begin("LOD DEBUG");
+		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.position.x, gargoyleGO.position.y, gargoyleGO.position.z);
+		ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
+		float distance = glm::distance(gargoyleGO.position, camera.Position);
+		ImGui::Text("Distance: %.2f", distance);
+		ImGui::End();
 
 		/*
 		// Instancing gargoyles
@@ -370,12 +379,6 @@ int main(int argc, char* argv[])
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glDepthFunc(GL_LESS); // depth default
 
-			
-			// Draw lines
-			basic.use();
-			glBindVertexArray(linesVAO);
-			glDrawArrays(GL_LINES, 0, 2);
-
 			// Instancing gargoyles
 			instancing.use();
 			instancing.setMat4("projection", projection);
@@ -391,52 +394,6 @@ int main(int argc, char* argv[])
 				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 
-
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glDisable(GL_DEPTH_TEST);
-			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-			screenShader.use();
-			glBindVertexArray(quadVAO);
-			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
-		else 
-		{
-			glm::mat4 projection = glm::perspective(glm::radians(sceneCamera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-			glm::mat4 view = glm::lookAt(sceneCamera.Position, sceneCamera.Position + sceneCamera.Front, sceneCamera.Up);
-			glm::mat4 skyboxView = glm::lookAt(sceneCamera.Position, sceneCamera.Position + sceneCamera.Front, sceneCamera.Up);
-
-			// Skybox	
-			glDepthFunc(GL_LEQUAL);
-			skyboxShader.use();
-
-			skyboxView = glm::mat4(glm::mat3(sceneCamera.GetViewMatrix())); // no translation
-			skyboxShader.setMat4("view", skyboxView);
-			skyboxShader.setMat4("projection", projection);
-			glBindVertexArray(skyboxVAO);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glDepthFunc(GL_LESS); // depth default
-
-			// Instancing gargoyles
-			instancing.use();
-			instancing.setMat4("projection", projection);
-			instancing.setMat4("view", view);
-
-			for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
-			{
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, gargoyleTexture);
-				glBindVertexArray(gargoyle.meshes[i].VAO);
-				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
-				glBindVertexArray(0);
-				glBindTexture(GL_TEXTURE_2D, 0);
-			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDisable(GL_DEPTH_TEST);
@@ -461,7 +418,7 @@ int main(int argc, char* argv[])
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		
 
-		ImGui::End();
+		
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

@@ -134,6 +134,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="libraries\Include\imgui\imgui.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui_demo.cpp" />
@@ -152,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\Downloads\stb_image.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="libraries\Include\imgui\imconfig.h" />
     <ClInclude Include="libraries\Include\imgui\imgui.h" />
     <ClInclude Include="libraries\Include\imgui\imgui_impl_glfw.h" />

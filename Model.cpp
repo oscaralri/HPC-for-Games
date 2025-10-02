@@ -2,10 +2,23 @@
 
 void Model::Draw(Shader& shader)
 {
-	for (unsigned int i = 0; i < meshes.size(); i++)
+	std::cout << "model: " << activeLod << std::endl;
+	if (activeLod == 0)
 	{
-		meshes[i].Draw(shader);
+		for (unsigned int i = 0; i < meshes.size(); i++)
+		{
+			meshes[i].Draw(shader);
+		}
 	}
+
+	if (activeLod == 1)
+	{
+		for (unsigned int i = 0; i < meshes1.size(); i++)
+		{
+			meshes1[i].Draw(shader);
+		}
+	}
+	
 	//std::cout << "Model::Draw" << std::endl;
 }
 
@@ -30,7 +43,9 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes.push_back(processMesh(mesh, scene));
+		if(loadingLod == 0) meshes.push_back(processMesh(mesh, scene));
+		if (loadingLod == 1) meshes1.push_back(processMesh(mesh, scene));
+	
 	}
 	
 	// same for each children
@@ -50,6 +65,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		Vertex vertex;
 		glm::vec3 vector;
+
 		// positions
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
