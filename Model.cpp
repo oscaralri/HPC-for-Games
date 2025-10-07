@@ -2,7 +2,6 @@
 
 void Model::Draw(Shader& shader)
 {
-	std::cout << "model: " << activeLod << std::endl;
 	if (activeLod == 0)
 	{
 		for (unsigned int i = 0; i < meshes.size(); i++)

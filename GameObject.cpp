@@ -14,7 +14,6 @@ void GameObject::checkLODS(glm::vec3 cameraPos)
 	{
 		model.activeLod = 1;
 	}
-	std::cout << model.activeLod << std::endl;
 	/*
 	std::cout << "" << std::endl;
 	std::cout << position.x << " " << position.y << " " << position.z << std::endl;

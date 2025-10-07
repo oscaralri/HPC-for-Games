@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
 	//skyReflect.setInt("skybox", 0);
 
 	// Texture
-	unsigned int gargoyleTexture = loadTexture("models/gargoyle/gargoyle_256.png");
+	//unsigned int gargoyleTexture = loadTexture("models/gargoyle/gargoyle_256.png");
 	//unsigned int specularMap = loadTexture("textures/specularMap.png");
 
 	// Model
@@ -319,7 +319,6 @@ int main(int argc, char* argv[])
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		
 
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
@@ -343,7 +342,7 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS); // depth default
 
 		// Gargoyle
-		GameObject gargoyleGO(glm::vec3(0.f, -2.f, -5.f), gargoyle);
+		GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle);
 		gargoyleGO.checkLODS(camera.Position);
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
@@ -353,7 +352,20 @@ int main(int argc, char* argv[])
 		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		modelLoading.setMat4("model", model);
-		gargoyle.Draw(modelLoading);	
+		gargoyle.Draw(modelLoading);
+
+		GameObject gargoyleGO2(glm::vec3(-5.f, -6.f, -10.f), gargoyle);
+		gargoyleGO2.checkLODS(camera.Position);
+		modelLoading.use();
+		modelLoading.setMat4("projection", projection);
+		modelLoading.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, gargoyleGO2.getPosition());
+		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelLoading.setMat4("model", model);
+		gargoyle.Draw(modelLoading);
+
 
 		ImGui::Begin("LOD DEBUG");
 		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.position.x, gargoyleGO.position.y, gargoyleGO.position.z);
@@ -416,8 +428,6 @@ int main(int argc, char* argv[])
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		
-
 		
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
