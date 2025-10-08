@@ -2,17 +2,23 @@
 #include <glm/ext/vector_float3.hpp>
 #include "Model.h"
 
+/*
+struct LODLevel {
+	std::vector<Mesh> meshes;
+};
+*/
+
 class GameObject
 {
 private:
-	
-public:
-	glm::vec3 position; // ESTO DEBERIA SER PRIVATE !!!!!!
+	// define cuantos niveles y por tanto meshes diferentes hay
+
+	//std::vector<LODLevel> LODs;
 	Model& model;
 
-	GameObject(glm::vec3 pos, Model& mod) : position(pos), model(mod) {};
+public:
+	glm::vec3 position; 
+	
+	void Render();
 
-	glm::vec3 getPosition() { return position; }
-
-	void checkLODS(glm::vec3 cameraPos);
 };

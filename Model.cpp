@@ -2,29 +2,17 @@
 
 void Model::Draw(Shader& shader)
 {
-	if (activeLod == 0)
+	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
-		for (unsigned int i = 0; i < meshes.size(); i++)
-		{
-			meshes[i].Draw(shader);
-		}
+		meshes[i].Draw(shader);
 	}
-
-	if (activeLod == 1)
-	{
-		for (unsigned int i = 0; i < meshes1.size(); i++)
-		{
-			meshes1[i].Draw(shader);
-		}
-	}
-	
 	//std::cout << "Model::Draw" << std::endl;
 }
 
 void Model::loadModel(std::string const& path)
 {
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs |  aiProcess_CalcTangentSpace); // convertir caras a triangulos || invertir cordsUV
+	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace); // convertir caras a triangulos || invertir cordsUV
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -42,11 +30,9 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		if(loadingLod == 0) meshes.push_back(processMesh(mesh, scene));
-		if (loadingLod == 1) meshes1.push_back(processMesh(mesh, scene));
-	
+		meshes.push_back(processMesh(mesh, scene));
 	}
-	
+
 	// same for each children
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
@@ -64,13 +50,12 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		Vertex vertex;
 		glm::vec3 vector;
-
 		// positions
 		vector.x = mesh->mVertices[i].x;
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;
 		vertex.Position = vector;
-		
+
 		// normals
 		if (mesh->HasNormals())
 		{
@@ -124,7 +109,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
 	std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
 	textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-	
+
 	std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
 	textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 

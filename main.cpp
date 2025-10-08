@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
 
 		// IMGUI
 		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
+		ImGui_ImplGlfw_NewFrame(); 
 		ImGui::NewFrame();
 
 		// projection / view
