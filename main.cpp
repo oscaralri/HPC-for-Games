@@ -64,14 +64,6 @@ void showFPS(GLFWwindow* window);
 
 int main(int argc, char* argv[])
 {
-	// debug
-	for (int row = 0; row < 4; row++) {
-		for (int col = 0; col < 4; col++) {
-			std::cout << projectionMat[col][row] << " ";
-		}
-		std::cout << std::endl;
-	}
-
 	// glfw
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -217,7 +209,19 @@ int main(int argc, char* argv[])
 	//unsigned int specularMap = loadTexture("textures/specularMap.png");
 
 	// Model
-	Model gargoyle("models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj");
+	//Model rock("models/rock/rock.obj");
+
+	Model gargoyle("models/gargoyle/gargoyle.obj");
+
+	/*
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	for (int i = 0; i < paths.size(); i++)
+	{
+		std::cout << paths[i] << std::endl;
+	}
+	//Model gargoyle("models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj");
+	Model gargoyle(paths);
+	*/
 
 	/*
 	// instanced array para gargoyles
@@ -316,10 +320,11 @@ int main(int argc, char* argv[])
 		//std::cout << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
 
 		// IMGUI
+		/*
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame(); 
 		ImGui::NewFrame();
-
+		*/
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
@@ -342,6 +347,7 @@ int main(int argc, char* argv[])
 		glDepthFunc(GL_LESS); // depth default
 
 		// Gargoyle
+		/*
 		GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle);
 		gargoyleGO.checkLODS(camera.Position);
 		modelLoading.use();
@@ -365,15 +371,26 @@ int main(int argc, char* argv[])
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		modelLoading.setMat4("model", model);
 		gargoyle.Draw(modelLoading);
+		*/
 
-
+		GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle, modelLoading);
+		modelLoading.use();
+		modelLoading.setMat4("projection", projection);
+		modelLoading.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, gargoyleGO.getPosition());
+		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelLoading.setMat4("model", model);
+		gargoyleGO.Render();
+		/*
 		ImGui::Begin("LOD DEBUG");
-		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.position.x, gargoyleGO.position.y, gargoyleGO.position.z);
+		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
 		ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
-		float distance = glm::distance(gargoyleGO.position, camera.Position);
+		float distance = glm::distance(gargoyleGO.getPosition(), camera.Position);
 		ImGui::Text("Distance: %.2f", distance);
 		ImGui::End();
-
+		*/
 		/*
 		// Instancing gargoyles
 		instancing.use();

@@ -1,7 +1,8 @@
 #include "Model.h"
 
-void Model::Draw(Shader& shader)
+void Model::Draw(Shader& shader, int lodLevel)
 {
+	std::vector<Mesh> meshes = LODs[lodLevel].meshes;
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
 		meshes[i].Draw(shader);
@@ -21,16 +22,23 @@ void Model::loadModel(std::string const& path)
 	}
 
 	directory = path.substr(0, path.find_last_of('/'));
+	std::cout << " " << directory << std::endl;
 	processNode(scene->mRootNode, scene);
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
 {
+	std::vector<Mesh> meshesToLoad;
+
 	// all the node meshes 
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		meshes.push_back(processMesh(mesh, scene));
+		meshesToLoad.push_back(processMesh(mesh, scene));
+		
+		LODLevel lodLevel;
+		lodLevel.meshes = meshesToLoad;
+		LODs.push_back(lodLevel);
 	}
 
 	// same for each children
@@ -38,6 +46,8 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	{
 		processNode(node->mChildren[i], scene);
 	}
+	std::cout << "lods size " << LODs.size();
+	
 }
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)

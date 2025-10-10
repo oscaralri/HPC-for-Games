@@ -9,7 +9,7 @@
 #include "Shader.h"
 #include "stb_image.h"
 
-
+// uso struct en lugar de directamnete la lista y ya porque quizas añado más variables/info al struct
 struct LODLevel {
 	std::vector<Mesh> meshes;
 };
@@ -34,17 +34,15 @@ public:
 	{
 		loadModel(path);
 	}
-
-	Model(std::vector<std::string> paths, bool gamma = false) : gammaCorrection(gamma)
+	/*
+	Model(std::vector<std::string>& paths, bool gamma = false) : gammaCorrection(gamma)
 	{
-		for (int i = 0; i < paths.size(); i++)
+		for (size_t i = 0; i < paths.size(); ++i)
 		{
-			loadModel(paths[0]);
+			loadModel(paths[i]);
 		}
-		
 	}
-
-
-	void Draw(Shader& shader);
+	*/
+	void Draw(Shader& shader, int lodLevel); // lo de tener que pasar el lodLevel no me gusta especialmente 
 };
 
