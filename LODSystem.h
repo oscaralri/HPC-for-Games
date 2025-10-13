@@ -5,7 +5,7 @@
 class LODSystem
 {
 private:
-	Camera camera;
+	Camera* camera;
 	
 	LODSystem() 
 	{
@@ -20,7 +20,7 @@ public:
 		return instance;
 	}
 
-	void setCamera(const Camera& cam) 
+	void setCamera(Camera* cam) 
 	{
 		camera = cam;
 	}

@@ -34,7 +34,7 @@ public:
 	{
 		loadModel(path);
 	}
-	/*
+	
 	Model(std::vector<std::string>& paths, bool gamma = false) : gammaCorrection(gamma)
 	{
 		for (size_t i = 0; i < paths.size(); ++i)
@@ -42,7 +42,7 @@ public:
 			loadModel(paths[i]);
 		}
 	}
-	*/
+	
 	void Draw(Shader& shader, int lodLevel); // lo de tener que pasar el lodLevel no me gusta especialmente 
 };
 

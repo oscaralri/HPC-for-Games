@@ -211,9 +211,9 @@ int main(int argc, char* argv[])
 	// Model
 	//Model rock("models/rock/rock.obj");
 
-	Model gargoyle("models/gargoyle/gargoyle.obj");
+	//Model gargoyle("models/gargoyle/gargoyle.obj");
 
-	/*
+	
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 	for (int i = 0; i < paths.size(); i++)
 	{
@@ -221,7 +221,7 @@ int main(int argc, char* argv[])
 	}
 	//Model gargoyle("models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj");
 	Model gargoyle(paths);
-	*/
+
 
 	/*
 	// instanced array para gargoyles
@@ -300,6 +300,9 @@ int main(int argc, char* argv[])
 	ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 
+	// LODSystem
+	LODSystem::getInstance().setCamera(&camera);
+
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
@@ -320,11 +323,11 @@ int main(int argc, char* argv[])
 		//std::cout << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
 
 		// IMGUI
-		/*
+		
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame(); 
 		ImGui::NewFrame();
-		*/
+		
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
@@ -383,14 +386,14 @@ int main(int argc, char* argv[])
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		modelLoading.setMat4("model", model);
 		gargoyleGO.Render();
-		/*
+		
 		ImGui::Begin("LOD DEBUG");
 		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
 		ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
 		float distance = glm::distance(gargoyleGO.getPosition(), camera.Position);
 		ImGui::Text("Distance: %.2f", distance);
 		ImGui::End();
-		*/
+		
 		/*
 		// Instancing gargoyles
 		instancing.use();
