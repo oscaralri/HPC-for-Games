@@ -37,6 +37,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 		meshesToLoad.push_back(processMesh(mesh, scene));
 		
 		LODLevel lodLevel;
+		lodLevel.distance = lodIncrement;
 		lodLevel.meshes = meshesToLoad;
 		LODs.push_back(lodLevel);
 	}
@@ -47,7 +48,6 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 		processNode(node->mChildren[i], scene);
 	}
 	std::cout << "lods size " << LODs.size();
-	
 }
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)

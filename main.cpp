@@ -214,14 +214,13 @@ int main(int argc, char* argv[])
 	//Model gargoyle("models/gargoyle/gargoyle.obj");
 
 	
-	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	std::vector<std::string> paths = {"models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj"};
 	for (int i = 0; i < paths.size(); i++)
 	{
 		std::cout << paths[i] << std::endl;
 	}
 	//Model gargoyle("models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj");
-	Model gargoyle(paths);
-
+	Model gargoyle(paths, 25);
 
 	/*
 	// instanced array para gargoyles

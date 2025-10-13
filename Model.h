@@ -12,6 +12,7 @@
 // uso struct en lugar de directamnete la lista y ya porque quizas añado más variables/info al struct
 struct LODLevel {
 	std::vector<Mesh> meshes;
+	int distance;
 };
 
 class Model
@@ -22,6 +23,7 @@ private:
 	std::vector<Texture> textures_loaded; 
 	std::string directory;
 	bool gammaCorrection;
+	int lodIncrement = 0;
 	
 	void loadModel(std::string const& path);
 	void processNode(aiNode* node, const aiScene* scene);
@@ -30,16 +32,21 @@ private:
 	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 public:
+	std::vector<LODLevel> getLODs() { return LODs; }
+
 	Model(std::string const& path, bool gamma = false) : gammaCorrection(gamma)
 	{
 		loadModel(path);
 	}
 	
-	Model(std::vector<std::string>& paths, bool gamma = false) : gammaCorrection(gamma)
+	Model(std::vector<std::string>& paths, int increment, bool gamma = false) : gammaCorrection(gamma)
 	{
+		
 		for (size_t i = 0; i < paths.size(); ++i)
 		{
+			lodIncrement += increment;
 			loadModel(paths[i]);
+			std::cout << "entrado for" << std::endl;
 		}
 	}
 	

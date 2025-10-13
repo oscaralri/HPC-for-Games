@@ -1,5 +1,7 @@
 #pragma once
 #include "Camera.h"
+#include "Model.h"
+#include <vector>
 #include <iostream>
 
 class LODSystem
@@ -25,6 +27,6 @@ public:
 		camera = cam;
 	}
 
-	int checkLOD(glm::vec3 position);
+	int checkLOD(glm::vec3 position, std::vector<LODLevel>);
 };
 

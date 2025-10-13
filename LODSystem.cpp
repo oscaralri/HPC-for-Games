@@ -1,15 +1,16 @@
 #include "LODSystem.h"
 
-
-int LODSystem::checkLOD(glm::vec3 position)
+int LODSystem::checkLOD(glm::vec3 position, std::vector<LODLevel> LODs)
 {
-	//std::cout << camera.Position.x << camera.Position.y << camera.Position.z << std::endl;
-	if (glm::distance(camera->Position, position) < 25)
+	size_t i = 0;
+	for (; i < LODs.size(); i++)
 	{
-		return 0;
+		if (glm::distance(camera->Position, position) < LODs[i].distance)
+		{
+			return i;
+		}
+		
 	}
-	else
-	{
-		return 1;
-	}
+
+	return i - 1;
 }
