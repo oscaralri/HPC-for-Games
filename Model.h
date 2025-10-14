@@ -46,10 +46,9 @@ public:
 		{
 			lodIncrement += increment;
 			loadModel(paths[i]);
-			std::cout << "entrado for" << std::endl;
 		}
 	}
 	
-	void Draw(Shader& shader, int lodLevel); // lo de tener que pasar el lodLevel no me gusta especialmente 
+	void Draw(Shader& shader, int lodLevel); 
 };
 

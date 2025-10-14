@@ -26,9 +26,10 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 Camera sceneCamera(glm::vec3(5.0f, 0.0f, 5.0f));
+Camera imguiCamera(glm::vec3(0.0f, 10.0f, .0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -90.0f);
 
 float near = 0.1f;
-float far = 1000.f; 
+float far = 1000.f;
 
 // time
 float deltaTime = 0.0f;
@@ -39,18 +40,7 @@ int nbFrames = 0;
 
 // extra variables (for test/debug/wip)
 bool moveEnabled = true;
-float top = near * tan(camera.Zoom / 2.0f);
-float right = top * (SCR_WIDTH / SCR_HEIGHT);
-glm::mat4 projectionMat = glm::mat4(
-	(2*near)/(right - (-right)), 0.0f, 0.0f, 0.0f,   
-	0.0f, (2 * near) / (top - (-top)), 0.0f, 0.0f,
-	(right + (-right)), (top + (- top)) / (top - (-top)), (-(far + near))/(far - near), -1.f,
-	0.0f, 0.0f, (-2 * far * near) / (far - near), 0.f
-);
-unsigned int linesVAO, linesVBO;
-
-
-
+double fps = 0.0;
 
 // methods
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -83,7 +73,7 @@ int main(int argc, char* argv[])
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // GLFW_CURSOR_DISABLED GLFW_CURSOR_HIDDEN GLFW_CURSOR_NORMAL
-	
+
 	// glad
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -98,7 +88,7 @@ int main(int argc, char* argv[])
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	glFrontFace(GL_CW); // con el modelo backpack si pongo CCW da problemas
+	glFrontFace(GL_CW); 
 
 	// Shader
 	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
@@ -210,11 +200,10 @@ int main(int argc, char* argv[])
 
 	// Model
 	//Model rock("models/rock/rock.obj");
-
 	//Model gargoyle("models/gargoyle/gargoyle.obj");
 
-	
-	std::vector<std::string> paths = {"models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj"};
+
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 	for (int i = 0; i < paths.size(); i++)
 	{
 		std::cout << paths[i] << std::endl;
@@ -239,7 +228,7 @@ int main(int argc, char* argv[])
 
 		modelMatrices[i] = model;
 	}
-	
+
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -271,7 +260,8 @@ int main(int argc, char* argv[])
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	
+
+	// almacenar color
 	unsigned int textureColorbuffer;
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
@@ -279,12 +269,36 @@ int main(int argc, char* argv[])
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
-	
+
+	// almacenar profundidad y stencil
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); 
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// imgui FBO
+	unsigned int imguiFBO;
+	glGenFramebuffers(1, &imguiFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
+
+	unsigned int imguiTextureBuffer;
+	glGenTextures(1, &imguiTextureBuffer);
+	glBindTexture(GL_TEXTURE_2D, imguiTextureBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, imguiTextureBuffer, 0);
+
+	// no estoy seguro si esto aqui hace falta
+	unsigned int imguiRBO;
+	glGenRenderbuffers(1, &imguiRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, imguiRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, imguiRBO);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -305,28 +319,45 @@ int main(int argc, char* argv[])
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
+		// esto es por ahora para poder cambiar la camara imgui
+		static float posX = 5.f;
+		static float posY = 25.0f;
+		static float posZ = -5.f;
+		Camera imguiCamera(glm::vec3(posX, posY, posZ), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -90.0f);
+
+		// ns si hace falta pero pro si aca
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		// IMGUI
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		ImGui::Begin("Slider");
+		ImGui::DragFloat("X", &posX, 0.5f);
+		ImGui::DragFloat("Y", &posY, 0.5f);
+		ImGui::DragFloat("Z", &posZ, 0.5f);
+		ImGui::End();
+
+
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
 		processInput(window);
-		
+
+		// renderizar escena a fbo
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		glEnable(GL_DEPTH_TEST); 
-		//glDepthFunc(GL_LESS);
+		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.f, 0.f, 0.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		showFPS(window);
 
-		//std::cout << camera.Position.x << " " << camera.Position.y << " " << camera.Position.z << std::endl;
 
-		// IMGUI
-		
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame(); 
-		ImGui::NewFrame();
-		
 		// projection / view
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
@@ -347,7 +378,7 @@ int main(int argc, char* argv[])
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDepthFunc(GL_LESS); // depth default
-
+		
 		// Gargoyle
 		/*
 		GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle);
@@ -385,20 +416,20 @@ int main(int argc, char* argv[])
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		modelLoading.setMat4("model", model);
 		gargoyleGO.Render();
-		
+
 		ImGui::Begin("LOD DEBUG");
 		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
 		ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
 		float distance = glm::distance(gargoyleGO.getPosition(), camera.Position);
 		ImGui::Text("Distance: %.2f", distance);
 		ImGui::End();
-		
+
 		/*
 		// Instancing gargoyles
 		instancing.use();
 		instancing.setMat4("projection", projection);
 		instancing.setMat4("view", view);
-			
+
 		// para cada mesh del modelo hace un drawInstanced
 		for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
 		{
@@ -438,15 +469,85 @@ int main(int argc, char* argv[])
 		}
 		*/
 
+		// RENDERIZAR A IMGUI
+		glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
+		glEnable(GL_DEPTH_TEST);
+		glClearColor(0.f, 0.f, 0.f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// projection / view
+		projection = glm::perspective(glm::radians(imguiCamera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+		view = glm::lookAt(imguiCamera.Position, imguiCamera.Position + imguiCamera.Front, imguiCamera.Up);
+		skyboxView = glm::lookAt(imguiCamera.Position, imguiCamera.Position + imguiCamera.Front, imguiCamera.Up);
+		model;
+
+		glDepthFunc(GL_LEQUAL);
+		skyboxShader.use();
+
+		skyboxView = glm::mat4(glm::mat3(imguiCamera.GetViewMatrix())); // no translation
+		skyboxShader.setMat4("view", skyboxView);
+		skyboxShader.setMat4("projection", projection);
+		glBindVertexArray(skyboxVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDepthFunc(GL_LESS); // depth default
+
+		modelLoading.use();
+		modelLoading.setMat4("projection", projection);
+		modelLoading.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, gargoyleGO.getPosition());
+		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelLoading.setMat4("model", model);
+		gargoyleGO.Render();
+
+		// Skybox	
+		/*
+		glDepthFunc(GL_LEQUAL);
+		skyboxShader.use();
+
+		skyboxView = glm::mat4(glm::mat3(imguiCamera.GetViewMatrix())); // no translation
+		skyboxShader.setMat4("view", skyboxView);
+		skyboxShader.setMat4("projection", projection);
+		glBindVertexArray(skyboxVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDepthFunc(GL_LESS); // depth default
+
+		modelLoading.use();
+		modelLoading.setMat4("projection", projection);
+		modelLoading.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, gargoyleGO.getPosition());
+		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelLoading.setMat4("model", model);
+		gargoyleGO.Render();
+		*/
+		// volver a framebuffer principal
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// dibujar fbo imgui
+		ImGui::Begin("Render Texture");
+		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::End();
+
+		// dibujar un quad para pintarlo en toda la pantalla
 		screenShader.use();
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 		
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -477,7 +578,7 @@ void processInput(GLFWwindow* window)
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	
+
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -587,25 +688,31 @@ void showFPS(GLFWwindow* window) {
 	double currentTime = glfwGetTime();
 	nbFrames++;
 
-	if (currentTime - lastTime >= 1.0) {
-		double fps = double(nbFrames) / (currentTime - lastTime);
-
-		std::cout << "FPS: " << fps << std::endl;
-
+	if (currentTime - lastTime >= 1.0) 
+	{
+		fps = double(nbFrames) / (currentTime - lastTime);
 		nbFrames = 0;
 		lastTime = currentTime;
 	}
+
+	ImGui::Begin("Performance");
+	ImGui::Text("FPS: %.1f", fps);
+	ImGui::Text("Frame time: %.2f ms", 1000.0 / fps);
+	ImGui::End();
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS) 
+	{
 		int cursorState = glfwGetInputMode(window, GLFW_CURSOR);
 
-		if (cursorState == GLFW_CURSOR_DISABLED) {
+		if (cursorState == GLFW_CURSOR_DISABLED) 
+		{
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
-		else if (cursorState == GLFW_CURSOR_NORMAL) {
+		else if (cursorState == GLFW_CURSOR_NORMAL) 
+		{
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 

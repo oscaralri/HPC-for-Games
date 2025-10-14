@@ -7,7 +7,6 @@ void Model::Draw(Shader& shader, int lodLevel)
 	{
 		meshes[i].Draw(shader);
 	}
-	//std::cout << "Model::Draw" << std::endl;
 }
 
 void Model::loadModel(std::string const& path)
