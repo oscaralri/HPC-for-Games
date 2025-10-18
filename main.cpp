@@ -316,12 +316,16 @@ int main(int argc, char* argv[])
 	// LODSystem
 	LODSystem::getInstance().setCamera(&camera);
 
+	// GameObjects
+	GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle, modelLoading);
+	GameObject gargoyleGO2(glm::vec3(5.f, -2.f, -25.f), gargoyle, modelLoading);
+	
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
 		// esto es por ahora para poder cambiar la camara imgui
 		static float posX = 5.f;
-		static float posY = 25.0f;
+		static float posY = 50.f;
 		static float posZ = -5.f;
 		Camera imguiCamera(glm::vec3(posX, posY, posZ), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -90.0f);
 
@@ -378,35 +382,8 @@ int main(int argc, char* argv[])
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDepthFunc(GL_LESS); // depth default
+
 		
-		// Gargoyle
-		/*
-		GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle);
-		gargoyleGO.checkLODS(camera.Position);
-		modelLoading.use();
-		modelLoading.setMat4("projection", projection);
-		modelLoading.setMat4("view", view);
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, gargoyleGO.getPosition());
-		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelLoading.setMat4("model", model);
-		gargoyle.Draw(modelLoading);
-
-		GameObject gargoyleGO2(glm::vec3(-5.f, -6.f, -10.f), gargoyle);
-		gargoyleGO2.checkLODS(camera.Position);
-		modelLoading.use();
-		modelLoading.setMat4("projection", projection);
-		modelLoading.setMat4("view", view);
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, gargoyleGO2.getPosition());
-		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelLoading.setMat4("model", model);
-		gargoyle.Draw(modelLoading);
-		*/
-
-		GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle, modelLoading);
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
@@ -417,12 +394,23 @@ int main(int argc, char* argv[])
 		modelLoading.setMat4("model", model);
 		gargoyleGO.Render();
 
+		modelLoading.use();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, gargoyleGO2.getPosition());
+		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelLoading.setMat4("model", model);
+		gargoyleGO2.Render();
+
+		/* 
 		ImGui::Begin("LOD DEBUG");
 		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
 		ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
 		float distance = glm::distance(gargoyleGO.getPosition(), camera.Position);
 		ImGui::Text("Distance: %.2f", distance);
 		ImGui::End();
+		*/
+
 
 		/*
 		// Instancing gargoyles
@@ -481,20 +469,6 @@ int main(int argc, char* argv[])
 		skyboxView = glm::lookAt(imguiCamera.Position, imguiCamera.Position + imguiCamera.Front, imguiCamera.Up);
 		model;
 
-		glDepthFunc(GL_LEQUAL);
-		skyboxShader.use();
-
-		skyboxView = glm::mat4(glm::mat3(imguiCamera.GetViewMatrix())); // no translation
-		skyboxShader.setMat4("view", skyboxView);
-		skyboxShader.setMat4("projection", projection);
-		glBindVertexArray(skyboxVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDepthFunc(GL_LESS); // depth default
-
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
@@ -505,32 +479,14 @@ int main(int argc, char* argv[])
 		modelLoading.setMat4("model", model);
 		gargoyleGO.Render();
 
-		// Skybox	
-		/*
-		glDepthFunc(GL_LEQUAL);
-		skyboxShader.use();
-
-		skyboxView = glm::mat4(glm::mat3(imguiCamera.GetViewMatrix())); // no translation
-		skyboxShader.setMat4("view", skyboxView);
-		skyboxShader.setMat4("projection", projection);
-		glBindVertexArray(skyboxVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDepthFunc(GL_LESS); // depth default
-
 		modelLoading.use();
-		modelLoading.setMat4("projection", projection);
-		modelLoading.setMat4("view", view);
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, gargoyleGO.getPosition());
+		model = glm::translate(model, gargoyleGO2.getPosition());
 		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		modelLoading.setMat4("model", model);
-		gargoyleGO.Render();
-		*/
+		gargoyleGO2.Render();
+
 		// volver a framebuffer principal
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
@@ -538,7 +494,7 @@ int main(int argc, char* argv[])
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// dibujar fbo imgui
-		ImGui::Begin("Render Texture");
+		ImGui::Begin("TopDown Camera");
 		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
 		ImGui::End();
 
