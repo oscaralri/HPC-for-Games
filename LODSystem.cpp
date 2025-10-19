@@ -14,3 +14,69 @@ int LODSystem::checkLOD(glm::vec3 position, std::vector<LODLevel> LODs)
 
 	return i - 1;
 }
+
+bool within(float min, float val, float max) {
+    return val >= min && val <= max;
+}
+
+bool testAABBinFrustum(glm::mat4& MVP, const AABB& aabb)
+{
+    glm::vec4 corners[8] = {
+        {aabb.min.x, aabb.min.y, aabb.min.z, 1.0}, // x y z
+        {aabb.max.x, aabb.min.y, aabb.min.z, 1.0}, // X y z
+        {aabb.min.x, aabb.max.y, aabb.min.z, 1.0}, // x Y z
+        {aabb.max.x, aabb.max.y, aabb.min.z, 1.0}, // X Y z
+
+        {aabb.min.x, aabb.min.y, aabb.max.z, 1.0}, // x y Z
+        {aabb.max.x, aabb.min.y, aabb.max.z, 1.0}, // X y Z
+        {aabb.min.x, aabb.max.y, aabb.max.z, 1.0}, // x Y Z
+        {aabb.max.x, aabb.max.y, aabb.max.z, 1.0}, // X Y Z
+    };
+
+    bool inside = false;
+
+    size_t size = sizeof(corners) / sizeof(corners[0]);
+    for (size_t corner_idx = 0; corner_idx < size; corner_idx++)
+    {
+        glm::vec4 corner = MVP * corners[corner_idx];
+        
+        std::cout << "Corner " << corner_idx << ": "
+            << "x=" << corner.x << ", "
+            << "y=" << corner.y << ", "
+            << "z=" << corner.z << ", "
+            << "w=" << corner.w << std::endl;
+
+        inside = inside ||
+            (within(-corner.w, corner.x, corner.w) &&
+                within(-corner.w, corner.y, corner.w) &&
+                within(0.0f, corner.z, corner.w));
+    }
+
+    return inside;
+}
+
+
+void LODSystem::objectsInFrustum(
+    const Camera& camera,
+    const std::vector<glm::vec3>& transforms,
+    const std::vector<AABB>& aabbList,
+    std::vector<unsigned int>& outVisibleList)
+{
+    glm::mat4 VP = camera.projection * camera.view;
+
+    for (size_t i = 0; i < aabbList.size(); i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        // esto esta medio mal porque estoy haciendo un model solo con la posicion
+            // porque no tengo transform (falta rotation y scale)
+        model = glm::translate(model, transforms[i]);
+
+        glm::mat4 MVP = VP * model; // matriz model view projection
+
+        const AABB& aabb = aabbList[i];
+        if (testAABBinFrustum(MVP, aabb))
+        {
+            outVisibleList.push_back(i);
+        }
+    }
+}

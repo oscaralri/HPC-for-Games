@@ -16,8 +16,8 @@
 #include <stdlib.h>     /* srand, rand */
 #include "GameObject.h"
 
-int SCR_WIDTH = 1366;
-int SCR_HEIGHT = 768;
+int SCR_WIDTH = 800;
+int SCR_HEIGHT = 600;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 7.0f));
@@ -51,6 +51,52 @@ void processInput(GLFWwindow* window);
 unsigned int loadTexture(const char* path);
 unsigned int loadCubemap(std::vector<std::string> faces);
 void showFPS(GLFWwindow* window);
+
+void DrawAABB(const glm::vec4 corners[8], Shader& shader)
+{
+	// Definir los índices de las 12 aristas
+	static const unsigned int indices[24] = {
+		// cara frontal
+		0, 1, 1, 3, 3, 2, 2, 0,
+		// cara trasera
+		4, 5, 5, 7, 7, 6, 6, 4,
+		// conexiones frente-atrás
+		0, 4, 1, 5, 2, 6, 3, 7
+	};
+
+	// Crear VAO/VBO/EBO estáticos (se crean solo la primera vez)
+	static GLuint VAO = 0, VBO = 0, EBO = 0;
+	if (VAO == 0)
+	{
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &VBO);
+		glGenBuffers(1, &EBO);
+
+		glBindVertexArray(VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * 8, nullptr, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+		// posición (x,y,z)
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void*)0);
+		glEnableVertexAttribArray(0);
+
+		glBindVertexArray(0);
+	}
+
+	// Actualizar los vértices dinámicamente
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec4) * 8, corners);
+
+	// Dibujar
+	shader.use();
+	glBindVertexArray(VAO);
+	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
 
 int main(int argc, char* argv[])
 {
@@ -317,12 +363,54 @@ int main(int argc, char* argv[])
 	LODSystem::getInstance().setCamera(&camera);
 
 	// GameObjects
-	GameObject gargoyleGO(glm::vec3(5.f, -2.f, -5.f), gargoyle, modelLoading);
-	GameObject gargoyleGO2(glm::vec3(5.f, -2.f, -25.f), gargoyle, modelLoading);
-	
+	//GameObject gargoyleGO()
+	glm::vec3 gargoyleRot = glm::vec3(0.f, 180.f, 0.f);
+	glm::vec3 gargoyleScale = glm::vec3(0.045f, 0.045, 0.045);
+	GameObject gargoyleGO(gargoyle, modelLoading, glm::vec3(5.f, -2.f, -5.f), gargoyleRot, gargoyleScale);
+	//GameObject gargoyleGO2(gargoyle, modelLoading, glm::vec3(5.f, -2.f, -25.f), gargoyleRot, gargoyleScale);
+
+	std::vector<GameObject> gargoyles; // vector que contendrá los 100 objetos
+
+	glm::vec3 basePosition(5.f, -2.f, -5.f);
+	glm::vec3 rotation = gargoyleRot;   // la rotación que quieras
+	glm::vec3 scale = gargoyleScale; // la escala que quieras
+	std::vector<GameObject> gobjectsToRender;
+
+	for (int i = 0; i < 5; i++)
+	{
+		// Aquí puedes variar la posición de cada objeto, por ejemplo en z
+		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
+
+		// Crear el objeto y añadirlo al vector
+		gobjectsToRender.emplace_back(gargoyle, modelLoading, pos, rotation, scale);
+	}
+
+	// cosas para frustum culling
+	gobjectsToRender.push_back(gargoyleGO);
+	//gobjectsToRender.push_back(gargoyleGO2);
+
+	std::vector<glm::vec3> transforms;
+	std::vector<AABB> aabb;
+	AABB testAABB;
+	std::vector<unsigned int> outList;
+	for (size_t i = 0; i < gobjectsToRender.size(); i++)
+	{
+		transforms.push_back(gobjectsToRender[i].getPosition());
+		aabb.push_back(testAABB);
+	}
+
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
+		outList = std::vector<unsigned int>();
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
+
+		camera.projection = projection;
+		camera.view = view;
+
+		LODSystem::getInstance().objectsInFrustum(camera, transforms, aabb, outList);
+
 		// esto es por ahora para poder cambiar la camara imgui
 		static float posX = 5.f;
 		static float posY = 50.f;
@@ -339,14 +427,7 @@ int main(int argc, char* argv[])
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		ImGui::Begin("Slider");
-		ImGui::DragFloat("X", &posX, 0.5f);
-		ImGui::DragFloat("Y", &posY, 0.5f);
-		ImGui::DragFloat("Z", &posZ, 0.5f);
-		ImGui::End();
-
-
+		
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -361,12 +442,50 @@ int main(int argc, char* argv[])
 
 		showFPS(window);
 
-
 		// projection / view
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 skyboxView = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 model;
+
+		// test cubo
+		glm::vec4 corners[8] = {
+			{testAABB.min.x, testAABB.min.y, testAABB.min.z, 1.0f},
+			{testAABB.max.x, testAABB.min.y, testAABB.min.z, 1.0f},
+			{testAABB.min.x, testAABB.max.y, testAABB.min.z, 1.0f},
+			{testAABB.max.x, testAABB.max.y, testAABB.min.z, 1.0f},
+			{testAABB.min.x, testAABB.min.y, testAABB.max.z, 1.0f},
+			{testAABB.max.x, testAABB.min.y, testAABB.max.z, 1.0f},
+			{testAABB.min.x, testAABB.max.y, testAABB.max.z, 1.0f},
+			{testAABB.max.x, testAABB.max.y, testAABB.max.z, 1.0f}
+				};
+
+		plainColor.use();
+		plainColor.setMat4("projection", projection);
+		plainColor.setMat4("view", view);
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
+		plainColor.setMat4("model", model);
+
+		// Llamar a la función
+		DrawAABB(corners, plainColor);
+
+		glm::mat4 mvp = projection * view * model;
+
+		ImGui::Begin("OutList");
+		ImGui::Text("outlist: ");
+		std::string str;
+		for (size_t i = 0; i < outList.size(); ++i) {
+			str += std::to_string(outList[i]);
+			if (i != outList.size() - 1)
+				str += ", ";
+		}
+		ImGui::Text("---------------------- ");
+		ImGui::Text("%s", str.c_str());
+		ImGui::Text("modelviewproj: ");
+		for (int i = 0; i < 4; i++) {
+			ImGui::Text("%.2f %.2f %.2f %.2f",
+				mvp[i][0]*corners[0], mvp[i][1] * corners[0].y, mvp[i][2] * corners[0].z, mvp[i][3]);
+		}
+		ImGui::End();
 
 		// Skybox	
 		glDepthFunc(GL_LEQUAL);
@@ -383,25 +502,23 @@ int main(int argc, char* argv[])
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glDepthFunc(GL_LESS); // depth default
 
-		
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, gargoyleGO.getPosition());
-		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelLoading.setMat4("model", model);
-		gargoyleGO.Render();
+		
+		/*
+		for (size_t i = 0; i < gobjectsToRender.size(); i++)
+		{
+			//if(outList[i] == i) 
+			gobjectsToRender[i].Render(modelLoading);
+		}
+		*/
 
-		modelLoading.use();
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, gargoyleGO2.getPosition());
-		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelLoading.setMat4("model", model);
-		gargoyleGO2.Render();
-
+		for (size_t i = 0; i < outList.size(); i++)
+		{
+			gobjectsToRender[i].Render(modelLoading);
+		}
+		
 		/* 
 		ImGui::Begin("LOD DEBUG");
 		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
@@ -410,7 +527,6 @@ int main(int argc, char* argv[])
 		ImGui::Text("Distance: %.2f", distance);
 		ImGui::End();
 		*/
-
 
 		/*
 		// Instancing gargoyles
@@ -466,36 +582,28 @@ int main(int argc, char* argv[])
 		// projection / view
 		projection = glm::perspective(glm::radians(imguiCamera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		view = glm::lookAt(imguiCamera.Position, imguiCamera.Position + imguiCamera.Front, imguiCamera.Up);
-		skyboxView = glm::lookAt(imguiCamera.Position, imguiCamera.Position + imguiCamera.Front, imguiCamera.Up);
-		model;
-
+		
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, gargoyleGO.getPosition());
-		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelLoading.setMat4("model", model);
-		gargoyleGO.Render();
 
-		modelLoading.use();
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, gargoyleGO2.getPosition());
-		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelLoading.setMat4("model", model);
-		gargoyleGO2.Render();
+		for (size_t i = 0; i < outList.size(); i++)
+		{
+			gobjectsToRender[i].Render(modelLoading);
+		}
 
 		// volver a framebuffer principal
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
+		
 		// dibujar fbo imgui
 		ImGui::Begin("TopDown Camera");
 		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::DragFloat("X", &posX, 0.5f);
+		ImGui::DragFloat("Y", &posY, 0.5f);
+		ImGui::DragFloat("Z", &posZ, 0.5f);
 		ImGui::End();
 
 		// dibujar un quad para pintarlo en toda la pantalla
@@ -504,7 +612,6 @@ int main(int argc, char* argv[])
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -675,3 +782,4 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		moveEnabled = !moveEnabled;
 	}
 }
+

@@ -3,28 +3,44 @@
 #include "Model.h"
 #include "LODSystem.h"
 
-// se esta inicializando con un valor por ahora, tendra que cambiarse
-struct AABB 
+struct Transform
 {
-	glm::vec3 min = {3.f, -4.f, -7.f};
-	glm::vec3 max = {7.f, 0.f, -3.f};
+	glm::vec3 position;
+	glm::vec3 rotation; // hacer la rotacion asi implica euler (rotacion para cada eje)
+	glm::vec3 scale;
+
+	Transform(
+		const glm::vec3& p = glm::vec3(0.f),
+		const glm::vec3& r = glm::vec3(0.f),
+		const glm::vec3& s = glm::vec3(1.f))
+		: position(p), rotation(r), scale(s)
+	{}
 };
 
 class GameObject
 {
 private:
-	glm::vec3 position;
+	Transform transform; 
 	Model& model;
 	Shader& shader;
 
 public:
-	GameObject(glm::vec3 p, Model& m, Shader& s) : position(p), model(m), shader(s) {};
+	GameObject(
+		Model& m,
+		Shader& sh,
+		const glm::vec3& p = glm::vec3(0.f),
+		const glm::vec3& r = glm::vec3(0.f),
+		const glm::vec3& s = glm::vec3(1.f)
+		) : 
+			model(m), 
+			shader(sh),
+			transform(p, r, s) {};
 	
-	glm::vec3 getPosition() { return position; }
-	void Render();
-
-	// esto son cosas del frustum culling que no deberian ir aqui pero por ahora
-	void cull_AABBs_against_frustum(const Camera& camera, const Array<mat4>& transforms, const Array<AABB>& aabb_list, Array<u32>& out_visible_list)
-	bool testAABBinFrustum(glm::mat4& MVP, const AABB& aabb);
+	glm::vec3 getPosition() { return transform.position; }
+	glm::vec3 getRotation() { return transform.rotation; }
+	glm::vec3 getScale() { return transform.scale; }
+	Transform getTransform() { return transform; }
+	
+	void Render(Shader& s);
 };
  
