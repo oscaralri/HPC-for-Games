@@ -39,13 +39,6 @@ bool testAABBinFrustum(glm::mat4& MVP, const AABB& aabb)
     for (size_t corner_idx = 0; corner_idx < size; corner_idx++)
     {
         glm::vec4 corner = MVP * corners[corner_idx];
-        
-        std::cout << "Corner " << corner_idx << ": "
-            << "x=" << corner.x << ", "
-            << "y=" << corner.y << ", "
-            << "z=" << corner.z << ", "
-            << "w=" << corner.w << std::endl;
-
         inside = inside ||
             (within(-corner.w, corner.x, corner.w) &&
                 within(-corner.w, corner.y, corner.w) &&

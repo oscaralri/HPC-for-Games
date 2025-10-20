@@ -16,8 +16,8 @@
 #include <stdlib.h>     /* srand, rand */
 #include "GameObject.h"
 
-int SCR_WIDTH = 800;
-int SCR_HEIGHT = 600;
+int SCR_WIDTH = 1366;
+int SCR_HEIGHT = 768;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 7.0f));
@@ -250,10 +250,7 @@ int main(int argc, char* argv[])
 
 
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	for (int i = 0; i < paths.size(); i++)
-	{
-		std::cout << paths[i] << std::endl;
-	}
+
 	//Model gargoyle("models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj");
 	Model gargoyle(paths, 25);
 
@@ -375,16 +372,13 @@ int main(int argc, char* argv[])
 	glm::vec3 rotation = gargoyleRot;   // la rotación que quieras
 	glm::vec3 scale = gargoyleScale; // la escala que quieras
 	std::vector<GameObject> gobjectsToRender;
-
+	
 	for (int i = 0; i < 5; i++)
 	{
-		// Aquí puedes variar la posición de cada objeto, por ejemplo en z
 		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
-
-		// Crear el objeto y añadirlo al vector
 		gobjectsToRender.emplace_back(gargoyle, modelLoading, pos, rotation, scale);
 	}
-
+	
 	// cosas para frustum culling
 	gobjectsToRender.push_back(gargoyleGO);
 	//gobjectsToRender.push_back(gargoyleGO2);
@@ -393,6 +387,19 @@ int main(int argc, char* argv[])
 	std::vector<AABB> aabb;
 	AABB testAABB;
 	std::vector<unsigned int> outList;
+
+	// test cubo
+	glm::vec4 corners[8] = {
+		{testAABB.min.x, testAABB.min.y, testAABB.min.z, 1.0f},
+		{testAABB.max.x, testAABB.min.y, testAABB.min.z, 1.0f},
+		{testAABB.min.x, testAABB.max.y, testAABB.min.z, 1.0f},
+		{testAABB.max.x, testAABB.max.y, testAABB.min.z, 1.0f},
+		{testAABB.min.x, testAABB.min.y, testAABB.max.z, 1.0f},
+		{testAABB.max.x, testAABB.min.y, testAABB.max.z, 1.0f},
+		{testAABB.min.x, testAABB.max.y, testAABB.max.z, 1.0f},
+		{testAABB.max.x, testAABB.max.y, testAABB.max.z, 1.0f}
+	};
+
 	for (size_t i = 0; i < gobjectsToRender.size(); i++)
 	{
 		transforms.push_back(gobjectsToRender[i].getPosition());
@@ -446,18 +453,8 @@ int main(int argc, char* argv[])
 		glm::mat4 skyboxView = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		glm::mat4 model;
 
-		// test cubo
-		glm::vec4 corners[8] = {
-			{testAABB.min.x, testAABB.min.y, testAABB.min.z, 1.0f},
-			{testAABB.max.x, testAABB.min.y, testAABB.min.z, 1.0f},
-			{testAABB.min.x, testAABB.max.y, testAABB.min.z, 1.0f},
-			{testAABB.max.x, testAABB.max.y, testAABB.min.z, 1.0f},
-			{testAABB.min.x, testAABB.min.y, testAABB.max.z, 1.0f},
-			{testAABB.max.x, testAABB.min.y, testAABB.max.z, 1.0f},
-			{testAABB.min.x, testAABB.max.y, testAABB.max.z, 1.0f},
-			{testAABB.max.x, testAABB.max.y, testAABB.max.z, 1.0f}
-				};
 
+		// Cubo AABB test
 		plainColor.use();
 		plainColor.setMat4("projection", projection);
 		plainColor.setMat4("view", view);
@@ -465,27 +462,9 @@ int main(int argc, char* argv[])
 		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
 		plainColor.setMat4("model", model);
 
-		// Llamar a la función
 		DrawAABB(corners, plainColor);
 
-		glm::mat4 mvp = projection * view * model;
-
-		ImGui::Begin("OutList");
-		ImGui::Text("outlist: ");
-		std::string str;
-		for (size_t i = 0; i < outList.size(); ++i) {
-			str += std::to_string(outList[i]);
-			if (i != outList.size() - 1)
-				str += ", ";
-		}
-		ImGui::Text("---------------------- ");
-		ImGui::Text("%s", str.c_str());
-		ImGui::Text("modelviewproj: ");
-		for (int i = 0; i < 4; i++) {
-			ImGui::Text("%.2f %.2f %.2f %.2f",
-				mvp[i][0]*corners[0], mvp[i][1] * corners[0].y, mvp[i][2] * corners[0].z, mvp[i][3]);
-		}
-		ImGui::End();
+		
 
 		// Skybox	
 		glDepthFunc(GL_LEQUAL);
@@ -519,6 +498,18 @@ int main(int argc, char* argv[])
 			gobjectsToRender[i].Render(modelLoading);
 		}
 		
+		ImGui::Begin("OutList");
+		ImGui::Text("outlist:");
+		std::string str;
+		for (size_t i = 0; i < outList.size(); ++i) {
+			str += std::to_string(outList[i]);
+			if (i != outList.size() - 1)
+				str += ", ";
+		}
+		ImGui::Text("%s", str.c_str()); 
+		ImGui::End();
+
+
 		/* 
 		ImGui::Begin("LOD DEBUG");
 		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
