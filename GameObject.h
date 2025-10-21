@@ -1,7 +1,8 @@
 #pragma once
 #include <glm/ext/vector_float3.hpp>
 #include "Model.h"
-#include "LODSystem.h"
+#include "OptimizeSystem.h"
+#include "OptimizeSystem.h"
 
 struct Transform
 {
@@ -23,8 +24,11 @@ private:
 	Transform transform; 
 	Model& model;
 	Shader& shader;
+	
+	void findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbMin, glm::vec3& aabbMax);
 
 public:
+	AABB aabb; // CAMBIARLO A PRIVADO ESTO ES PARA UN TEST!!!!!!!!!!!!!!!!!!
 	GameObject(
 		Model& m,
 		Shader& sh,
@@ -34,13 +38,27 @@ public:
 		) : 
 			model(m), 
 			shader(sh),
-			transform(p, r, s) {};
+			transform(p, r, s) 
+	{
+		std::vector<LODLevel> lods = model.getLODs();
+		findAABBMinMax(lods[0].meshes, aabb.min, aabb.max); // paso los meshes del lod 0 que son los que tienen mas vertices
+	};
 	
+	// getters
 	glm::vec3 getPosition() { return transform.position; }
 	glm::vec3 getRotation() { return transform.rotation; }
 	glm::vec3 getScale() { return transform.scale; }
 	Transform getTransform() { return transform; }
+	glm::mat4 getModelMatrix() {
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, getPosition());
+		model = glm::rotate(model, glm::radians(getRotation().x), glm::vec3(1, 0, 0));
+		model = glm::rotate(model, glm::radians(getRotation().y), glm::vec3(0, 1, 0));
+		model = glm::rotate(model, glm::radians(getRotation().z), glm::vec3(0, 0, 1));
+		model = glm::scale(model, getScale());
+		return model;
+	}
 	
-	void Render(Shader& s);
+	void Render();
 };
  

@@ -22,13 +22,13 @@ struct Texture {
 class Mesh
 {
 private:
-	unsigned int VBO, EBO;
+	unsigned int VBO, EBO, VAO;
 	void setupMesh();
 
 public:
-	unsigned int VAO; // CAMBIAR ESTO A PRIVATE!!!!
+ // CAMBIAR ESTO A PRIVATE!!!!
 
-	std::vector<Vertex> vertices; // vector es un dynamic size array
+	std::vector<Vertex> vertices; 
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
 

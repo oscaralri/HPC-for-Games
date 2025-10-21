@@ -1,6 +1,6 @@
-#include "LODSystem.h"
+#include "OptimizeSystem.h"
 
-int LODSystem::checkLOD(glm::vec3 position, std::vector<LODLevel> LODs)
+int OptimizeSystem::checkLOD(glm::vec3 position, std::vector<LODLevel> LODs)
 {
 	size_t i = 0;
 	for (; i < LODs.size(); i++)
@@ -9,7 +9,6 @@ int LODSystem::checkLOD(glm::vec3 position, std::vector<LODLevel> LODs)
 		{
 			return i;
 		}
-		
 	}
 
 	return i - 1;
@@ -48,8 +47,7 @@ bool testAABBinFrustum(glm::mat4& MVP, const AABB& aabb)
     return inside;
 }
 
-
-void LODSystem::objectsInFrustum(
+void OptimizeSystem::objectsInFrustum(
     const Camera& camera,
     const std::vector<glm::vec3>& transforms,
     const std::vector<AABB>& aabbList,
@@ -73,3 +71,4 @@ void LODSystem::objectsInFrustum(
         }
     }
 }
+

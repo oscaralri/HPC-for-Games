@@ -32,8 +32,6 @@ private:
 	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 public:
-	std::vector<LODLevel> getLODs() { return LODs; }
-
 	Model(std::string const& path, bool gamma = false) : gammaCorrection(gamma)
 	{
 		loadModel(path);
@@ -50,5 +48,6 @@ public:
 	}
 	
 	void Draw(Shader& shader, int lodLevel); 
+	std::vector<LODLevel> getLODs() { return LODs; }
 };
 

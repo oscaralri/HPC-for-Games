@@ -66,7 +66,7 @@
     <ClCompile Include="libraries\Include\imgui\imgui_tables.cpp">
       <Filter>Archivos de origen\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="LODSystem.cpp">
+    <ClCompile Include="OptimizeSystem.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
     <ClCompile Include="GameObject.cpp">
@@ -116,7 +116,7 @@
     <ClInclude Include="libraries\Include\imgui\imstb_truetype.h">
       <Filter>Archivos de encabezado\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="LODSystem.h">
+    <ClInclude Include="OptimizeSystem.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="GameObject.h">

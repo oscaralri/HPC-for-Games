@@ -54,17 +54,16 @@ void showFPS(GLFWwindow* window);
 
 void DrawAABB(const glm::vec4 corners[8], Shader& shader)
 {
-	// Definir los índices de las 12 aristas
+	// Definir los ndices de las 12 aristas
 	static const unsigned int indices[24] = {
 		// cara frontal
 		0, 1, 1, 3, 3, 2, 2, 0,
 		// cara trasera
 		4, 5, 5, 7, 7, 6, 6, 4,
-		// conexiones frente-atrás
+		// conexiones frente-atrs
 		0, 4, 1, 5, 2, 6, 3, 7
 	};
 
-	// Crear VAO/VBO/EBO estáticos (se crean solo la primera vez)
 	static GLuint VAO = 0, VBO = 0, EBO = 0;
 	if (VAO == 0)
 	{
@@ -80,18 +79,16 @@ void DrawAABB(const glm::vec4 corners[8], Shader& shader)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-		// posición (x,y,z)
+		// posicin (x,y,z)
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void*)0);
 		glEnableVertexAttribArray(0);
 
 		glBindVertexArray(0);
 	}
 
-	// Actualizar los vértices dinámicamente
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(glm::vec4) * 8, corners);
 
-	// Dibujar
 	shader.use();
 	glBindVertexArray(VAO);
 	glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
@@ -134,7 +131,7 @@ int main(int argc, char* argv[])
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	glFrontFace(GL_CW); 
+	glFrontFace(GL_CW);
 
 	// Shader
 	Shader plainColor("shaders/plainColor.vert", "shaders/plainColor.frag");
@@ -356,8 +353,7 @@ int main(int argc, char* argv[])
 	ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 
-	// LODSystem
-	LODSystem::getInstance().setCamera(&camera);
+	OptimizeSystem::getInstance().setCamera(&camera);
 
 	// GameObjects
 	//GameObject gargoyleGO()
@@ -366,57 +362,51 @@ int main(int argc, char* argv[])
 	GameObject gargoyleGO(gargoyle, modelLoading, glm::vec3(5.f, -2.f, -5.f), gargoyleRot, gargoyleScale);
 	//GameObject gargoyleGO2(gargoyle, modelLoading, glm::vec3(5.f, -2.f, -25.f), gargoyleRot, gargoyleScale);
 
-	std::vector<GameObject> gargoyles; // vector que contendrá los 100 objetos
+	std::vector<GameObject> gargoyles; // vector que contendr los 100 objetos
 
 	glm::vec3 basePosition(5.f, -2.f, -5.f);
-	glm::vec3 rotation = gargoyleRot;   // la rotación que quieras
+	glm::vec3 rotation = gargoyleRot;   // la rotacin que quieras
 	glm::vec3 scale = gargoyleScale; // la escala que quieras
 	std::vector<GameObject> gobjectsToRender;
-	
+	/*
 	for (int i = 0; i < 5; i++)
 	{
 		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
 		gobjectsToRender.emplace_back(gargoyle, modelLoading, pos, rotation, scale);
 	}
-	
+
 	// cosas para frustum culling
+	*/
 	gobjectsToRender.push_back(gargoyleGO);
 	//gobjectsToRender.push_back(gargoyleGO2);
-
-	std::vector<glm::vec3> transforms;
-	std::vector<AABB> aabb;
-	AABB testAABB;
-	std::vector<unsigned int> outList;
+	
 
 	// test cubo
 	glm::vec4 corners[8] = {
-		{testAABB.min.x, testAABB.min.y, testAABB.min.z, 1.0f},
-		{testAABB.max.x, testAABB.min.y, testAABB.min.z, 1.0f},
-		{testAABB.min.x, testAABB.max.y, testAABB.min.z, 1.0f},
-		{testAABB.max.x, testAABB.max.y, testAABB.min.z, 1.0f},
-		{testAABB.min.x, testAABB.min.y, testAABB.max.z, 1.0f},
-		{testAABB.max.x, testAABB.min.y, testAABB.max.z, 1.0f},
-		{testAABB.min.x, testAABB.max.y, testAABB.max.z, 1.0f},
-		{testAABB.max.x, testAABB.max.y, testAABB.max.z, 1.0f}
+		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.min.z, 1.0f},
+		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.min.z, 1.0f},
+		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.min.z, 1.0f},
+		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.min.z, 1.0f},
+		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.max.z, 1.0f},
+		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.max.z, 1.0f},
+		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.max.z, 1.0f},
+		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.max.z, 1.0f}
 	};
-
+	/*
 	for (size_t i = 0; i < gobjectsToRender.size(); i++)
 	{
 		transforms.push_back(gobjectsToRender[i].getPosition());
 		aabb.push_back(testAABB);
 	}
-
+	*/
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
-		outList = std::vector<unsigned int>();
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 
 		camera.projection = projection;
 		camera.view = view;
-
-		LODSystem::getInstance().objectsInFrustum(camera, transforms, aabb, outList);
 
 		// esto es por ahora para poder cambiar la camara imgui
 		static float posX = 5.f;
@@ -434,7 +424,7 @@ int main(int argc, char* argv[])
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		
+
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -464,8 +454,6 @@ int main(int argc, char* argv[])
 
 		DrawAABB(corners, plainColor);
 
-		
-
 		// Skybox	
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.use();
@@ -484,20 +472,19 @@ int main(int argc, char* argv[])
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
-		
-		/*
+
+		// render sin outlist
 		for (size_t i = 0; i < gobjectsToRender.size(); i++)
 		{
-			//if(outList[i] == i) 
-			gobjectsToRender[i].Render(modelLoading);
+			gobjectsToRender[i].Render();
 		}
-		*/
 
+		/*
 		for (size_t i = 0; i < outList.size(); i++)
 		{
-			gobjectsToRender[i].Render(modelLoading);
+			gobjectsToRender[i].Render();
 		}
-		
+
 		ImGui::Begin("OutList");
 		ImGui::Text("outlist:");
 		std::string str;
@@ -506,11 +493,11 @@ int main(int argc, char* argv[])
 			if (i != outList.size() - 1)
 				str += ", ";
 		}
-		ImGui::Text("%s", str.c_str()); 
+		ImGui::Text("%s", str.c_str());
 		ImGui::End();
+		*/
 
-
-		/* 
+		/*
 		ImGui::Begin("LOD DEBUG");
 		ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
 		ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
@@ -573,22 +560,24 @@ int main(int argc, char* argv[])
 		// projection / view
 		projection = glm::perspective(glm::radians(imguiCamera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		view = glm::lookAt(imguiCamera.Position, imguiCamera.Position + imguiCamera.Front, imguiCamera.Up);
-		
+
 		modelLoading.use();
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
 
+		/*
 		for (size_t i = 0; i < outList.size(); i++)
 		{
-			gobjectsToRender[i].Render(modelLoading);
+			gobjectsToRender[i].Render();
 		}
+		*/
 
 		// volver a framebuffer principal
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		
+
 		// dibujar fbo imgui
 		ImGui::Begin("TopDown Camera");
 		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
@@ -742,7 +731,7 @@ void showFPS(GLFWwindow* window) {
 	double currentTime = glfwGetTime();
 	nbFrames++;
 
-	if (currentTime - lastTime >= 1.0) 
+	if (currentTime - lastTime >= 1.0)
 	{
 		fps = double(nbFrames) / (currentTime - lastTime);
 		nbFrames = 0;
@@ -757,15 +746,15 @@ void showFPS(GLFWwindow* window) {
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS) 
+	if (key == GLFW_KEY_LEFT_CONTROL && action == GLFW_PRESS)
 	{
 		int cursorState = glfwGetInputMode(window, GLFW_CURSOR);
 
-		if (cursorState == GLFW_CURSOR_DISABLED) 
+		if (cursorState == GLFW_CURSOR_DISABLED)
 		{
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
-		else if (cursorState == GLFW_CURSOR_NORMAL) 
+		else if (cursorState == GLFW_CURSOR_NORMAL)
 		{
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
@@ -773,4 +762,3 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		moveEnabled = !moveEnabled;
 	}
 }
-
