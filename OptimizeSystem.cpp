@@ -31,7 +31,6 @@ bool testAABBinFrustum(glm::mat4& MVP, const AABB& aabb)
         {aabb.min.x, aabb.max.y, aabb.max.z, 1.0}, // x Y Z
         {aabb.max.x, aabb.max.y, aabb.max.z, 1.0}, // X Y Z
     };
-
     bool inside = false;
 
     size_t size = sizeof(corners) / sizeof(corners[0]);
@@ -39,30 +38,25 @@ bool testAABBinFrustum(glm::mat4& MVP, const AABB& aabb)
     {
         glm::vec4 corner = MVP * corners[corner_idx];
         inside = inside ||
-            (within(-corner.w, corner.x, corner.w) &&
+            within(-corner.w, corner.x, corner.w) &&
                 within(-corner.w, corner.y, corner.w) &&
-                within(0.0f, corner.z, corner.w));
+                within(0.0f, corner.z, corner.w);
     }
 
     return inside;
 }
-
+ 
 void OptimizeSystem::objectsInFrustum(
     const Camera& camera,
-    const std::vector<glm::vec3>& transforms,
+    const std::vector<glm::mat4>& models,
     const std::vector<AABB>& aabbList,
     std::vector<unsigned int>& outVisibleList)
 {
     glm::mat4 VP = camera.projection * camera.view;
-
+    outVisibleList.clear();
     for (size_t i = 0; i < aabbList.size(); i++)
     {
-        glm::mat4 model = glm::mat4(1.0f);
-        // esto esta medio mal porque estoy haciendo un model solo con la posicion
-            // porque no tengo transform (falta rotation y scale)
-        model = glm::translate(model, transforms[i]);
-
-        glm::mat4 MVP = VP * model; // matriz model view projection
+        glm::mat4 MVP = VP * models[i]; 
 
         const AABB& aabb = aabbList[i];
         if (testAABBinFrustum(MVP, aabb))

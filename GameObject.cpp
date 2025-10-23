@@ -26,14 +26,13 @@ void GameObject::findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbM
     {
         for (const auto& vertex : mesh.vertices)
         {
-            glm::vec4 worldPos = getModelMatrix() * glm::vec4(vertex.Position, 1.0f);
-            minValues.x = std::min(minValues.x, worldPos.x);
-            minValues.y = std::min(minValues.y, worldPos.y);
-            minValues.z = std::min(minValues.z, worldPos.z);
+            minValues.x = std::min(minValues.x, vertex.Position.x);
+            minValues.y = std::min(minValues.y, vertex.Position.y);
+            minValues.z = std::min(minValues.z, vertex.Position.z);
 
-            maxValues.x = std::max(maxValues.x, worldPos.x);
-            maxValues.y = std::max(maxValues.y, worldPos.y);
-            maxValues.z = std::max(maxValues.z, worldPos.z);
+            maxValues.x = std::max(maxValues.x, vertex.Position.x);
+            maxValues.y = std::max(maxValues.y, vertex.Position.y);
+            maxValues.z = std::max(maxValues.z, vertex.Position.z);
         }
     }
 

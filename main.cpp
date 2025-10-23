@@ -359,7 +359,7 @@ int main(int argc, char* argv[])
 	//GameObject gargoyleGO()
 	glm::vec3 gargoyleRot = glm::vec3(0.f, 180.f, 0.f);
 	glm::vec3 gargoyleScale = glm::vec3(0.045f, 0.045, 0.045);
-	GameObject gargoyleGO(gargoyle, modelLoading, glm::vec3(5.f, -2.f, -5.f), gargoyleRot, gargoyleScale);
+	//GameObject gargoyleGO(0, gargoyle, modelLoading, glm::vec3(5.f, -2.f, -5.f), gargoyleRot, gargoyleScale);
 	//GameObject gargoyleGO2(gargoyle, modelLoading, glm::vec3(5.f, -2.f, -25.f), gargoyleRot, gargoyleScale);
 
 	std::vector<GameObject> gargoyles; // vector que contendr los 100 objetos
@@ -368,53 +368,61 @@ int main(int argc, char* argv[])
 	glm::vec3 rotation = gargoyleRot;   // la rotacin que quieras
 	glm::vec3 scale = gargoyleScale; // la escala que quieras
 	std::vector<GameObject> gobjectsToRender;
-	/*
+	
 	for (int i = 0; i < 5; i++)
 	{
 		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
-		gobjectsToRender.emplace_back(gargoyle, modelLoading, pos, rotation, scale);
+		gobjectsToRender.emplace_back(i, gargoyle, modelLoading, pos, rotation, scale);
 	}
 
-	// cosas para frustum culling
-	*/
-	gobjectsToRender.push_back(gargoyleGO);
+	
+	
+	//gobjectsToRender.push_back(gargoyleGO);
 	//gobjectsToRender.push_back(gargoyleGO2);
 	
 
 	// test cubo
-	glm::vec4 corners[8] = {
-		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.min.z, 1.0f},
-		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.min.z, 1.0f},
-		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.min.z, 1.0f},
-		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.min.z, 1.0f},
-		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.max.z, 1.0f},
-		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.min.y, gargoyleGO.aabb.max.z, 1.0f},
-		{gargoyleGO.aabb.min.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.max.z, 1.0f},
-		{gargoyleGO.aabb.max.x, gargoyleGO.aabb.max.y, gargoyleGO.aabb.max.z, 1.0f}
-	};
 	/*
+	glm::vec4 corners[8] = {
+		{gargoyleGO.getAABB().min.x, gargoyleGO.getAABB().min.y, gargoyleGO.getAABB().min.z, 1.0f},
+		{gargoyleGO.getAABB().max.x, gargoyleGO.getAABB().min.y, gargoyleGO.getAABB().min.z, 1.0f},
+		{gargoyleGO.getAABB().min.x, gargoyleGO.getAABB().max.y, gargoyleGO.getAABB().min.z, 1.0f},
+		{gargoyleGO.getAABB().max.x, gargoyleGO.getAABB().max.y, gargoyleGO.getAABB().min.z, 1.0f},
+		{gargoyleGO.getAABB().min.x, gargoyleGO.getAABB().min.y, gargoyleGO.getAABB().max.z, 1.0f},
+		{gargoyleGO.getAABB().max.x, gargoyleGO.getAABB().min.y, gargoyleGO.getAABB().max.z, 1.0f},
+		{gargoyleGO.getAABB().min.x, gargoyleGO.getAABB().max.y, gargoyleGO.getAABB().max.z, 1.0f},
+		{gargoyleGO.getAABB().max.x, gargoyleGO.getAABB().max.y, gargoyleGO.getAABB().max.z, 1.0f}
+	};
+	*/
+	// frustum culling basico
+	std::vector<glm::mat4> models;
+	std::vector<AABB> aabb;
+
 	for (size_t i = 0; i < gobjectsToRender.size(); i++)
 	{
-		transforms.push_back(gobjectsToRender[i].getPosition());
-		aabb.push_back(testAABB);
+		models.push_back(gobjectsToRender[i].getModelMatrix());
+		aabb.push_back(gobjectsToRender[i].getAABB());
 	}
-	*/
+	std::vector<unsigned int> outList;
+	// esto es por ahora para poder cambiar la camara imgui
+	static float posX = -16.000;
+	static float posY = 75.f;
+	static float posZ = -10.f;
+	Camera imguiCamera(glm::vec3(posX, posY, posZ), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -90.0f);
+
 	// Render
 	while (!glfwWindowShouldClose(window))
 	{
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 		glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
-
 		camera.projection = projection;
 		camera.view = view;
 
-		// esto es por ahora para poder cambiar la camara imgui
-		static float posX = 5.f;
-		static float posY = 50.f;
-		static float posZ = -5.f;
-		Camera imguiCamera(glm::vec3(posX, posY, posZ), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -90.0f);
+		imguiCamera.Position = glm::vec3(posX, posY, posZ);
 
-		// ns si hace falta pero pro si aca
+		
+		OptimizeSystem::getInstance().objectsInFrustum(camera, models, aabb, outList);
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -449,10 +457,16 @@ int main(int argc, char* argv[])
 		plainColor.setMat4("projection", projection);
 		plainColor.setMat4("view", view);
 		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.f, 0.f, 0.f));
 		plainColor.setMat4("model", model);
-
-		DrawAABB(corners, plainColor);
+		glm::mat4 MVP = camera.projection * camera.view * model;
+		glm::vec4 transformedCorners[8];
+		
+		/*
+		for (int i = 0; i < 8; i++) {
+			transformedCorners[i] = gobjectsToRender[0].getModelMatrix() * corners[i];
+		}
+		DrawAABB(transformedCorners, plainColor);
+		*/
 
 		// Skybox	
 		glDepthFunc(GL_LEQUAL);
@@ -474,15 +488,23 @@ int main(int argc, char* argv[])
 		modelLoading.setMat4("view", view);
 
 		// render sin outlist
+		/*
 		for (size_t i = 0; i < gobjectsToRender.size(); i++)
 		{
 			gobjectsToRender[i].Render();
 		}
+		*/
+		
 
-		/*
-		for (size_t i = 0; i < outList.size(); i++)
+		for (size_t i = 0; i < gobjectsToRender.size(); i++)
 		{
-			gobjectsToRender[i].Render();
+			for (size_t j = 0; j < outList.size(); j++)
+			{
+				if (gobjectsToRender[i].getID() == outList[j])
+				{
+					gobjectsToRender[i].Render();
+				}
+			}
 		}
 
 		ImGui::Begin("OutList");
@@ -495,7 +517,7 @@ int main(int argc, char* argv[])
 		}
 		ImGui::Text("%s", str.c_str());
 		ImGui::End();
-		*/
+		
 
 		/*
 		ImGui::Begin("LOD DEBUG");
@@ -565,12 +587,12 @@ int main(int argc, char* argv[])
 		modelLoading.setMat4("projection", projection);
 		modelLoading.setMat4("view", view);
 
-		/*
+		
 		for (size_t i = 0; i < outList.size(); i++)
 		{
 			gobjectsToRender[i].Render();
 		}
-		*/
+		
 
 		// volver a framebuffer principal
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

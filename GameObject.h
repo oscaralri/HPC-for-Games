@@ -21,21 +21,25 @@ struct Transform
 class GameObject
 {
 private:
+	unsigned int ID;
 	Transform transform; 
 	Model& model;
 	Shader& shader;
-	
+	AABB aabb;
+
 	void findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbMin, glm::vec3& aabbMax);
 
 public:
-	AABB aabb; // CAMBIARLO A PRIVADO ESTO ES PARA UN TEST!!!!!!!!!!!!!!!!!!
+	 // CAMBIARLO A PRIVADO ESTO ES PARA UN TEST!!!!!!!!!!!!!!!!!!
 	GameObject(
+		unsigned int id,
 		Model& m,
 		Shader& sh,
 		const glm::vec3& p = glm::vec3(0.f),
 		const glm::vec3& r = glm::vec3(0.f),
 		const glm::vec3& s = glm::vec3(1.f)
-		) : 
+	) :
+			ID(id),
 			model(m), 
 			shader(sh),
 			transform(p, r, s) 
@@ -45,6 +49,7 @@ public:
 	};
 	
 	// getters
+	unsigned int getID() { return ID; }
 	glm::vec3 getPosition() { return transform.position; }
 	glm::vec3 getRotation() { return transform.rotation; }
 	glm::vec3 getScale() { return transform.scale; }
@@ -58,7 +63,7 @@ public:
 		model = glm::scale(model, getScale());
 		return model;
 	}
-	
+	AABB getAABB() { return aabb; }
 	void Render();
 };
  
