@@ -593,7 +593,6 @@ int main(int argc, char* argv[])
 			gobjectsToRender[i].Render();
 		}
 		
-
 		// volver a framebuffer principal
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
