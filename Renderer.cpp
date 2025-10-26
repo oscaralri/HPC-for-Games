@@ -34,7 +34,7 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 }
 
-void showFPS(GLFWwindow* window) {
+void Renderer::showFPS(GLFWwindow* window) {
 	double currentTime = glfwGetTime();
 	nbFrames++;
 
@@ -68,14 +68,14 @@ int Renderer::Init()
 
 void Renderer::Render()
 {
-	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-	glm::mat4 view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
-	camera.projection = projection;
-	camera.view = view;
+	glm::mat4 projection = glm::perspective(glm::radians(cameras[mainCameraID].Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+	glm::mat4 view = glm::lookAt(cameras[mainCameraID].Position, cameras[mainCameraID].Position + cameras[mainCameraID].Front, cameras[mainCameraID].Up);
+	cameras[mainCameraID].projection = projection;
+	cameras[mainCameraID].view = view;
 
 	imguiCamera.Position = glm::vec3(posX, posY, posZ);
 
-	OptimizeSystem::getInstance().objectsInFrustum(camera, models, aabb, outList);
+	OptimizeSystem::getInstance().objectsInFrustum(cameras[mainCameraID], models, aabb, outList);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
@@ -102,7 +102,7 @@ void Renderer::Render()
 	showFPS(window);
 
 	// projection / view
-	glm::mat4 skyboxView = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
+	glm::mat4 skyboxView = glm::lookAt(cameras[mainCameraID].Position, cameras[mainCameraID].Position + cameras[mainCameraID].Front, cameras[mainCameraID].Up);
 	glm::mat4 model;
 
 
@@ -112,7 +112,7 @@ void Renderer::Render()
 	plainColor.setMat4("view", view);
 	model = glm::mat4(1.0f);
 	plainColor.setMat4("model", model);
-	glm::mat4 MVP = camera.projection * camera.view * model;
+	glm::mat4 MVP = cameras[mainCameraID].projection * cameras[mainCameraID].view * model;
 	glm::vec4 transformedCorners[8];
 
 	/*
@@ -126,7 +126,7 @@ void Renderer::Render()
 	glDepthFunc(GL_LEQUAL);
 	skyboxShader.use();
 
-	skyboxView = glm::mat4(glm::mat3(camera.GetViewMatrix())); // no translation
+	skyboxView = glm::mat4(glm::mat3(cameras[mainCameraID].GetViewMatrix())); // no translation
 	skyboxShader.setMat4("view", skyboxView);
 	skyboxShader.setMat4("projection", projection);
 	glBindVertexArray(skyboxVAO);
@@ -176,8 +176,8 @@ void Renderer::Render()
 	/*
 	ImGui::Begin("LOD DEBUG");
 	ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
-	ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", camera.Position.x, camera.Position.y, camera.Position.z);
-	float distance = glm::distance(gargoyleGO.getPosition(), camera.Position);
+	ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", cameras[mainCameraID].Position.x, cameras[mainCameraID].Position.y, cameras[mainCameraID].Position.z);
+	float distance = glm::distance(gargoyleGO.getPosition(), cameras[mainCameraID].Position);
 	ImGui::Text("Distance: %.2f", distance);
 	ImGui::End();
 	*/
@@ -254,7 +254,7 @@ void Renderer::Render()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// dibujar fbo imgui
-	ImGui::Begin("TopDown Camera");
+	ImGui::Begin("TopDown cameras[mainCameraID]");
 	ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::DragFloat("X", &posX, 0.5f);
 	ImGui::DragFloat("Y", &posY, 0.5f);
@@ -328,12 +328,12 @@ void Renderer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	lastX = xpos;
 	lastY = ypos;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+	cameras[mainCameraID].ProcessMouseMovement(xoffset, yoffset);
 }
 
 void Renderer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+	cameras[mainCameraID].ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 void Renderer::processInput(GLFWwindow* window)
@@ -344,13 +344,13 @@ void Renderer::processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
+		cameras[mainCameraID].ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
+		cameras[mainCameraID].ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
+		cameras[mainCameraID].ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
+		cameras[mainCameraID].ProcessKeyboard(RIGHT, deltaTime);
 }
 
 unsigned int Renderer::loadCubemap(std::vector<std::string> faces)

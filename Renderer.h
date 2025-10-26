@@ -14,23 +14,36 @@
 
 #include <vector>
 
+#include "Camera.h"
+
 class Renderer
 {
 private:
 	int SCR_WIDTH;
 	int SCR_HEIGHT;
+	float near;
+	float far;
 
-	// QUIZAS METER ALGO DE ACTIVE CAMERA
+	std::vector<Camera> cameras;
+	unsigned int mainCameraID;
+
+	// debug
+	int nbFrames = 0;
+	double lastTime = 0.;
+	double fps = 0.;
 
 	// methods
-	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-	void processInput(GLFWwindow* window);
+	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+	static void processInput(GLFWwindow* window);
 	unsigned int loadTexture(const char* path);
 	unsigned int loadCubemap(std::vector<std::string> faces);
 	int WindowInit(int SCR_WIDTH, int SCR_HEIGHT);
+
+	// debug
+	void showFPS(GLFWwindow* window);
 
 public:
 	int Init();
