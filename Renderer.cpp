@@ -1,5 +1,136 @@
 #include "Renderer.h"
 
+void SkyboxInit()
+{
+	std::shared_ptr<Skybox> skybox = Application::Get().GetActiveScene()->GetSkybox();
+}
+
+void ShadersInit()
+{
+	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading.vert", "shaders/modelLoading.frag");
+	ShaderStorage::Get().Add("modelLoading", modelLoading);
+
+	auto screenShader = std::make_shared<Shader>("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
+	ShaderStorage::Get().Add("screenShader", screenShader);
+
+	auto skyboxShader = std::make_shared<Shader>("shaders/skybox.vert", "shaders/skybox.frag");
+	ShaderStorage::Get().Add("skyboxShader", skyboxShader);
+}
+
+void ImGuiInit(GLFWwindow* window)
+{
+	// Initialize ImGUI
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+
+	// Setup Platform/Renderer backends	
+	ImGui_ImplGlfw_InitForOpenGL(window, true); // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplOpenGL3_Init();
+}
+
+void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
+{
+	// FBO
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	// almacenar color
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+	// almacenar profundidad y stencil
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// imgui FBO
+	glGenFramebuffers(1, &imguiFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
+
+	glGenTextures(1, &imguiTextureBuffer);
+	glBindTexture(GL_TEXTURE_2D, imguiTextureBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, imguiTextureBuffer, 0);
+
+	// no estoy seguro si esto aqui hace falta
+	glGenRenderbuffers(1, &imguiRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, imguiRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, imguiRBO);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Quad
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+}
+
+// esto es muy poco generico y requiere de muchas variables, tengo que revisarlo para que no deba inicialziarse asi
+void ModelsInit()
+{
+	// tener que crear esto aqui esta fatal
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	Model gargoyle(paths, 25);
+	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
+
+	std::vector<GameObject> gargoyles; // vector que contendr los 100 objetos
+
+	glm::vec3 gargoyleRot = glm::vec3(0.f, 180.f, 0.f);
+	glm::vec3 gargoyleScale = glm::vec3(0.045f, 0.045, 0.045);
+	
+	glm::vec3 basePosition(5.f, -2.f, -5.f);
+	glm::vec3 rotation = gargoyleRot;   
+	glm::vec3 scale = gargoyleScale; 
+	std::vector<GameObject> gobjectsToRender;
+
+	for (int i = 0; i < 5; i++)
+	{
+		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
+		gobjectsToRender.emplace_back(i, gargoyle, modelLoading, pos, rotation, scale);
+	}
+
+	// prepare frustum culling
+	std::vector<glm::mat4> models;
+	std::vector<AABB> aabb;
+	for (size_t i = 0; i < gobjectsToRender.size(); i++)
+	{
+		models.push_back(gobjectsToRender[i].getModelMatrix());
+		aabb.push_back(gobjectsToRender[i].getAABB());
+	}
+}
+
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 {
 	// glfw
@@ -7,7 +138,7 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "TFG", NULL, NULL);
+	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "TFG", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -17,9 +148,22 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glfwMakeContextCurrent(window);
 
 	// input 
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, [](GLFWwindow* w, double xpos, double ypos)
+		{
+			Renderer* r = static_cast<Renderer*>(glfwGetWindowUserPointer(w));
+			if (r) r->mouse_callback(w, xpos, ypos); 
+		});
+	glfwSetScrollCallback(window, [](GLFWwindow* w, double xoffset, double yoffset)
+		{
+			Renderer* r = static_cast<Renderer*>(glfwGetWindowUserPointer(w));
+			if (r) r->scroll_callback(w, xoffset, yoffset);
+		});
+	glfwSetKeyCallback(window, [](GLFWwindow* w, int key, int scancode, int action, int mods)
+		{			
+			Renderer* r = static_cast<Renderer*>(glfwGetWindowUserPointer(w));
+			if (r) r->key_callback(w, key, scancode, action, mods);
+		});
+	
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // GLFW_CURSOR_DISABLED GLFW_CURSOR_HIDDEN GLFW_CURSOR_NORMAL
 
 	// glad
@@ -31,13 +175,17 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* w, int width, int height)
+		{
+			Renderer* r = static_cast<Renderer*>(glfwGetWindowUserPointer(w));
+			if (r) r->framebuffer_size_callback(w, width, height);
+		});
 }
 
 void Renderer::showFPS(GLFWwindow* window) {
 	double currentTime = glfwGetTime();
 	nbFrames++;
-
+	
 	if (currentTime - lastTime >= 1.0)
 	{
 		fps = double(nbFrames) / (currentTime - lastTime);
@@ -53,29 +201,51 @@ void Renderer::showFPS(GLFWwindow* window) {
 
 int Renderer::Init()
 {
-	SCR_WIDTH;
-	SCR_HEIGHT;
-	near;
-	far;
+	SCR_WIDTH = 1366;
+	SCR_HEIGHT = 768;
+	near = 0.1f;
+	far = 1000.f;
+	deltaTime = 0.0f;
+	lastFrame = 0.0f;
+	nbFrames = 0;
+	lastTime = 0.;
+	fps = 0.;
+	moveEnabled = false;
+	firstMouse = true;
+	lastX = SCR_WIDTH / 2.0f;
+	lastY = SCR_HEIGHT / 2.0f;
 
 	WindowInit(SCR_WIDTH, SCR_HEIGHT); // glfw and glad
-	
+	ModelsInit();
+	FBOInit(SCR_WIDTH, SCR_HEIGHT);
+	ImGuiInit(window);
+	ShadersInit();
+	SkyboxInit();
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	glFrontFace(GL_CW);
+	glFrontFace(GL_CW);	
 }
 
 void Renderer::Render()
 {
-	glm::mat4 projection = glm::perspective(glm::radians(cameras[mainCameraID].Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-	glm::mat4 view = glm::lookAt(cameras[mainCameraID].Position, cameras[mainCameraID].Position + cameras[mainCameraID].Front, cameras[mainCameraID].Up);
-	cameras[mainCameraID].projection = projection;
-	cameras[mainCameraID].view = view;
+	mainCamera = Application::Get().GetActiveScene()->GetCamera("MainCamera");
+	auto imguiCamera = Application::Get().GetActiveScene()->GetCamera("ImguiCamera");
+	OptimizeSystem::getInstance().setCamera(mainCamera.get()); // esto terrible que este aqui ademas de lo de .get() para cambiar el puntero
 
-	imguiCamera.Position = glm::vec3(posX, posY, posZ);
+	glm::mat4 projection = glm::perspective(glm::radians(mainCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+	glm::mat4 view = glm::lookAt(mainCamera->Position, mainCamera->Position + mainCamera->Front, mainCamera->Up);
+	mainCamera->projection = projection;
+	mainCamera->view = view;
 
-	OptimizeSystem::getInstance().objectsInFrustum(cameras[mainCameraID], models, aabb, outList);
+	// para poder cambiar la posicion en imgui
+	static float posX = -16.000;
+	static float posY = 75.f;
+	static float posZ = -10.f;
+	imguiCamera->Position = glm::vec3(posX, posY, posZ);
+
+	OptimizeSystem::getInstance().objectsInFrustum(mainCamera, models, aabb, outList);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
@@ -102,53 +272,15 @@ void Renderer::Render()
 	showFPS(window);
 
 	// projection / view
-	glm::mat4 skyboxView = glm::lookAt(cameras[mainCameraID].Position, cameras[mainCameraID].Position + cameras[mainCameraID].Front, cameras[mainCameraID].Up);
+	glm::mat4 skyboxView = glm::lookAt(mainCamera->Position, mainCamera->Position + mainCamera->Front, mainCamera->Up);
 	glm::mat4 model;
 
-
-	// Cubo AABB test
-	plainColor.use();
-	plainColor.setMat4("projection", projection);
-	plainColor.setMat4("view", view);
-	model = glm::mat4(1.0f);
-	plainColor.setMat4("model", model);
-	glm::mat4 MVP = cameras[mainCameraID].projection * cameras[mainCameraID].view * model;
-	glm::vec4 transformedCorners[8];
-
-	/*
-	for (int i = 0; i < 8; i++) {
-		transformedCorners[i] = gobjectsToRender[0].getModelMatrix() * corners[i];
-	}
-	DrawAABB(transformedCorners, plainColor);
-	*/
-
 	// Skybox	
-	glDepthFunc(GL_LEQUAL);
-	skyboxShader.use();
+	Application::Get().GetActiveScene()->GetSkybox()->Draw(projection, skyboxView);
 
-	skyboxView = glm::mat4(glm::mat3(cameras[mainCameraID].GetViewMatrix())); // no translation
-	skyboxShader.setMat4("view", skyboxView);
-	skyboxShader.setMat4("projection", projection);
-	glBindVertexArray(skyboxVAO);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glDepthFunc(GL_LESS); // depth default
-
-	modelLoading.use();
-	modelLoading.setMat4("projection", projection);
-	modelLoading.setMat4("view", view);
-
-	// render sin outlist
-	/*
-	for (size_t i = 0; i < gobjectsToRender.size(); i++)
-	{
-		gobjectsToRender[i].Render();
-	}
-	*/
-
+	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
+	modelLoading->setMat4("projection", projection);
+	modelLoading->setMat4("view", view);
 
 	for (size_t i = 0; i < gobjectsToRender.size(); i++)
 	{
@@ -172,61 +304,6 @@ void Renderer::Render()
 	ImGui::Text("%s", str.c_str());
 	ImGui::End();
 
-
-	/*
-	ImGui::Begin("LOD DEBUG");
-	ImGui::Text("GargoylePos: (%.2f, %.2f, %.2f)", gargoyleGO.getPosition().x, gargoyleGO.getPosition().y, gargoyleGO.getPosition().z);
-	ImGui::Text("CameraPos: (%.2f, %.2f, %.2f)", cameras[mainCameraID].Position.x, cameras[mainCameraID].Position.y, cameras[mainCameraID].Position.z);
-	float distance = glm::distance(gargoyleGO.getPosition(), cameras[mainCameraID].Position);
-	ImGui::Text("Distance: %.2f", distance);
-	ImGui::End();
-	*/
-
-	/*
-	// Instancing gargoyles
-	instancing.use();
-	instancing.setMat4("projection", projection);
-	instancing.setMat4("view", view);
-
-	// para cada mesh del modelo hace un drawInstanced
-	for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
-	{
-		std::cout << gargoyle.meshes.size() << std::endl;
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDepthFunc(GL_LESS); // depth default
-
-		// Instancing gargoyles
-		instancing.use();
-		instancing.setMat4("projection", projection);
-		instancing.setMat4("view", view);
-
-		for (unsigned int i = 0; i < gargoyle.meshes.size(); i++)
-		{
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, gargoyleTexture);
-			glBindVertexArray(gargoyle.meshes[i].VAO);
-			glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(gargoyle.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
-			glBindVertexArray(0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		screenShader.use();
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
-	*/
-
 	// RENDERIZAR A IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
 	glEnable(GL_DEPTH_TEST);
@@ -234,12 +311,12 @@ void Renderer::Render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// projection / view
-	projection = glm::perspective(glm::radians(imguiCamera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-	view = glm::lookAt(imguiCamera.Position, imguiCamera.Position + imguiCamera.Front, imguiCamera.Up);
+	projection = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+	view = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
 
-	modelLoading.use();
-	modelLoading.setMat4("projection", projection);
-	modelLoading.setMat4("view", view);
+	modelLoading->use();
+	modelLoading->setMat4("projection", projection);
+	modelLoading->setMat4("view", view);
 
 
 	for (size_t i = 0; i < outList.size(); i++)
@@ -254,7 +331,7 @@ void Renderer::Render()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// dibujar fbo imgui
-	ImGui::Begin("TopDown cameras[mainCameraID]");
+	ImGui::Begin("TopDown");
 	ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::DragFloat("X", &posX, 0.5f);
 	ImGui::DragFloat("Y", &posY, 0.5f);
@@ -262,7 +339,8 @@ void Renderer::Render()
 	ImGui::End();
 
 	// dibujar un quad para pintarlo en toda la pantalla
-	screenShader.use();
+	auto screenShader = ShaderStorage::Get().GetShader("screenShader");
+	screenShader->use();
 	glBindVertexArray(quadVAO);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -274,19 +352,20 @@ void Renderer::Render()
 	glfwPollEvents();
 }
 
-ImGui_ImplOpenGL3_Shutdown();
-ImGui_ImplGlfw_Shutdown();
-ImGui::DestroyContext();
+void Renderer::End()
+{
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
-glDeleteVertexArrays(1, &skyboxVAO);
-glDeleteBuffers(1, &skyboxVBO);
+	Application::Get().GetActiveScene()->GetSkybox()->Delete();
 
-glfwTerminate();
+	glfwTerminate();
 }
 
 void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+	glViewport(0, 0, width, height);
 }
 
 void Renderer::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -328,12 +407,12 @@ void Renderer::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	lastX = xpos;
 	lastY = ypos;
 
-	cameras[mainCameraID].ProcessMouseMovement(xoffset, yoffset);
+	mainCamera->ProcessMouseMovement(xoffset, yoffset);
 }
 
 void Renderer::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	cameras[mainCameraID].ProcessMouseScroll(static_cast<float>(yoffset));
+	mainCamera->ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 void Renderer::processInput(GLFWwindow* window)
@@ -344,43 +423,13 @@ void Renderer::processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameras[mainCameraID].ProcessKeyboard(FORWARD, deltaTime);
+		mainCamera->ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameras[mainCameraID].ProcessKeyboard(BACKWARD, deltaTime);
+		mainCamera->ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameras[mainCameraID].ProcessKeyboard(LEFT, deltaTime);
+		mainCamera->ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameras[mainCameraID].ProcessKeyboard(RIGHT, deltaTime);
-}
-
-unsigned int Renderer::loadCubemap(std::vector<std::string> faces)
-{
-	unsigned int textureID;
-	glGenTextures(1, &textureID);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-	int width, height, nrChannels;
-	for (unsigned int i = 0; i < faces.size(); i++)
-	{
-		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-		if (data)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		}
-		else
-		{
-			std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
-		}
-		stbi_image_free(data);
-	}
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	return textureID;
+		mainCamera->ProcessKeyboard(RIGHT, deltaTime);
 }
 
 unsigned int Renderer::loadTexture(char const* path)

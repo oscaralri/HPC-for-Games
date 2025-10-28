@@ -15,37 +15,79 @@
 #include <vector>
 
 #include "Camera.h"
+#include "Application.h"
+#include "OptimizeSystem.h"
+#include "GameObject.h"
+#include "ShaderStorage.h"
+#include "Skybox.h"
 
 class Renderer
 {
 private:
+	Renderer() = default;
+	Renderer(const Renderer&) = delete;
+	Renderer& operator=(const Renderer&) = delete;
+
+	GLFWwindow* window;
+
 	int SCR_WIDTH;
 	int SCR_HEIGHT;
 	float near;
 	float far;
+	std::shared_ptr<Camera> mainCamera;
 
-	std::vector<Camera> cameras;
-	unsigned int mainCameraID;
+	std::vector<glm::mat4> models;
+	std::vector<AABB> aabb;
+	std::vector<unsigned int> outList;
+	
+	std::vector<GameObject> gobjectsToRender;
 
-	// debug
-	int nbFrames = 0;
-	double lastTime = 0.;
-	double fps = 0.;
+	unsigned int framebuffer;
+	unsigned int textureColorbuffer;
+	unsigned int quadVAO, quadVBO;
+	unsigned int imguiFBO;
+	
+	//std::vector<Camera> cameras;
+	//unsigned int mainCameraID;
+
+	// time
+	float deltaTime;
+	float lastFrame;
+	int nbFrames;
+	double lastTime;
+	double fps;
+
+	bool moveEnabled;
+	bool firstMouse;
+	float lastX;
+	float lastY;
+
+	// Imgui
+	unsigned int imguiTextureBuffer, imguiRBO;
 
 	// methods
-	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-	static void processInput(GLFWwindow* window);
+	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+	void processInput(GLFWwindow* window);
 	unsigned int loadTexture(const char* path);
-	unsigned int loadCubemap(std::vector<std::string> faces);
 	int WindowInit(int SCR_WIDTH, int SCR_HEIGHT);
+	void FBOInit(int SCR_WIDTH, int SCR_HEIGHT);
+	void End();
 
 	// debug
 	void showFPS(GLFWwindow* window);
 
 public:
+	static Renderer& Get()
+	{
+		static Renderer instance;
+		return instance;
+	}
+
+	GLFWwindow* GetWindow() { return window; }
+
 	int Init();
 	void Render(); // main loop de render
 };

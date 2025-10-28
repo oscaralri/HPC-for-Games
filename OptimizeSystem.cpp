@@ -47,12 +47,12 @@ bool testAABBinFrustum(glm::mat4& MVP, const AABB& aabb)
 }
  
 void OptimizeSystem::objectsInFrustum(
-    const Camera& camera,
+    const std::shared_ptr<Camera>& camera,
     const std::vector<glm::mat4>& models,
     const std::vector<AABB>& aabbList,
     std::vector<unsigned int>& outVisibleList)
 {
-    glm::mat4 VP = camera.projection * camera.view;
+    glm::mat4 VP = camera->projection * camera->view;
     outVisibleList.clear();
     for (size_t i = 0; i < aabbList.size(); i++)
     {

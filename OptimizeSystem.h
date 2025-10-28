@@ -30,7 +30,7 @@ public:
 
 	int checkLOD(glm::vec3 position, std::vector<LODLevel>);
 
-	void objectsInFrustum(const Camera& camera,
+	void objectsInFrustum(const std::shared_ptr<Camera>& camera,
 		const std::vector<glm::mat4>& models,
 		const std::vector<AABB>& aabbList,
 		std::vector<unsigned int>& outList);

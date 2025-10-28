@@ -21,7 +21,7 @@ private:
 	void checkCompileErrors(unsigned int shader, std::string type);
 
 public:
-	unsigned int ID; 
+	unsigned int ID; // program id
 	Shader(const char* vertexPath, const char* fragmentPath);
 	Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
 	void use();
