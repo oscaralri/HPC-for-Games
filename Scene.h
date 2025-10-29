@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "Camera.h"
+#include "Skybox.h"
 
 class Scene
 {
@@ -25,6 +26,7 @@ public:
 		return nullptr; 
 	}
 
-	std::shared_ptr<Skybox> GetSkybox() { return skybox; }
+	const std::shared_ptr<Skybox>& GetSkybox() const { return skybox; }
+	void SetSkybox(std::shared_ptr<Skybox> sb) { skybox = sb; }
 };
 

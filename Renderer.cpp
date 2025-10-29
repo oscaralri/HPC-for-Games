@@ -2,7 +2,16 @@
 
 void SkyboxInit()
 {
-	std::shared_ptr<Skybox> skybox = Application::Get().GetActiveScene()->GetSkybox();
+	std::vector<std::string> skyboxFaces = {
+		"textures/skybox/right.jpg",
+		"textures/skybox/left.jpg",
+		"textures/skybox/top.jpg",
+		"textures/skybox/bottom.jpg",
+		"textures/skybox/front.jpg",
+		"textures/skybox/back.jpg"
+	};
+	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces);
+	Application::Get().GetActiveScene()->SetSkybox(newSkybox);
 }
 
 void ShadersInit()
@@ -226,10 +235,13 @@ int Renderer::Init()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glFrontFace(GL_CW);	
+
+	return 0;
 }
 
 void Renderer::Render()
 {
+	auto scene = Application::Get().GetActiveScene();
 	mainCamera = Application::Get().GetActiveScene()->GetCamera("MainCamera");
 	auto imguiCamera = Application::Get().GetActiveScene()->GetCamera("ImguiCamera");
 	OptimizeSystem::getInstance().setCamera(mainCamera.get()); // esto terrible que este aqui ademas de lo de .get() para cambiar el puntero
