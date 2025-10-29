@@ -241,9 +241,9 @@ int Renderer::Init()
 
 void Renderer::Render()
 {
-	auto scene = Application::Get().GetActiveScene();
-	mainCamera = Application::Get().GetActiveScene()->GetCamera("MainCamera");
-	auto imguiCamera = Application::Get().GetActiveScene()->GetCamera("ImguiCamera");
+	auto scene = Application::Get().GetActiveSceneAs<BaseScene>();
+	mainCamera = scene->GetCamera("MainCamera");
+	auto imguiCamera = scene->GetCamera("ImguiCamera");
 	OptimizeSystem::getInstance().setCamera(mainCamera.get()); // esto terrible que este aqui ademas de lo de .get() para cambiar el puntero
 
 	glm::mat4 projection = glm::perspective(glm::radians(mainCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);

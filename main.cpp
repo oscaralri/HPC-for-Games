@@ -2,7 +2,6 @@
 
 int main(int argc, char* argv[])
 {
-
 	Application::Get().Init();
 	Application::Get().Run();
 }

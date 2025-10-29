@@ -16,6 +16,7 @@ public:
 	virtual ~Scene() = default;
 	virtual void OnCreate() {}
 
+	
 	std::unordered_map<std::string, std::shared_ptr<Camera>> GetAllCameras() { return cameras; }
 
 	std::shared_ptr<Camera> GetCamera(const std::string& name)

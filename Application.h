@@ -20,6 +20,11 @@ public:
 		return instance;
 	}
 
+	template <typename T> T* GetActiveSceneAs()
+	{
+		return dynamic_cast<T*>(scene);
+	}
+
 	void Init(); // definir e inicializar escena
 	void Run(); // main Loop 
 	Scene* GetActiveScene() { return scene; }

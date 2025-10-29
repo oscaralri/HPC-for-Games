@@ -85,7 +85,7 @@ public:
 		static Renderer instance;
 		return instance;
 	}
-
+	
 	GLFWwindow* GetWindow() { return window; }
 
 	int Init();
