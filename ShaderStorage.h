@@ -24,6 +24,7 @@ public:
 	{
 		shaders[name] = shader;
 	}
+
 	std::shared_ptr<Shader> GetShader(const std::string& name) 
 	{ 
 		auto it = shaders.find(name);

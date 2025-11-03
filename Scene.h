@@ -8,7 +8,7 @@
 
 class Scene
 {
-private:
+protected:
 	std::unordered_map<std::string, std::shared_ptr<Camera>> cameras;
 	std::shared_ptr<Skybox> skybox;
 

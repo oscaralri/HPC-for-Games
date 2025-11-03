@@ -10,10 +10,10 @@ void Application::Init()
 
 void Application::Run()
 {
-	Renderer& renderer = Renderer::Get();
-
-	while (!glfwWindowShouldClose(renderer.GetWindow()))
+	while (!glfwWindowShouldClose(Renderer::Get().GetWindow()))
 	{
 		Renderer::Get().Render();
 	}
+
+	Renderer::Get().End();
 }

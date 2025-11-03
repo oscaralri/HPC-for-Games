@@ -6,8 +6,8 @@
 class BaseScene : public Scene
 {
 private:
-	std::unordered_map<std::string, std::shared_ptr<Camera>> cameras;
-	std::shared_ptr<Skybox> skybox;
+	//std::unordered_map<std::string, std::shared_ptr<Camera>> cameras;
+	//std::shared_ptr<Skybox> skybox;
 
 public:
 	void OnCreate() override

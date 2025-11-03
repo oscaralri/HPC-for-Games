@@ -23,7 +23,7 @@ class GameObject
 private:
 	unsigned int ID;
 	Transform transform; 
-	Model& model;
+	std::shared_ptr<Model> model;
 	Shader& shader;
 	AABB aabb;
 
@@ -33,7 +33,7 @@ public:
 	 // CAMBIARLO A PRIVADO ESTO ES PARA UN TEST!!!!!!!!!!!!!!!!!!
 	GameObject(
 		unsigned int id,
-		Model& m,
+		std::shared_ptr<Model> m,
 		Shader& sh,
 		const glm::vec3& p = glm::vec3(0.f),
 		const glm::vec3& r = glm::vec3(0.f),
@@ -44,7 +44,7 @@ public:
 			shader(sh),
 			transform(p, r, s) 
 	{
-		std::vector<LODLevel> lods = model.getLODs();
+		std::vector<LODLevel> lods = model->getLODs();
 		findAABBMinMax(lods[0].meshes, aabb.min, aabb.max); // paso los meshes del lod 0 que son los que tienen mas vertices
 	};
 	

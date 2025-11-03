@@ -21,6 +21,7 @@
 #include "ShaderStorage.h"
 #include "Skybox.h"
 
+
 class Renderer
 {
 private:
@@ -35,7 +36,8 @@ private:
 	float near;
 	float far;
 	std::shared_ptr<Camera> mainCamera;
-
+	
+	// frustum culling
 	std::vector<glm::mat4> models;
 	std::vector<AABB> aabb;
 	std::vector<unsigned int> outList;
@@ -65,6 +67,8 @@ private:
 	// Imgui
 	unsigned int imguiTextureBuffer, imguiRBO;
 
+	
+
 	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -74,7 +78,9 @@ private:
 	unsigned int loadTexture(const char* path);
 	int WindowInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void FBOInit(int SCR_WIDTH, int SCR_HEIGHT);
-	void End();
+	void ModelsInit();
+	static void MouseCallbackDispatch(GLFWwindow* window, double xpos, double ypos);
+	
 
 	// debug
 	void showFPS(GLFWwindow* window);
@@ -88,7 +94,8 @@ public:
 	
 	GLFWwindow* GetWindow() { return window; }
 
-	int Init();
+	void Init();
 	void Render(); // main loop de render
+	void End();
 };
 

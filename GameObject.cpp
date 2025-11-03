@@ -13,8 +13,8 @@ void GameObject::Render()
 	shader.use();
 	shader.setMat4("model", modelMat);
 	
-	int lodLevel = OptimizeSystem::getInstance().checkLOD(getPosition(), model.getLODs());
-	model.Draw(shader, lodLevel);
+	//int lodLevel = OptimizeSystem::getInstance().checkLOD(getPosition(), model->getLODs());
+	model->Draw(shader, 0);
 }
 
 void GameObject::findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbMin, glm::vec3& aabbMax)

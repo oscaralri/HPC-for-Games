@@ -11,7 +11,8 @@ void SkyboxInit()
 		"textures/skybox/back.jpg"
 	};
 	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces);
-	Application::Get().GetActiveScene()->SetSkybox(newSkybox);
+	auto scene = Application::Get().GetActiveScene();
+	scene->SetSkybox(newSkybox);
 }
 
 void ShadersInit()
@@ -107,32 +108,28 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 }
 
 // esto es muy poco generico y requiere de muchas variables, tengo que revisarlo para que no deba inicialziarse asi
-void ModelsInit()
+void Renderer::ModelsInit()
 {
 	// tener que crear esto aqui esta fatal
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	Model gargoyle(paths, 25);
-	Shader modelLoading("shaders/modelLoading.vert", "shaders/modelLoading.frag");
-
-	std::vector<GameObject> gargoyles; // vector que contendr los 100 objetos
-
+	auto gargoyle = std::make_shared<Model>(paths, 25);
+	
 	glm::vec3 gargoyleRot = glm::vec3(0.f, 180.f, 0.f);
 	glm::vec3 gargoyleScale = glm::vec3(0.045f, 0.045, 0.045);
 	
 	glm::vec3 basePosition(5.f, -2.f, -5.f);
 	glm::vec3 rotation = gargoyleRot;   
 	glm::vec3 scale = gargoyleScale; 
-	std::vector<GameObject> gobjectsToRender;
+
+	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
 
 	for (int i = 0; i < 5; i++)
 	{
 		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
-		gobjectsToRender.emplace_back(i, gargoyle, modelLoading, pos, rotation, scale);
+		gobjectsToRender.emplace_back(i, gargoyle, *modelLoading, pos, rotation, scale);
 	}
 
 	// prepare frustum culling
-	std::vector<glm::mat4> models;
-	std::vector<AABB> aabb;
 	for (size_t i = 0; i < gobjectsToRender.size(); i++)
 	{
 		models.push_back(gobjectsToRender[i].getModelMatrix());
@@ -157,11 +154,14 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glfwMakeContextCurrent(window);
 
 	// input 
+	glfwSetWindowUserPointer(window, this);
+
 	glfwSetCursorPosCallback(window, [](GLFWwindow* w, double xpos, double ypos)
 		{
 			Renderer* r = static_cast<Renderer*>(glfwGetWindowUserPointer(w));
 			if (r) r->mouse_callback(w, xpos, ypos); 
 		});
+
 	glfwSetScrollCallback(window, [](GLFWwindow* w, double xoffset, double yoffset)
 		{
 			Renderer* r = static_cast<Renderer*>(glfwGetWindowUserPointer(w));
@@ -174,7 +174,7 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 		});
 	
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // GLFW_CURSOR_DISABLED GLFW_CURSOR_HIDDEN GLFW_CURSOR_NORMAL
-
+	
 	// glad
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -189,6 +189,11 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 			Renderer* r = static_cast<Renderer*>(glfwGetWindowUserPointer(w));
 			if (r) r->framebuffer_size_callback(w, width, height);
 		});
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glFrontFace(GL_CW);
 }
 
 void Renderer::showFPS(GLFWwindow* window) {
@@ -208,7 +213,7 @@ void Renderer::showFPS(GLFWwindow* window) {
 	ImGui::End();
 }
 
-int Renderer::Init()
+void Renderer::Init()
 {
 	SCR_WIDTH = 1366;
 	SCR_HEIGHT = 768;
@@ -219,29 +224,22 @@ int Renderer::Init()
 	nbFrames = 0;
 	lastTime = 0.;
 	fps = 0.;
-	moveEnabled = false;
+	moveEnabled = true;
 	firstMouse = true;
 	lastX = SCR_WIDTH / 2.0f;
 	lastY = SCR_HEIGHT / 2.0f;
 
 	WindowInit(SCR_WIDTH, SCR_HEIGHT); // glfw and glad
+	ShadersInit();
 	ModelsInit();
 	FBOInit(SCR_WIDTH, SCR_HEIGHT);
 	ImGuiInit(window);
-	ShadersInit();
 	SkyboxInit();
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glFrontFace(GL_CW);	
-
-	return 0;
 }
 
 void Renderer::Render()
 {
-	auto scene = Application::Get().GetActiveSceneAs<BaseScene>();
+	auto scene = Application::Get().GetActiveScene();
 	mainCamera = scene->GetCamera("MainCamera");
 	auto imguiCamera = scene->GetCamera("ImguiCamera");
 	OptimizeSystem::getInstance().setCamera(mainCamera.get()); // esto terrible que este aqui ademas de lo de .get() para cambiar el puntero
@@ -284,16 +282,17 @@ void Renderer::Render()
 	showFPS(window);
 
 	// projection / view
-	glm::mat4 skyboxView = glm::lookAt(mainCamera->Position, mainCamera->Position + mainCamera->Front, mainCamera->Up);
+	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	glm::mat4 model;
 
 	// Skybox	
-	Application::Get().GetActiveScene()->GetSkybox()->Draw(projection, skyboxView);
+	Application::Get().GetActiveScene()->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
 	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
+	modelLoading->use();
 	modelLoading->setMat4("projection", projection);
 	modelLoading->setMat4("view", view);
-
+	/*
 	for (size_t i = 0; i < gobjectsToRender.size(); i++)
 	{
 		for (size_t j = 0; j < outList.size(); j++)
@@ -303,6 +302,11 @@ void Renderer::Render()
 				gobjectsToRender[i].Render();
 			}
 		}
+	}
+	*/
+	for (size_t i = 0; i < gobjectsToRender.size(); i++)
+	{
+		gobjectsToRender[i].Render();
 	}
 
 	ImGui::Begin("OutList");
@@ -442,6 +446,8 @@ void Renderer::processInput(GLFWwindow* window)
 		mainCamera->ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		mainCamera->ProcessKeyboard(RIGHT, deltaTime);
+
+
 }
 
 unsigned int Renderer::loadTexture(char const* path)
