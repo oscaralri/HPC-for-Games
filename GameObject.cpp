@@ -1,7 +1,6 @@
 #pragma once
 #include "GameObject.h"
 
-
 void GameObject::Render()
 {
 	glm::mat4 modelMat = glm::mat4(1.0f);

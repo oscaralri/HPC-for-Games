@@ -7,7 +7,6 @@ class Application
 {
 private:
 	Scene* scene;
-	// Renderer* renderer;
 	
 	Application() = default;                                
 	Application(const Application&) = delete;               

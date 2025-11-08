@@ -1,5 +1,38 @@
 #include "Renderer.h"
 
+
+void SeedInit()
+{
+	unsigned int seed = 12345;
+	std::mt19937 rng(seed);
+	std::cout << "" << std::endl;
+	std::cout << rng << std::endl;
+}
+
+void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::mat4>& models, std::vector<AABB>& aabb)
+{
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	auto gargoyle = std::make_shared<Model>(paths, 25);
+
+	glm::vec3 basePosition(5.f, -2.f, -5.f);
+	glm::vec3 rotation = glm::vec3(0.f, 180.f, 0.f);
+	glm::vec3 scale = glm::vec3(0.045f, 0.045, 0.045);
+
+	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
+
+	for (int i = 0; i < 20; i++)
+	{
+		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
+		gobjectsToRender.emplace_back(i, gargoyle, *modelLoading, pos, rotation, scale);
+	}
+
+	for (size_t i = 0; i < gobjectsToRender.size(); i++)
+	{
+		models.push_back(gobjectsToRender[i].getModelMatrix());
+		aabb.push_back(gobjectsToRender[i].getAABB());
+	}
+}
+
 void SkyboxInit()
 {
 	std::vector<std::string> skyboxFaces = {
@@ -107,34 +140,9 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
 
-// esto es muy poco generico y requiere de muchas variables, tengo que revisarlo para que no deba inicialziarse asi
 void Renderer::ModelsInit()
 {
-	// tener que crear esto aqui esta fatal
-	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	auto gargoyle = std::make_shared<Model>(paths, 25);
-	
-	glm::vec3 gargoyleRot = glm::vec3(0.f, 180.f, 0.f);
-	glm::vec3 gargoyleScale = glm::vec3(0.045f, 0.045, 0.045);
-	
-	glm::vec3 basePosition(5.f, -2.f, -5.f);
-	glm::vec3 rotation = gargoyleRot;   
-	glm::vec3 scale = gargoyleScale; 
-
-	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
-
-	for (int i = 0; i < 5; i++)
-	{
-		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
-		gobjectsToRender.emplace_back(i, gargoyle, *modelLoading, pos, rotation, scale);
-	}
-
-	// prepare frustum culling
-	for (size_t i = 0; i < gobjectsToRender.size(); i++)
-	{
-		models.push_back(gobjectsToRender[i].getModelMatrix());
-		aabb.push_back(gobjectsToRender[i].getAABB());
-	}
+	GargoylesInit(gobjectsToRender, models, aabb);	
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
@@ -235,6 +243,9 @@ void Renderer::Init()
 	FBOInit(SCR_WIDTH, SCR_HEIGHT);
 	ImGuiInit(window);
 	SkyboxInit();
+	SeedInit();
+
+	OptimizeSystem::getInstance().setCamera(mainCamera);
 }
 
 void Renderer::Render()
@@ -242,7 +253,6 @@ void Renderer::Render()
 	auto scene = Application::Get().GetActiveScene();
 	mainCamera = scene->GetCamera("MainCamera");
 	auto imguiCamera = scene->GetCamera("ImguiCamera");
-	OptimizeSystem::getInstance().setCamera(mainCamera.get()); // esto terrible que este aqui ademas de lo de .get() para cambiar el puntero
 
 	glm::mat4 projection = glm::perspective(glm::radians(mainCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 	glm::mat4 view = glm::lookAt(mainCamera->Position, mainCamera->Position + mainCamera->Front, mainCamera->Up);
@@ -283,30 +293,18 @@ void Renderer::Render()
 
 	// projection / view
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
-	glm::mat4 model;
 
 	// Skybox	
-	Application::Get().GetActiveScene()->GetSkybox()->Draw(mainCamera->projection, skyboxView);
+	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
 	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
 	modelLoading->use();
 	modelLoading->setMat4("projection", projection);
 	modelLoading->setMat4("view", view);
-	/*
-	for (size_t i = 0; i < gobjectsToRender.size(); i++)
+	
+	for (auto index : outList)
 	{
-		for (size_t j = 0; j < outList.size(); j++)
-		{
-			if (gobjectsToRender[i].getID() == outList[j])
-			{
-				gobjectsToRender[i].Render();
-			}
-		}
-	}
-	*/
-	for (size_t i = 0; i < gobjectsToRender.size(); i++)
-	{
-		gobjectsToRender[i].Render();
+		gobjectsToRender[index].Render();
 	}
 
 	ImGui::Begin("OutList");
@@ -333,13 +331,12 @@ void Renderer::Render()
 	modelLoading->use();
 	modelLoading->setMat4("projection", projection);
 	modelLoading->setMat4("view", view);
-
-
-	for (size_t i = 0; i < outList.size(); i++)
+	
+	for (auto index : outList)
 	{
-		gobjectsToRender[i].Render();
+		gobjectsToRender[index].Render();
 	}
-
+	
 	// volver a framebuffer principal
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);

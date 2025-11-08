@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <random>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

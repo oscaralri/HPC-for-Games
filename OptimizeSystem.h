@@ -13,7 +13,7 @@ struct AABB
 class OptimizeSystem
 {
 private:
-	Camera* camera;
+	std::shared_ptr<Camera> camera;
 	
 	OptimizeSystem() {}
 	OptimizeSystem(const OptimizeSystem&) = delete;
@@ -26,7 +26,7 @@ public:
 		return instance;
 	}
 
-	void setCamera(Camera* cam) { camera = cam;	}
+	void setCamera(std::shared_ptr<Camera> cam) { camera = cam;	}
 
 	int checkLOD(glm::vec3 position, std::vector<LODLevel>);
 
