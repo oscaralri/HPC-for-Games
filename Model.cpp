@@ -9,6 +9,15 @@ void Model::Draw(Shader& shader, int lodLevel)
 	}
 }
 
+void Model::InstancedDraw(Shader& shader, int lodLevel, int amount)
+{
+	std::vector<Mesh> meshes = LODs[lodLevel].meshes;
+	for (unsigned int i = 0; i < meshes.size(); i++)
+	{
+		meshes[i].InstancedDraw(shader, amount);
+	}
+}
+
 void Model::loadModel(std::string const& path)
 {
 	Assimp::Importer importer;

@@ -22,11 +22,12 @@ struct Texture {
 class Mesh
 {
 private:
-	unsigned int VBO, EBO, VAO;
+	unsigned int VBO, EBO;
 	void setupMesh();
 
 public:
  // CAMBIAR ESTO A PRIVATE!!!!
+	unsigned int VAO;
 
 	std::vector<Vertex> vertices; 
 	std::vector<unsigned int> indices;
@@ -39,5 +40,6 @@ public:
 		std::cout << "mesh" << std::endl;
 	}
 	void Draw(Shader& shader);
+	void InstancedDraw(Shader& shader, int amount);
 };
 

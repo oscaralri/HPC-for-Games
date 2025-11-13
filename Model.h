@@ -48,6 +48,8 @@ public:
 	}
 	
 	void Draw(Shader& shader, int lodLevel); 
+	void InstancedDraw(Shader& shader, int lodLevel, int amount);
+
 	std::vector<LODLevel> getLODs() { return LODs; }
 };
 

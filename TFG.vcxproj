@@ -189,6 +189,8 @@
     <None Include="shaders\glslTests.vert" />
     <None Include="shaders\instancing.frag" />
     <None Include="shaders\instancing.vert" />
+    <None Include="shaders\instancingV2.frag" />
+    <None Include="shaders\instancingV2.vert" />
     <None Include="shaders\lightingMaps.frag" />
     <None Include="shaders\lightingMaps.vert" />
     <None Include="shaders\materialLight.frag" />

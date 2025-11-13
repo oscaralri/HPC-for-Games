@@ -2,7 +2,6 @@
 #include <glm/ext/vector_float3.hpp>
 #include "Model.h"
 #include "OptimizeSystem.h"
-#include "OptimizeSystem.h"
 
 struct Transform
 {
@@ -64,6 +63,8 @@ public:
 		return model;
 	}
 	AABB getAABB() { return aabb; }
+	
 	void Render();
+	void InstancedRender();
 };
  

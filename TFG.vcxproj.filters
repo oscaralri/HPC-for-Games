@@ -259,5 +259,11 @@
     <None Include="shaders\framebuffer_screen.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\instancingV2.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\instancingV2.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -26,6 +26,11 @@
 class Renderer
 {
 private:
+	//test 
+	std::vector<LODLevel> lods;
+	std::shared_ptr<Model> gargoyle;
+
+	//
 	Renderer() = default;
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
@@ -81,7 +86,7 @@ private:
 	void FBOInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void ModelsInit();
 	static void MouseCallbackDispatch(GLFWwindow* window, double xpos, double ypos);
-	
+	void GargoylesInstancing();
 
 	// debug
 	void showFPS(GLFWwindow* window);

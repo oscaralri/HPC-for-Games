@@ -16,6 +16,8 @@ void GameObject::Render()
 	model->Draw(shader, 0);
 }
 
+
+
 void GameObject::findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbMin, glm::vec3& aabbMax)
 {
     glm::vec3 maxValues = glm::vec3(std::numeric_limits<float>::lowest());
