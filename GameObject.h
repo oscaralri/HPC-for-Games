@@ -17,37 +17,39 @@ struct Transform
 	{}
 };
 
+enum class RenderType { Normal, Instanced };
+
 class GameObject
 {
 private:
 	unsigned int ID;
+	enum RenderType renderType;
 	Transform transform; 
 	std::shared_ptr<Model> model;
 	Shader& shader;
 	AABB aabb;
 
 	void findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbMin, glm::vec3& aabbMax);
-
-public:
-	 // CAMBIARLO A PRIVADO ESTO ES PARA UN TEST!!!!!!!!!!!!!!!!!!
+	
 	GameObject(
 		unsigned int id,
 		std::shared_ptr<Model> m,
 		Shader& sh,
+		RenderType rt,
 		const glm::vec3& p = glm::vec3(0.f),
 		const glm::vec3& r = glm::vec3(0.f),
 		const glm::vec3& s = glm::vec3(1.f)
 	) :
-			ID(id),
-			model(m), 
-			shader(sh),
-			transform(p, r, s) 
+		ID(id),
+		model(m),
+		shader(sh),
+		renderType(rt),
+		transform(p, r, s)
 	{
 		std::vector<LODLevel> lods = model->getLODs();
-		findAABBMinMax(lods[0].meshes, aabb.min, aabb.max); // paso los meshes del lod 0 que son los que tienen mas vertices
+		findAABBMinMax(lods[0].meshes, aabb.min, aabb.max); // meshes del lod 0 que son los que tienen mas vertices
 	};
-	
-	// getters
+public:
 	unsigned int getID() { return ID; }
 	glm::vec3 getPosition() { return transform.position; }
 	glm::vec3 getRotation() { return transform.rotation; }
@@ -62,9 +64,9 @@ public:
 		model = glm::scale(model, getScale());
 		return model;
 	}
+	RenderType getRenderType() { return renderType; }
 	AABB getAABB() { return aabb; }
 	
 	void Render();
-	void InstancedRender();
 };
  

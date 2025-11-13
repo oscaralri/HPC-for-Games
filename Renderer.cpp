@@ -352,7 +352,7 @@ void Renderer::Render()
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
 	showFPS(window);
 
 	// projection / view
@@ -369,8 +369,20 @@ void Renderer::Render()
 	// DRAW
 	for (auto index : outList)
 	{
-		gobjectsToRender[index].Render();
+		switch (gobjectsToRender[index].getRenderType())
+		{
+			case RenderType::Normal:
+				normalList.push_back(gobjectsToRender[index]);
+				break;
+
+			case RenderType::Instanced:
+				instancedList.push_back(gobjectsToRender[index]);
+				break;
+		}
 	}
+
+	RenderNormal(normalList);
+	RenderInstanced(instancedList);
 
 	// instancing
 	auto instancing = ShaderStorage::Get().GetShader("instancing");
@@ -436,6 +448,16 @@ void Renderer::Render()
 
 	glfwSwapBuffers(window);
 	glfwPollEvents();
+}
+
+void Renderer::RenderNormal(std::vector<GameObject> objects)
+{
+
+}
+
+void Renderer::RenderInstanced(std::vector<GameObject> objects)
+{
+
 }
 
 void Renderer::End()

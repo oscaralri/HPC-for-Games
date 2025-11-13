@@ -49,6 +49,8 @@ private:
 	std::vector<unsigned int> outList;
 	
 	std::vector<GameObject> gobjectsToRender;
+	std::vector<GameObject> normalList;
+	std::vector<GameObject> instancedList;
 
 	unsigned int framebuffer;
 	unsigned int textureColorbuffer;
@@ -87,6 +89,8 @@ private:
 	void ModelsInit();
 	static void MouseCallbackDispatch(GLFWwindow* window, double xpos, double ypos);
 	void GargoylesInstancing();
+	void RenderNormal(std::vector<GameObject> objects);
+	void RenderInstanced(std::vector<GameObject> objects);
 
 	// debug
 	void showFPS(GLFWwindow* window);
