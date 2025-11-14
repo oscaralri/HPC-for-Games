@@ -161,6 +161,7 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="BaseScene.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ECSConfig.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="libraries\Include\imgui\imconfig.h" />
     <ClInclude Include="libraries\Include\imgui\imgui.h" />

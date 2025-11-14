@@ -22,6 +22,9 @@
     <Filter Include="Archivos de encabezado\imgui">
       <UniqueIdentifier>{9fe45029-2871-4f68-acfa-f350ece8a1fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Archivos de encabezado\Components">
+      <UniqueIdentifier>{a1a72b18-4db4-4b5c-808e-697501f66904}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -156,6 +159,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="Skybox.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="ECSConfig.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
