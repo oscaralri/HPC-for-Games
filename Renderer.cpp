@@ -10,6 +10,32 @@ void SeedInit()
 }
 */
 
+/*
+void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::mat4>& models, std::vector<AABB>& aabb)
+{
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	auto gargoyle = std::make_shared<Model>(paths, 25);
+
+	glm::vec3 basePosition(5.f, -2.f, -5.f);
+	glm::vec3 rotation = glm::vec3(0.f, 180.f, 0.f);
+	glm::vec3 scale = glm::vec3(0.045f, 0.045, 0.045);
+
+	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
+
+	for (int i = 0; i < 20; i++)
+	{
+		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
+		gobjectsToRender.emplace_back(i, gargoyle, *modelLoading, pos, rotation, scale);
+	}
+
+	for (size_t i = 0; i < gobjectsToRender.size(); i++)
+	{
+		models.push_back(gobjectsToRender[i].getModelMatrix());
+		aabb.push_back(gobjectsToRender[i].getAABB());
+	}
+}
+*/
+
 void Renderer::GargoylesInstancing()
 {
 	// crear modelo
@@ -68,30 +94,6 @@ void Renderer::GargoylesInstancing()
 	}
 }
 
-
-void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::mat4>& models, std::vector<AABB>& aabb)
-{
-	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	auto gargoyle = std::make_shared<Model>(paths, 25);
-
-	glm::vec3 basePosition(5.f, -2.f, -5.f);
-	glm::vec3 rotation = glm::vec3(0.f, 180.f, 0.f);
-	glm::vec3 scale = glm::vec3(0.045f, 0.045, 0.045);
-
-	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
-
-	for (int i = 0; i < 20; i++)
-	{
-		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
-		gobjectsToRender.emplace_back(i, gargoyle, *modelLoading, pos, rotation, scale);
-	}
-
-	for (size_t i = 0; i < gobjectsToRender.size(); i++)
-	{
-		models.push_back(gobjectsToRender[i].getModelMatrix());
-		aabb.push_back(gobjectsToRender[i].getAABB());
-	}
-}
 
 void SkyboxInit()
 {
@@ -335,7 +337,7 @@ void Renderer::Render()
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
+	
 	// IMGUI
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -381,6 +383,7 @@ void Renderer::Render()
 		}
 	}
 
+	// TODO: esto no hace nada ahora realmente, quead por impleemntar para hacer batching mejor
 	RenderNormal(normalList);
 	RenderInstanced(instancedList);
 
