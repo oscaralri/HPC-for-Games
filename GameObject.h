@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glm/ext/vector_float3.hpp>
 #include "Model.h"
 #include "OptimizeSystem.h"

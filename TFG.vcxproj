@@ -136,8 +136,12 @@
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BaseScene.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="ComponentManager.cpp" />
+    <ClCompile Include="Coordinator.cpp" />
+    <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="IComponentArray.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui_demo.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui_draw.cpp" />
@@ -155,14 +159,20 @@
     <ClCompile Include="ShaderStorage.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="System.cpp" />
+    <ClCompile Include="SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Downloads\stb_image.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="BaseScene.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="ComponentManager.h" />
+    <ClInclude Include="Coordinator.h" />
     <ClInclude Include="ECSConfig.h" />
+    <ClInclude Include="EntityManager.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="IComponentArray.h" />
     <ClInclude Include="libraries\Include\imgui\imconfig.h" />
     <ClInclude Include="libraries\Include\imgui\imgui.h" />
     <ClInclude Include="libraries\Include\imgui\imgui_impl_glfw.h" />
@@ -180,6 +190,9 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderStorage.h" />
     <ClInclude Include="Skybox.h" />
+    <ClInclude Include="System.h" />
+    <ClInclude Include="SystemManager.h" />
+    <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basicLighting.frag" />
