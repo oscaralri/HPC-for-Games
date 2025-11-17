@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <bitset>
+#include <cassert>
 
 namespace ECS {
 	// ENTITIES

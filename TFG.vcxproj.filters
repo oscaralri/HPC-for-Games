@@ -25,6 +25,12 @@
     <Filter Include="Archivos de encabezado\Components">
       <UniqueIdentifier>{a1a72b18-4db4-4b5c-808e-697501f66904}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ECS">
+      <UniqueIdentifier>{67f61dc7-3ec8-46d4-bc9e-e9cd4d0288f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de encabezado\ECS">
+      <UniqueIdentifier>{1211c8da-feed-4783-9397-af25beadc998}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -179,29 +185,29 @@
     <ClInclude Include="Skybox.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="ECSConfig.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="Transform.h">
       <Filter>Archivos de encabezado\Components</Filter>
     </ClInclude>
+    <ClInclude Include="ECSConfig.h">
+      <Filter>Archivos de encabezado\ECS</Filter>
+    </ClInclude>
     <ClInclude Include="EntityManager.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
     <ClInclude Include="IComponentArray.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentManager.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="System.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
     <ClInclude Include="SystemManager.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Archivos de encabezado\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="System.h">
+      <Filter>Archivos de encabezado\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentManager.h">
+      <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
     <ClInclude Include="Coordinator.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

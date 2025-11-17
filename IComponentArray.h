@@ -1,6 +1,6 @@
 #pragma once
 #include "ECSConfig.h"
-
+#include <unordered_map>
 namespace ECS {
 
 	class IComponentArray
@@ -10,23 +10,60 @@ namespace ECS {
 		virtual void EntityDestroyed(Entity entity) = 0;
 	};
 
+
 	template<typename T>
 	class ComponentArray : public IComponentArray
 	{
 	public:
-		void 
+		void InsertData(Entity entity, T component)
+		{
+			assert(mEntityToIndexMap.find(entity) == mEntityToIndexMap.end() && "Component added to same entity more than once.");
+
+			size_t newIndex = mSize;
+			mEntityToIndexMap[entity] = newIndex;
+			mIndexToEntityMap[newIndex] = entity;
+			mComponentArray[newIndex] = component;
+			++mSize;
+		}
+
+		void RemoveData(Entity entity)
+		{
+			assert(mEntityToIndexMap.find(entity) != mEntityToIndexMap.end() && "Removing non-existent component.");
+
+			size_t indexOfRemovedEntity = mEntityToIndexMap[entity];
+			size_t indexOfLastElement = mSize - 1;
+			mComponentArray[indexOfRemovedEntity] = mComponentArray[indexOfLastElement];
+
+			Entity entityOfLastElement = mIndexToEntityMap[indexOfLastElement];
+			mEntityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
+			mIndexToEntityMap[indexOfRemovedEntity] = entityOfLastElement;
+
+			mEntityToIndexMap.erase(entity);
+			mIndexToEntityMap.erase(indexOfLastElement);
+
+			--mSize;
+		}
+
+		T& GetData(Entity entity)
+		{
+			assert(mEntityToIndexMap.find(entity) != mEntityToIndexMap.end() && "Retrieving non-existent component.");
+
+			return mComponentArray[mEntityToIndexMap[entity]];
+		}
+
+		void EntityDestroyed(Entity entity) override
+		{
+			if (mEntityToIndexMap.find(entity) != mEntityToIndexMap.end())
+			{
+				RemoveData(entity);
+			}
+		}
 
 	private:
-		// packed array of components
 		std::array<T, MAX_ENTITIES> mComponentArray;
-		
-		// entity id to array index
 		std::unordered_map<Entity, size_t> mEntityToIndexMap;
-
-		// array index to entity id
 		std::unordered_map<size_t, Entity> mIndexToEntityMap;
-
-		size_t mSize;
+		size_t mSize = 0;
 	};
 
 }
