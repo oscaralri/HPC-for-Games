@@ -6,12 +6,6 @@
 
 class ShaderStorage
 {
-private:
-	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders; // puntero = program id
-
-	ShaderStorage() = default;
-	ShaderStorage(const ShaderStorage&) = delete;
-	ShaderStorage& operator=(const ShaderStorage&) = delete;
 
 public:
 	static ShaderStorage& Get()
@@ -32,5 +26,13 @@ public:
 			return it->second;
 		return nullptr;
 	}
+
+private:
+	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders; // puntero = program id
+
+	ShaderStorage() = default;
+	ShaderStorage(const ShaderStorage&) = delete;
+	ShaderStorage& operator=(const ShaderStorage&) = delete;
+
 };
 

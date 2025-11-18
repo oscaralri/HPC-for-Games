@@ -8,9 +8,6 @@
 
 class Scene
 {
-protected:
-	std::unordered_map<std::string, std::shared_ptr<Camera>> cameras;
-	std::shared_ptr<Skybox> skybox;
 
 public:
 	virtual ~Scene() = default;
@@ -29,5 +26,10 @@ public:
 
 	const std::shared_ptr<Skybox>& GetSkybox() const { return skybox; }
 	void SetSkybox(std::shared_ptr<Skybox> sb) { skybox = sb; }
+
+protected:
+	std::unordered_map<std::string, std::shared_ptr<Camera>> cameras;
+	std::shared_ptr<Skybox> skybox;
+
 };
 

@@ -9,6 +9,12 @@
 
 class Skybox
 {
+
+public:
+	Skybox(const std::vector<std::string>& faces);
+	void Draw(const glm::mat4& projection, const glm::mat4& view);
+	void Delete();
+
 private:
 	unsigned int VAO, VBO;
 	unsigned int cubemapTexture;
@@ -16,10 +22,6 @@ private:
 
 	unsigned int loadCubemap(std::vector<std::string> faces);
 
-public:
-	Skybox(const std::vector<std::string>& faces);
-	void Draw(const glm::mat4& projection, const glm::mat4& view);
-	void Delete();
 };
 
 /*

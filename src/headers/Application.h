@@ -12,13 +12,6 @@ extern ECS::Coordinator gCoordinator;
 
 class Application
 {
-private:
-	Scene* scene;
-	
-	Application() = default;                                
-	Application(const Application&) = delete;               
-	Application& operator=(const Application&) = delete;   
-
 public:
 	static Application& Get()
 	{
@@ -30,5 +23,14 @@ public:
 	void Run(); // main Loop 
 	void ECSInit();
 	Scene* GetActiveScene() { return scene; }
+
+private:
+	Scene* scene;
+	
+	Application() = default;                                
+	Application(const Application&) = delete;               
+	Application& operator=(const Application&) = delete;   
+
+
 };
 

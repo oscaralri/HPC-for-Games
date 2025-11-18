@@ -12,12 +12,7 @@ struct AABB
 
 class OptimizeSystem
 {
-private:
-	std::shared_ptr<Camera> camera;
-	
-	OptimizeSystem() {}
-	OptimizeSystem(const OptimizeSystem&) = delete;
-	OptimizeSystem& operator=(const OptimizeSystem&) = delete;
+
 
 public:
 	static OptimizeSystem& getInstance() 
@@ -36,5 +31,12 @@ public:
 		std::vector<unsigned int>& outList);
 
 	void findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbMin, glm::vec3& aabbMax);
+
+private:
+	std::shared_ptr<Camera> camera;
+
+	OptimizeSystem() {}
+	OptimizeSystem(const OptimizeSystem&) = delete;
+	OptimizeSystem& operator=(const OptimizeSystem&) = delete;
 };
 

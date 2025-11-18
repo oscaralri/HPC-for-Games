@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>.\libraries\Include;$(IncludePath)</IncludePath>
+    <IncludePath>.\libraries\Include;$(ProjectDir)src/headers;$(ProjectDir)src/headers/ECS;$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>.\libraries\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -133,15 +133,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp" />
-    <ClCompile Include="BaseScene.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="ComponentManager.cpp" />
-    <ClCompile Include="Coordinator.cpp" />
-    <ClCompile Include="EntityManager.cpp" />
-    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="src\cpp\Application.cpp" />
+    <ClCompile Include="src\cpp\BaseScene.cpp" />
+    <ClCompile Include="src\cpp\Camera.cpp" />
+    <ClCompile Include="src\cpp\ECS\ComponentManager.cpp" />
+    <ClCompile Include="src\cpp\ECS\Coordinator.cpp" />
+    <ClCompile Include="src\cpp\ECS\EntityManager.cpp" />
+    <ClCompile Include="src\cpp\GameObject.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="IComponentArray.cpp" />
+    <ClCompile Include="src\cpp\ECS\IComponentArray.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui_demo.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui_draw.cpp" />
@@ -149,31 +149,30 @@
     <ClCompile Include="libraries\Include\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui_tables.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="OptimizeSystem.cpp" />
+    <ClCompile Include="src\cpp\OptimizeSystem.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="RenderSystem.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="ShaderStorage.cpp" />
-    <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="src\cpp\Mesh.cpp" />
+    <ClCompile Include="src\cpp\Model.cpp" />
+    <ClCompile Include="src\cpp\Renderer.cpp" />
+    <ClCompile Include="src\cpp\ECS\RenderSystem.cpp" />
+    <ClCompile Include="src\cpp\Scene.cpp" />
+    <ClCompile Include="src\cpp\Shader.cpp" />
+    <ClCompile Include="src\cpp\ShaderStorage.cpp" />
+    <ClCompile Include="src\cpp\Skybox.cpp" />
     <ClCompile Include="stb_image.cpp" />
-    <ClCompile Include="System.cpp" />
-    <ClCompile Include="SystemManager.cpp" />
+    <ClCompile Include="src\cpp\ECS\System.cpp" />
+    <ClCompile Include="src\cpp\ECS\SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\Downloads\stb_image.h" />
-    <ClInclude Include="Application.h" />
-    <ClInclude Include="BaseScene.h" />
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="ComponentManager.h" />
-    <ClInclude Include="Coordinator.h" />
-    <ClInclude Include="ECSConfig.h" />
-    <ClInclude Include="EntityManager.h" />
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="IComponentArray.h" />
+    <ClInclude Include="src\headers\Application.h" />
+    <ClInclude Include="src\headers\BaseScene.h" />
+    <ClInclude Include="src\headers\Camera.h" />
+    <ClInclude Include="src\headers\ECS\ComponentManager.h" />
+    <ClInclude Include="src\headers\ECS\Coordinator.h" />
+    <ClInclude Include="src\headers\ECS\ECSConfig.h" />
+    <ClInclude Include="src\headers\ECS\EntityManager.h" />
+    <ClInclude Include="src\headers\GameObject.h" />
+    <ClInclude Include="src\headers\ECS\IComponentArray.h" />
     <ClInclude Include="libraries\Include\imgui\imconfig.h" />
     <ClInclude Include="libraries\Include\imgui\imgui.h" />
     <ClInclude Include="libraries\Include\imgui\imgui_impl_glfw.h" />
@@ -183,19 +182,20 @@
     <ClInclude Include="libraries\Include\imgui\imstb_rectpack.h" />
     <ClInclude Include="libraries\Include\imgui\imstb_textedit.h" />
     <ClInclude Include="libraries\Include\imgui\imstb_truetype.h" />
-    <ClInclude Include="OptimizeSystem.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="Renderable.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="RenderSystem.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="ShaderStorage.h" />
-    <ClInclude Include="Skybox.h" />
-    <ClInclude Include="System.h" />
-    <ClInclude Include="SystemManager.h" />
-    <ClInclude Include="Transform.h" />
+    <ClInclude Include="src\headers\OptimizeSystem.h" />
+    <ClInclude Include="src\headers\Mesh.h" />
+    <ClInclude Include="src\headers\Model.h" />
+    <ClInclude Include="src\headers\ECS\Renderable.h" />
+    <ClInclude Include="src\headers\Renderer.h" />
+    <ClInclude Include="src\headers\ECS\RenderSystem.h" />
+    <ClInclude Include="src\headers\Scene.h" />
+    <ClInclude Include="src\headers\Shader.h" />
+    <ClInclude Include="src\headers\ShaderStorage.h" />
+    <ClInclude Include="src\headers\Skybox.h" />
+    <ClInclude Include="src\headers\ECS\System.h" />
+    <ClInclude Include="src\headers\ECS\SystemManager.h" />
+    <ClInclude Include="src\headers\ECS\Transform.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basicLighting.frag" />

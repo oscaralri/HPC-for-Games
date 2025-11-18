@@ -25,6 +25,21 @@
 
 class Renderer
 {
+
+
+public:
+	static Renderer& Get()
+	{
+		static Renderer instance;
+		return instance;
+	}
+	
+	GLFWwindow* GetWindow() { return window; }
+
+	void Init();
+	void Render(); // main loop de render
+	void End();
+
 private:
 	//test 
 	std::vector<LODLevel> lods;
@@ -42,12 +57,12 @@ private:
 	float near;
 	float far;
 	std::shared_ptr<Camera> mainCamera;
-	
+
 	// frustum culling
 	std::vector<glm::mat4> models;
 	std::vector<AABB> aabb;
 	std::vector<unsigned int> outList;
-	
+
 	std::vector<GameObject> gobjectsToRender;
 	std::vector<GameObject> normalList;
 	std::vector<GameObject> instancedList;
@@ -56,7 +71,7 @@ private:
 	unsigned int textureColorbuffer;
 	unsigned int quadVAO, quadVBO;
 	unsigned int imguiFBO;
-	
+
 	//std::vector<Camera> cameras;
 	//unsigned int mainCameraID;
 
@@ -92,18 +107,5 @@ private:
 
 	// debug
 	void showFPS(GLFWwindow* window);
-
-public:
-	static Renderer& Get()
-	{
-		static Renderer instance;
-		return instance;
-	}
-	
-	GLFWwindow* GetWindow() { return window; }
-
-	void Init();
-	void Render(); // main loop de render
-	void End();
 };
 

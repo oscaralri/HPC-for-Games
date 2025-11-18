@@ -21,9 +21,6 @@ struct Texture {
 
 class Mesh
 {
-private:
-	unsigned int VBO, EBO;
-	void setupMesh();
 
 public:
  // CAMBIAR ESTO A PRIVATE!!!!
@@ -41,5 +38,10 @@ public:
 	}
 	void Draw(Shader& shader);
 	void InstancedDraw(Shader& shader, int amount);
+
+private:
+	unsigned int VBO, EBO;
+	void setupMesh();
+
 };
 

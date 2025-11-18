@@ -17,19 +17,6 @@ struct LODLevel {
 
 class Model
 {
-private:
-	std::vector<LODLevel> LODs; 
-	
-	std::vector<Texture> textures_loaded; 
-	std::string directory;
-	bool gammaCorrection;
-	int lodIncrement = 0;
-	
-	void loadModel(std::string const& path);
-	void processNode(aiNode* node, const aiScene* scene);
-	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
-	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
 public:
 	Model(std::string const& path, bool gamma = false) : gammaCorrection(gamma)
@@ -51,5 +38,20 @@ public:
 	void InstancedDraw(Shader& shader, int lodLevel, int amount);
 
 	std::vector<LODLevel> getLODs() { return LODs; }
+
+private:
+	std::vector<LODLevel> LODs;
+
+	std::vector<Texture> textures_loaded;
+	std::string directory;
+	bool gammaCorrection;
+	int lodIncrement = 0;
+
+	void loadModel(std::string const& path);
+	void processNode(aiNode* node, const aiScene* scene);
+	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
+	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
+
 };
 
