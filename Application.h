@@ -2,6 +2,13 @@
 #include "Scene.h"
 #include "BaseScene.h"
 #include "Renderer.h"
+#include "RenderSystem.h"
+#include "ECSConfig.h"
+#include "Coordinator.h"
+#include "Transform.h"
+#include "Renderable.h"
+
+extern ECS::Coordinator gCoordinator;
 
 class Application
 {
@@ -21,6 +28,7 @@ public:
 
 	void Init(); // definir e inicializar escena
 	void Run(); // main Loop 
+	void ECSInit();
 	Scene* GetActiveScene() { return scene; }
 };
 

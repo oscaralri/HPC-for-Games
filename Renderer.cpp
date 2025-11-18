@@ -10,6 +10,8 @@ void SeedInit()
 }
 */
 
+
+
 /*
 void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::mat4>& models, std::vector<AABB>& aabb)
 {
@@ -35,6 +37,26 @@ void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::m
 	}
 }
 */
+
+void InitGargoylesECS()
+{
+	auto entity = gCoordinator.CreateEntity();
+
+	gCoordinator.AddComponent(entity, TransformECS{
+		glm::vec3(0.f, 0.f, 0.f),  // position
+		glm::vec3(0.f, 0.f, 0.f),	// rotation
+		glm::vec3(5.f, 5.f, 5.f)	// scale
+		});
+
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	auto gargoyle = std::make_shared<Model>(paths, 25);
+
+	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading.vert", "shaders/modelLoading.frag");
+	ShaderStorage::Get().Add("modelLoading", modelLoading);
+
+	gCoordinator.AddComponent(entity, Renderable{ gargoyle, modelLoading });
+	
+}
 
 void Renderer::GargoylesInstancing()
 {
@@ -208,7 +230,8 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	//GargoylesInit(gobjectsToRender, models, aabb);	
-	GargoylesInstancing();
+	//GargoylesInstancing();
+	InitGargoylesECS();
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
@@ -337,7 +360,7 @@ void Renderer::Render()
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	// IMGUI
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -355,6 +378,13 @@ void Renderer::Render()
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
+	//RenderSystem.TestRender();
+
+	// esto podria hacerlo solo una vez por ahora aqui por pereza 
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	std::cout << renderSystem << "renderSystem en rednerer" << std::endl;
+	renderSystem->Render(gCoordinator);
+
 	showFPS(window);
 
 	// projection / view
@@ -369,6 +399,7 @@ void Renderer::Render()
 	modelLoading->setMat4("view", view);
 	
 	// DRAW
+	/*
 	for (auto index : outList)
 	{
 		switch (gobjectsToRender[index].getRenderType())
@@ -382,6 +413,7 @@ void Renderer::Render()
 				break;
 		}
 	}
+	*/
 
 	// TODO: esto no hace nada ahora realmente, quead por impleemntar para hacer batching mejor
 	RenderNormal(normalList);
@@ -393,7 +425,7 @@ void Renderer::Render()
 	instancing->setMat4("projection", projection);
 	instancing->setMat4("view", view);
 
-	gargoyle->InstancedDraw(*instancing, 0, 3000);
+	//gargoyle->InstancedDraw(*instancing, 0, 3000);
 
 	ImGui::Begin("OutList");
 	ImGui::Text("outlist:");

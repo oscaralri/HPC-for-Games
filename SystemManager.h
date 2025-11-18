@@ -39,7 +39,7 @@ namespace ECS {
 			{
 				auto const& system = pair.second;
 
-				system->mEntites.erase(entity);
+				system->mEntities.erase(entity);
 			}
 		}
 
@@ -53,13 +53,24 @@ namespace ECS {
 
 				if ((entitySignature & systemSignature) == systemSignature)
 				{
-					system->mEntites.insert(entity);
+					system->mEntities.insert(entity);
 				}
 				else
 				{
-					system->mEntites.erase(entity);
+					system->mEntities.erase(entity);
 				}
 			}
+		}
+
+		template<typename T>
+		std::shared_ptr<T> GetSystem()
+		{
+			const char* typeName = typeid(T).name();
+
+			auto it = mSystems.find(typeName);
+			assert(it != mSystems.end() && "System not found!");
+
+			return std::static_pointer_cast<T>(it->second);
 		}
 
 	private:
