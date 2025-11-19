@@ -319,5 +319,11 @@
     <None Include="shaders\instancingV2.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\modelLoading_v2.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\modelLoading_v2.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

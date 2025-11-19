@@ -57,6 +57,7 @@ private:
 	float near;
 	float far;
 	std::shared_ptr<Camera> mainCamera;
+	unsigned int cameraUBO;
 
 	// frustum culling
 	std::vector<glm::mat4> models;
@@ -90,6 +91,8 @@ private:
 	// Imgui
 	unsigned int imguiTextureBuffer, imguiRBO;
 
+
+
 	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -104,6 +107,7 @@ private:
 	void GargoylesInstancing();
 	void RenderNormal(std::vector<GameObject> objects);
 	void RenderInstanced(std::vector<GameObject> objects);
+	void ShadersInit();
 
 	// debug
 	void showFPS(GLFWwindow* window);

@@ -114,9 +114,9 @@ void SkyboxInit()
 	scene->SetSkybox(newSkybox);
 }
 
-void ShadersInit()
+void Renderer::ShadersInit()
 {
-	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading.vert", "shaders/modelLoading.frag");
+	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
 	ShaderStorage::Get().Add("modelLoading", modelLoading);
 
 	auto screenShader = std::make_shared<Shader>("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
@@ -127,6 +127,8 @@ void ShadersInit()
 
 	auto instancing = std::make_shared<Shader>("shaders/instancing.vert", "shaders/instancing.frag");
 	ShaderStorage::Get().Add("instancing", instancing);
+
+	
 }
 
 void ImGuiInit(GLFWwindow* window)
@@ -207,7 +209,14 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	// Uniform Buffer
+	glGenBuffers(1, &cameraUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 3, cameraUBO);
 }
+
 void InitGargoylesECS()
 {
 
@@ -245,6 +254,7 @@ void InitGargoylesECS()
 	
 
 }
+
 void Renderer::ModelsInit()
 {
 	//GargoylesInit(gobjectsToRender, models, aabb);	
@@ -355,8 +365,6 @@ void Renderer::Init()
 	OptimizeSystem::getInstance().setCamera(mainCamera);
 }
 
-
-
 void Renderer::Render()
 {
 	auto scene = Application::Get().GetActiveScene();
@@ -367,6 +375,10 @@ void Renderer::Render()
 	glm::mat4 view = glm::lookAt(mainCamera->Position, mainCamera->Position + mainCamera->Front, mainCamera->Up);
 	mainCamera->projection = projection;
 	mainCamera->view = view;
+
+	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 
 	// para poder cambiar la posicion en imgui
 	static float posX = -16.000;
@@ -406,11 +418,12 @@ void Renderer::Render()
 	// Skybox	
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
+	/*
 	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
 	modelLoading->use();
 	modelLoading->setMat4("projection", projection);
 	modelLoading->setMat4("view", view);
-	
+	*/
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->Render(gCoordinator);
 
@@ -463,11 +476,11 @@ void Renderer::Render()
 	// projection / view
 	projection = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 	view = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
-
+	/*
 	modelLoading->use();
 	modelLoading->setMat4("projection", projection);
 	modelLoading->setMat4("view", view);
-	
+	*/
 	for (auto index : outList)
 	{
 		gobjectsToRender[index].Render();

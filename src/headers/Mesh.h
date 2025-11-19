@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "Shader.h"
+#include <Camera.h>
 
 struct Vertex {
 	glm::vec3 Position;

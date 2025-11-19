@@ -8,6 +8,7 @@ void RenderSystem::Render(ECS::Coordinator& coordinator)
 		auto& renderable = coordinator.GetComponent<Renderable>(entity);
 
 		glm::mat4 modelMat = glm::mat4(1.0f);
+
 		modelMat = glm::translate(modelMat, transform.position);
 		modelMat = glm::scale(modelMat, transform.scale);
 		modelMat = glm::rotate(modelMat, glm::radians(transform.rotation.x), glm::vec3(1, 0, 0));
