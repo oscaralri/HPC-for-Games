@@ -38,25 +38,7 @@ void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::m
 }
 */
 
-void InitGargoylesECS()
-{
-	auto entity = gCoordinator.CreateEntity();
 
-	gCoordinator.AddComponent(entity, TransformECS{
-		glm::vec3(0.f, 0.f, 0.f),  // position
-		glm::vec3(0.f, 0.f, 0.f),	// rotation
-		glm::vec3(5.f, 5.f, 5.f)	// scale
-		});
-
-	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	auto gargoyle = std::make_shared<Model>(paths, 25);
-
-	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading.vert", "shaders/modelLoading.frag");
-	ShaderStorage::Get().Add("modelLoading", modelLoading);
-
-	gCoordinator.AddComponent(entity, Renderable{ gargoyle, modelLoading });
-	
-}
 
 void Renderer::GargoylesInstancing()
 {
@@ -226,7 +208,43 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
+void InitGargoylesECS()
+{
 
+	auto entity2 = gCoordinator.CreateEntity();
+
+	gCoordinator.AddComponent(entity2, TransformECS{
+		glm::vec3(15.f, -2.f, -5.f),  // position
+		glm::vec3(0.f, 180.f, 0.f),	// rotation
+		glm::vec3(2.f, 2.f, 2.f)	// scale
+		});
+	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
+	auto rock = std::make_shared<Model>(paths2, 25);
+	
+	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading.vert", "shaders/modelLoading.frag");
+	ShaderStorage::Get().Add("modelLoading", modelLoading);
+
+	gCoordinator.AddComponent(entity2, Renderable{ rock, modelLoading });
+
+	
+	auto entity = gCoordinator.CreateEntity();
+
+	gCoordinator.AddComponent(entity, TransformECS{
+		glm::vec3(5.f, -2.f, -5.f),  // position
+		glm::vec3(0.f, 180.f, 0.f),	// rotation
+		glm::vec3(0.045f, 0.045, 0.045)	// scale
+		});
+
+
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	auto gargoyle = std::make_shared<Model>(paths, 25);
+
+
+
+	gCoordinator.AddComponent(entity, Renderable{ gargoyle, modelLoading });
+	
+
+}
 void Renderer::ModelsInit()
 {
 	//GargoylesInit(gobjectsToRender, models, aabb);	
@@ -337,6 +355,8 @@ void Renderer::Init()
 	OptimizeSystem::getInstance().setCamera(mainCamera);
 }
 
+
+
 void Renderer::Render()
 {
 	auto scene = Application::Get().GetActiveScene();
@@ -354,7 +374,7 @@ void Renderer::Render()
 	static float posZ = -10.f;
 	imguiCamera->Position = glm::vec3(posX, posY, posZ);
 
-	OptimizeSystem::getInstance().objectsInFrustum(mainCamera, models, aabb, outList);
+	//OptimizeSystem::getInstance().objectsInFrustum(mainCamera, models, aabb, outList);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
@@ -378,13 +398,6 @@ void Renderer::Render()
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	//RenderSystem.TestRender();
-
-	// esto podria hacerlo solo una vez por ahora aqui por pereza 
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	std::cout << renderSystem << "renderSystem en rednerer" << std::endl;
-	renderSystem->Render(gCoordinator);
-
 	showFPS(window);
 
 	// projection / view
@@ -398,6 +411,9 @@ void Renderer::Render()
 	modelLoading->setMat4("projection", projection);
 	modelLoading->setMat4("view", view);
 	
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->Render(gCoordinator);
+
 	// DRAW
 	/*
 	for (auto index : outList)

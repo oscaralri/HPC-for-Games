@@ -34,7 +34,6 @@ public:
 		: vertices(vertices), indices(indices), textures(textures)
 	{
 		setupMesh();
-		std::cout << "mesh" << std::endl;
 	}
 	void Draw(Shader& shader);
 	void InstancedDraw(Shader& shader, int amount);

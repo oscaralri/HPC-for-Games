@@ -30,8 +30,9 @@ void Model::loadModel(std::string const& path)
 	}
 
 	directory = path.substr(0, path.find_last_of('/'));
-	std::cout << " " << directory << std::endl;
 	processNode(scene->mRootNode, scene);
+
+	std::cout << "lods cuando " << path << ": " << LODs.size() << std::endl;
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -55,7 +56,6 @@ void Model::processNode(aiNode* node, const aiScene* scene)
 	{
 		processNode(node->mChildren[i], scene);
 	}
-	std::cout << "lods size " << LODs.size();
 }
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)

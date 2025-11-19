@@ -33,8 +33,6 @@ void Application::ECSInit()
 
 	auto renderSystem = gCoordinator.RegisterSystem<RenderSystem>();
 
-	std::cout << "renderSystem registro: " << renderSystem << std::endl;
-
 	ECS::Signature signature;
 	signature.set(gCoordinator.GetComponentType<TransformECS>());
 	signature.set(gCoordinator.GetComponentType<Renderable>());
