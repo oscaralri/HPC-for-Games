@@ -9,11 +9,12 @@ layout(std140, binding = 3) uniform CameraBuffer {
 };
 
 out vec2 TexCoords;
+out float viewValue;
 
 uniform mat4 model;
 
 void main()
 {
-    TexCoords = aTexCoords;    
+    TexCoords = aTexCoords;   
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

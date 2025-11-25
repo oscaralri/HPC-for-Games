@@ -3,12 +3,7 @@
 #include "Model.h"
 #include <vector>
 #include <iostream>
-
-struct AABB
-{
-	glm::vec3 min;
-	glm::vec3 max;
-};
+#include <AABB.h>
 
 class OptimizeSystem
 {

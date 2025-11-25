@@ -138,6 +138,7 @@
     <ClCompile Include="src\cpp\Camera.cpp" />
     <ClCompile Include="src\cpp\ECS\ComponentManager.cpp" />
     <ClCompile Include="src\cpp\ECS\Coordinator.cpp" />
+    <ClCompile Include="src\cpp\ECS\CullingSystem.cpp" />
     <ClCompile Include="src\cpp\ECS\EntityManager.cpp" />
     <ClCompile Include="src\cpp\GameObject.cpp" />
     <ClCompile Include="glad.c" />
@@ -167,8 +168,10 @@
     <ClInclude Include="src\headers\Application.h" />
     <ClInclude Include="src\headers\BaseScene.h" />
     <ClInclude Include="src\headers\Camera.h" />
+    <ClInclude Include="src\headers\ECS\AABB.h" />
     <ClInclude Include="src\headers\ECS\ComponentManager.h" />
     <ClInclude Include="src\headers\ECS\Coordinator.h" />
+    <ClInclude Include="src\headers\ECS\CullingSystem.h" />
     <ClInclude Include="src\headers\ECS\ECSConfig.h" />
     <ClInclude Include="src\headers\ECS\EntityManager.h" />
     <ClInclude Include="src\headers\GameObject.h" />

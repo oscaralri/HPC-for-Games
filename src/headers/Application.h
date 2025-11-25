@@ -7,6 +7,8 @@
 #include "Coordinator.h"
 #include "Transform.h"
 #include "Renderable.h"
+#include <CullingSystem.h>
+
 
 extern ECS::Coordinator gCoordinator;
 

@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+
 /*
 void SeedInit()
 {
@@ -9,8 +10,6 @@ void SeedInit()
 	std::cout << rng << std::endl;
 }
 */
-
-
 
 /*
 void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::mat4>& models, std::vector<AABB>& aabb)
@@ -38,13 +37,61 @@ void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::m
 }
 */
 
+void Renderer::UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
+{
+	std::vector<glm::mat4> modelMatrices;
 
+	for (const auto& entity : entities)
+	{
+		auto& transform = coordinator.GetComponent<TransformECS>(entity);
+
+		glm::mat4 modelMat = glm::mat4(1.0f);
+		modelMat = glm::translate(modelMat, transform.position);
+		modelMat = glm::scale(modelMat, transform.scale);
+		modelMat = glm::rotate(modelMat, glm::radians(transform.rotation.x), glm::vec3(1, 0, 0));
+		modelMat = glm::rotate(modelMat, glm::radians(transform.rotation.y), glm::vec3(0, 1, 0));
+		modelMat = glm::rotate(modelMat, glm::radians(transform.rotation.z), glm::vec3(0, 0, 1));
+
+		modelMatrices.push_back(modelMat);
+	}
+
+	
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data(), GL_STATIC_DRAW);
+
+	// configuracion para cada gargoyl
+	lods = gargoyle->getLODs();
+	for (size_t i = 0; i < lods.size(); i++)
+	{
+		int size = lods[i].meshes.size();
+		for (size_t j = 0; j < lods[i].meshes.size(); j++)
+		{
+			unsigned int VAO = lods[i].meshes[j].VAO;
+			glBindVertexArray(VAO);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(4, 1);
+			glVertexAttribDivisor(5, 1);
+			glVertexAttribDivisor(6, 1);
+
+			glBindVertexArray(0);
+		}
+	}
+}
 
 void Renderer::GargoylesInstancing()
 {
 	// crear modelo
 	std::vector<std::string> paths = {"models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj"};
-	gargoyle = std::make_shared<Model>(paths, 25);
+	auto gargoyle = std::make_shared<Model>(paths, 25);
 
 	// matriz de mddels
 	int numGargoyles = 3000;
@@ -97,7 +144,6 @@ void Renderer::GargoylesInstancing()
 		}
 	}
 }
-
 
 void SkyboxInit()
 {
@@ -217,41 +263,59 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, cameraUBO);
 }
 
-void InitGargoylesECS()
+void Renderer::InitGargoylesECS()
 {
+	glGenBuffers(1, &buffer);
 
-	auto entity2 = gCoordinator.CreateEntity();
+	auto instancing = ShaderStorage::Get().GetShader("instancing");
+	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
 
-	gCoordinator.AddComponent(entity2, TransformECS{
+	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
+	auto rock = std::make_shared<Model>(paths2, 25);	
+	
+
+	// rock
+	auto entity = gCoordinator.CreateEntity();
+	gCoordinator.AddComponent(entity, Renderable{ rock, modelLoading });
+	gCoordinator.AddComponent(entity, TransformECS{
 		glm::vec3(15.f, -2.f, -5.f),  // position
 		glm::vec3(0.f, 180.f, 0.f),	// rotation
 		glm::vec3(2.f, 2.f, 2.f)	// scale
 		});
-	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
-	auto rock = std::make_shared<Model>(paths2, 25);
+	gCoordinator.AddComponent(entity, AABB{ rock->getMinMax()[0], rock->getMinMax()[1]} );
 	
-	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading.vert", "shaders/modelLoading.frag");
-	ShaderStorage::Get().Add("modelLoading", modelLoading);
 
-	gCoordinator.AddComponent(entity2, Renderable{ rock, modelLoading });
+	// gargoyle
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	gargoyle = std::make_shared<Model>(paths, 25);
 
-	
-	auto entity = gCoordinator.CreateEntity();
-
-	gCoordinator.AddComponent(entity, TransformECS{
+	auto entity2 = gCoordinator.CreateEntity();
+	gCoordinator.AddComponent(entity2, TransformECS{
 		glm::vec3(5.f, -2.f, -5.f),  // position
 		glm::vec3(0.f, 180.f, 0.f),	// rotation
 		glm::vec3(0.045f, 0.045, 0.045)	// scale
 		});
+	gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing });
+	gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
 
+	float baseX[] = { 10.f, 100.f, 15.f, 205.f, 20.f, 210.f };
+	size_t baseCount = sizeof(baseX) / sizeof(baseX[0]);
 
-	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	auto gargoyle = std::make_shared<Model>(paths, 25);
+	for (size_t i = 0; i < 100; i++)
+	{
+		float x = baseX[i % baseCount] + (i / baseCount) * 5.0f; // añade un pequeño offset para no superponer
+		float y = -2.f;
+		float z = -5.f;
 
-
-
-	gCoordinator.AddComponent(entity, Renderable{ gargoyle, modelLoading });
-	
+		auto entity2 = gCoordinator.CreateEntity();
+		gCoordinator.AddComponent(entity2, TransformECS{
+			glm::vec3(x, y, z),          // posición
+			glm::vec3(0.f, 180.f, 0.f),  // rotación
+			glm::vec3(0.045f, 0.045f, 0.045f) // escala
+			});
+		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing });
+		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
+	}
 
 }
 
@@ -367,6 +431,7 @@ void Renderer::Init()
 
 void Renderer::Render()
 {
+	// PROJECTION VIEW
 	auto scene = Application::Get().GetActiveScene();
 	mainCamera = scene->GetCamera("MainCamera");
 	auto imguiCamera = scene->GetCamera("ImguiCamera");
@@ -379,32 +444,36 @@ void Renderer::Render()
 	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	// para poder cambiar la posicion en imgui
-	static float posX = -16.000;
-	static float posY = 75.f;
-	static float posZ = -10.f;
-	imguiCamera->Position = glm::vec3(posX, posY, posZ);
+	// FRUSTUM
+	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
+	std::vector<ECS::Entity> visibleList = cullingSystem->FrustumCulling(gCoordinator, mainCamera);
 
-	//OptimizeSystem::getInstance().objectsInFrustum(mainCamera, models, aabb, outList);
-
+	// FRAMEBUFFER
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// IMGUI
+	// IMGUI 
+	static float posX = -16.000;
+	static float posY = 75.f;
+	static float posZ = -10.f;
+	imguiCamera->Position = glm::vec3(posX, posY, posZ);
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
+	// INPUT
 	float currentFrame = static_cast<float>(glfwGetTime());
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
 	processInput(window);
 
-	// renderizar escena a fbo
+	// RENDER TO FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
@@ -412,20 +481,21 @@ void Renderer::Render()
 	
 	showFPS(window);
 
-	// projection / view
+	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
-
-	// Skybox	
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
-	/*
-	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
-	modelLoading->use();
-	modelLoading->setMat4("projection", projection);
-	modelLoading->setMat4("view", view);
-	*/
+	// RENDER
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->Render(gCoordinator);
+	//renderSystem->Render(gCoordinator, visibleList);
+
+	UpdateModelMat(visibleList, gCoordinator);
+	auto instancing = ShaderStorage::Get().GetShader("instancing");
+	instancing->use();
+	instancing->setMat4("projection", projection);
+	instancing->setMat4("view", view);
+	if(visibleList.size() > 0) renderSystem->RenderInstanced(gCoordinator, visibleList);
+
 
 	// DRAW
 	/*
@@ -449,25 +519,26 @@ void Renderer::Render()
 	RenderInstanced(instancedList);
 
 	// instancing
+	/*
 	auto instancing = ShaderStorage::Get().GetShader("instancing");
 	instancing->use();
 	instancing->setMat4("projection", projection);
 	instancing->setMat4("view", view);
-
+	*/
 	//gargoyle->InstancedDraw(*instancing, 0, 3000);
 
 	ImGui::Begin("OutList");
 	ImGui::Text("outlist:");
 	std::string str;
-	for (size_t i = 0; i < outList.size(); ++i) {
-		str += std::to_string(outList[i]);
-		if (i != outList.size() - 1)
+	for (size_t i = 0; i < visibleList.size(); ++i) {
+		str += std::to_string(visibleList[i]);
+		if (i != visibleList.size() - 1)
 			str += ", ";
 	}
 	ImGui::Text("%s", str.c_str());
 	ImGui::End();
 
-	// RENDERIZAR A IMGUI
+	// RENDERIZAR TO IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
@@ -476,23 +547,23 @@ void Renderer::Render()
 	// projection / view
 	projection = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 	view = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
-	/*
-	modelLoading->use();
-	modelLoading->setMat4("projection", projection);
-	modelLoading->setMat4("view", view);
-	*/
-	for (auto index : outList)
-	{
-		gobjectsToRender[index].Render();
-	}
+
+	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	renderSystem->Render(gCoordinator, visibleList);
 	
-	// volver a framebuffer principal
+	// INSTANCING
+
+	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// dibujar fbo imgui
+	// draw on imgui
 	ImGui::Begin("TopDown");
 	ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::DragFloat("X", &posX, 0.5f);
@@ -500,7 +571,7 @@ void Renderer::Render()
 	ImGui::DragFloat("Z", &posZ, 0.5f);
 	ImGui::End();
 
-	// dibujar un quad para pintarlo en toda la pantalla
+	// FULLSCREEN QUAD DRAW
 	auto screenShader = ShaderStorage::Get().GetShader("screenShader");
 	screenShader->use();
 	glBindVertexArray(quadVAO);

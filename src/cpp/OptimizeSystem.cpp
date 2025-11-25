@@ -1,4 +1,5 @@
 #include "OptimizeSystem.h"
+#include <AABB.h>
 
 int OptimizeSystem::checkLOD(glm::vec3 position, std::vector<LODLevel> LODs)
 {

@@ -21,6 +21,8 @@
 #include "GameObject.h"
 #include "ShaderStorage.h"
 #include "Skybox.h"
+#include "CullingSystem.h"
+
 
 
 class Renderer
@@ -91,7 +93,7 @@ private:
 	// Imgui
 	unsigned int imguiTextureBuffer, imguiRBO;
 
-
+	unsigned int buffer;
 
 	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -108,6 +110,8 @@ private:
 	void RenderNormal(std::vector<GameObject> objects);
 	void RenderInstanced(std::vector<GameObject> objects);
 	void ShadersInit();
+	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
+	void InitGargoylesECS();
 
 	// debug
 	void showFPS(GLFWwindow* window);

@@ -27,15 +27,30 @@ void Application::ECSInit()
 {
 	gCoordinator.Init();
 
-	// RENDERSYSTEM
+	// RENDER SYSTEM
 	gCoordinator.RegisterComponent<TransformECS>();
 	gCoordinator.RegisterComponent<Renderable>();
+	
+	gCoordinator.RegisterSystem<RenderSystem>();
+	{
+		ECS::Signature signature;
+		signature.set(gCoordinator.GetComponentType<TransformECS>());
+		signature.set(gCoordinator.GetComponentType<Renderable>());
 
-	auto renderSystem = gCoordinator.RegisterSystem<RenderSystem>();
+		gCoordinator.SetSystemSignature<RenderSystem>(signature);
+	}
 
-	ECS::Signature signature;
-	signature.set(gCoordinator.GetComponentType<TransformECS>());
-	signature.set(gCoordinator.GetComponentType<Renderable>());
+	// CULLING SYSTEM
+	gCoordinator.RegisterComponent<AABB>();
 
-	gCoordinator.SetSystemSignature<RenderSystem>(signature);
+	gCoordinator.RegisterSystem<CullingSystem>();
+	{
+		ECS::Signature signature;
+		signature.set(gCoordinator.GetComponentType<TransformECS>());
+		signature.set(gCoordinator.GetComponentType<Renderable>());
+		signature.set(gCoordinator.GetComponentType<AABB>());
+
+		gCoordinator.SetSystemSignature<CullingSystem>(signature);
+	}
+	
 }

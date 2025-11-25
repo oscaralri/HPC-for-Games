@@ -1,5 +1,28 @@
 #include "Model.h"
 
+void Model::FindAABBMinMax(const std::vector<Mesh> meshes, std::array<glm::vec3, 2>& aabb)
+{
+	glm::vec3 maxValues = glm::vec3(std::numeric_limits<float>::lowest());
+	glm::vec3 minValues = glm::vec3(std::numeric_limits<float>::max());
+
+	for (const auto& mesh : meshes)
+	{
+		for (const auto& vertex : mesh.vertices)
+		{
+			minValues.x = std::min(minValues.x, vertex.Position.x);
+			minValues.y = std::min(minValues.y, vertex.Position.y);
+			minValues.z = std::min(minValues.z, vertex.Position.z);
+
+			maxValues.x = std::max(maxValues.x, vertex.Position.x);
+			maxValues.y = std::max(maxValues.y, vertex.Position.y);
+			maxValues.z = std::max(maxValues.z, vertex.Position.z);
+		}
+	}
+
+	aabb[0] = minValues;
+	aabb[1] = maxValues;
+}
+
 void Model::Draw(Shader& shader, int lodLevel)
 {
 	std::vector<Mesh> meshes = LODs[lodLevel].meshes;
