@@ -95,6 +95,10 @@ private:
 
 	unsigned int buffer;
 
+	std::vector<ECS::Entity> visibleInstanced;
+	std::vector<ECS::Entity> visibleNormal;
+
+
 	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -107,11 +111,12 @@ private:
 	void ModelsInit();
 	static void MouseCallbackDispatch(GLFWwindow* window, double xpos, double ypos);
 	void GargoylesInstancing();
-	void RenderNormal(std::vector<GameObject> objects);
-	void RenderInstanced(std::vector<GameObject> objects);
+	void RenderNormal(std::vector<ECS::Entity> entities);
+	void Instanced(std::vector<ECS::Entity> entities);
 	void ShadersInit();
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void InitGargoylesECS();
+	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
 
 	// debug
 	void showFPS(GLFWwindow* window);

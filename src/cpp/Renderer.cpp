@@ -37,6 +37,20 @@ void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::m
 }
 */
 
+void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities)
+{
+	visibleInstanced.clear();
+	visibleNormal.clear();
+
+	for (const auto& entity : entities)
+	{
+		auto& renderable = coordinator.GetComponent<Renderable>(entity);
+
+		if (renderable.renderType == RenderType::Instanced) visibleInstanced.push_back(entity);
+		if (renderable.renderType == RenderType::Normal) visibleNormal.push_back(entity);
+	}
+}
+
 void Renderer::UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
 {
 	std::vector<glm::mat4> modelMatrices;
@@ -55,36 +69,9 @@ void Renderer::UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinat
 		modelMatrices.push_back(modelMat);
 	}
 
-	
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data(), GL_STATIC_DRAW);
-
-	// configuracion para cada gargoyl
-	lods = gargoyle->getLODs();
-	for (size_t i = 0; i < lods.size(); i++)
-	{
-		int size = lods[i].meshes.size();
-		for (size_t j = 0; j < lods[i].meshes.size(); j++)
-		{
-			unsigned int VAO = lods[i].meshes[j].VAO;
-			glBindVertexArray(VAO);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
-
-			glBindVertexArray(0);
-		}
-	}
+	glBufferSubData(GL_ARRAY_BUFFER, 0, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data());
+	
 }
 
 void Renderer::GargoylesInstancing()
@@ -275,20 +262,22 @@ void Renderer::InitGargoylesECS()
 	
 
 	// rock
+	/*
 	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Renderable{ rock, modelLoading });
+	gCoordinator.AddComponent(entity, Renderable{ rock, instancing, RenderType::Instanced });
 	gCoordinator.AddComponent(entity, TransformECS{
 		glm::vec3(15.f, -2.f, -5.f),  // position
 		glm::vec3(0.f, 180.f, 0.f),	// rotation
 		glm::vec3(2.f, 2.f, 2.f)	// scale
 		});
 	gCoordinator.AddComponent(entity, AABB{ rock->getMinMax()[0], rock->getMinMax()[1]} );
-	
+	*/
 
 	// gargoyle
+	
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 	gargoyle = std::make_shared<Model>(paths, 25);
-
+	/*
 	auto entity2 = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity2, TransformECS{
 		glm::vec3(5.f, -2.f, -5.f),  // position
@@ -298,6 +287,7 @@ void Renderer::InitGargoylesECS()
 	gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing });
 	gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
 
+	/*
 	float baseX[] = { 10.f, 100.f, 15.f, 205.f, 20.f, 210.f };
 	size_t baseCount = sizeof(baseX) / sizeof(baseX[0]);
 
@@ -316,13 +306,54 @@ void Renderer::InitGargoylesECS()
 		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing });
 		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
 	}
+	*/
 
+	for (size_t i = 0; i < 100; i++) 
+	{
+		auto entity2 = gCoordinator.CreateEntity(); 
+		gCoordinator.AddComponent(entity2, TransformECS{ 
+			glm::vec3((i * 5) + 10.f, -2.f, -5.f), // position 
+			glm::vec3(0.f, 180.f, 0.f), // rotation 
+			glm::vec3(0.045f, 0.045, 0.045) // scale 
+		}); 
+		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing, RenderType::Instanced });
+		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
+	}
+
+	//auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW); // el 100 es maxInstances
+
+	// esto no deberia hacerse cada frame
+	lods = gargoyle->getLODs();
+	for (size_t i = 0; i < lods.size(); i++)
+	{
+		for (size_t j = 0; j < lods[i].meshes.size(); j++)
+		{
+			unsigned int VAO = lods[i].meshes[j].VAO;
+			glBindVertexArray(VAO);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(4, 1);
+			glVertexAttribDivisor(5, 1);
+			glVertexAttribDivisor(6, 1);
+
+			glBindVertexArray(0);
+		}
+	}
 }
 
 void Renderer::ModelsInit()
 {
-	//GargoylesInit(gobjectsToRender, models, aabb);	
-	//GargoylesInstancing();
 	InitGargoylesECS();
 }
 
@@ -450,6 +481,8 @@ void Renderer::Render()
 	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
 	std::vector<ECS::Entity> visibleList = cullingSystem->FrustumCulling(gCoordinator, mainCamera);
 
+	SortRenderType(gCoordinator, visibleList);
+
 	// FRAMEBUFFER
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
@@ -488,15 +521,18 @@ void Renderer::Render()
 	// RENDER
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	//renderSystem->Render(gCoordinator, visibleList);
-
-	UpdateModelMat(visibleList, gCoordinator);
-	auto instancing = ShaderStorage::Get().GetShader("instancing");
-	instancing->use();
-	instancing->setMat4("projection", projection);
-	instancing->setMat4("view", view);
-	if(visibleList.size() > 0) renderSystem->RenderInstanced(gCoordinator, visibleList);
-
-
+	/*
+	if (visibleList.size() > 0)
+	{
+		UpdateModelMat(visibleList, gCoordinator);
+		auto instancing = ShaderStorage::Get().GetShader("instancing");
+		instancing->use();
+		instancing->setMat4("projection", projection);
+		instancing->setMat4("view", view);
+		renderSystem->RenderInstanced(gCoordinator, visibleList);
+	}
+	*/
+	
 	// DRAW
 	/*
 	for (auto index : outList)
@@ -515,8 +551,16 @@ void Renderer::Render()
 	*/
 
 	// TODO: esto no hace nada ahora realmente, quead por impleemntar para hacer batching mejor
-	RenderNormal(normalList);
-	RenderInstanced(instancedList);
+	
+	if (visibleInstanced.size() > 0)
+	{
+		auto instancing = ShaderStorage::Get().GetShader("instancing");
+		instancing->use();
+		instancing->setMat4("projection", projection);
+		instancing->setMat4("view", view);
+		Instanced(visibleInstanced);
+	}
+	RenderNormal(visibleNormal);
 
 	// instancing
 	/*
@@ -528,6 +572,8 @@ void Renderer::Render()
 	//gargoyle->InstancedDraw(*instancing, 0, 3000);
 
 	ImGui::Begin("OutList");
+	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
+	ImGui::PushTextWrapPos(wrapWidth);
 	ImGui::Text("outlist:");
 	std::string str;
 	for (size_t i = 0; i < visibleList.size(); ++i) {
@@ -536,6 +582,7 @@ void Renderer::Render()
 			str += ", ";
 	}
 	ImGui::Text("%s", str.c_str());
+	ImGui::PopTextWrapPos();
 	ImGui::End();
 
 	// RENDERIZAR TO IMGUI
@@ -553,7 +600,7 @@ void Renderer::Render()
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	renderSystem->Render(gCoordinator, visibleList);
+	//renderSystem->Render(gCoordinator, visibleList);
 	
 	// INSTANCING
 
@@ -585,14 +632,21 @@ void Renderer::Render()
 	glfwPollEvents();
 }
 
-void Renderer::RenderNormal(std::vector<GameObject> objects)
+void Renderer::RenderNormal(std::vector<ECS::Entity> entities)
 {
-
+	for (const auto& entity : entities)
+	{
+		auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
+		
+		renderable.model->Draw(*renderable.shader, 0);
+	}
 }
 
-void Renderer::RenderInstanced(std::vector<GameObject> objects)
+void Renderer::Instanced(std::vector<ECS::Entity> entities)
 {
-
+	UpdateModelMat(entities, gCoordinator);
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->RenderInstanced(gCoordinator, entities);
 }
 
 void Renderer::End()

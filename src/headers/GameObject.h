@@ -18,7 +18,6 @@ struct Transform
 	{}
 };
 
-enum class RenderType { Normal, Instanced };
 
 class GameObject
 {
@@ -38,14 +37,12 @@ public:
 		model = glm::scale(model, getScale());
 		return model;
 	}
-	RenderType getRenderType() { return renderType; }
 	AABB getAABB() { return aabb; }
 	
 	void Render();
 
 private:
 	unsigned int ID;
-	enum RenderType renderType;
 	Transform transform;
 	std::shared_ptr<Model> model;
 	Shader& shader;
@@ -57,7 +54,6 @@ private:
 		unsigned int id,
 		std::shared_ptr<Model> m,
 		Shader& sh,
-		RenderType rt,
 		const glm::vec3& p = glm::vec3(0.f),
 		const glm::vec3& r = glm::vec3(0.f),
 		const glm::vec3& s = glm::vec3(1.f)
@@ -65,7 +61,6 @@ private:
 		ID(id),
 		model(m),
 		shader(sh),
-		renderType(rt),
 		transform(p, r, s)
 	{
 		std::vector<LODLevel> lods = model->getLODs();
