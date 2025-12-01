@@ -112,7 +112,7 @@ private:
 	static void MouseCallbackDispatch(GLFWwindow* window, double xpos, double ypos);
 	void GargoylesInstancing();
 	void RenderNormal(std::vector<ECS::Entity> entities);
-	void Instanced(std::vector<ECS::Entity> entities);
+	void RenderInstanced(std::vector<ECS::Entity> entities);
 	void ShadersInit();
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void InitGargoylesECS();

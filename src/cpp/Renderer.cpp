@@ -46,7 +46,7 @@ void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::En
 	{
 		auto& renderable = coordinator.GetComponent<Renderable>(entity);
 
-		if (renderable.renderType == RenderType::Instanced) visibleInstanced.push_back(entity);
+		if (renderable.renderType == RenderType::RenderInstanced) visibleInstanced.push_back(entity);
 		if (renderable.renderType == RenderType::Normal) visibleNormal.push_back(entity);
 	}
 }
@@ -264,7 +264,7 @@ void Renderer::InitGargoylesECS()
 	// rock
 	/*
 	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Renderable{ rock, instancing, RenderType::Instanced });
+	gCoordinator.AddComponent(entity, Renderable{ rock, instancing, RenderType::RenderInstanced });
 	gCoordinator.AddComponent(entity, TransformECS{
 		glm::vec3(15.f, -2.f, -5.f),  // position
 		glm::vec3(0.f, 180.f, 0.f),	// rotation
@@ -316,7 +316,7 @@ void Renderer::InitGargoylesECS()
 			glm::vec3(0.f, 180.f, 0.f), // rotation 
 			glm::vec3(0.045f, 0.045, 0.045) // scale 
 		}); 
-		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing, RenderType::Instanced });
+		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing, RenderType::RenderInstanced });
 		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
 	}
 
@@ -325,7 +325,6 @@ void Renderer::InitGargoylesECS()
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW); // el 100 es maxInstances
 
-	// esto no deberia hacerse cada frame
 	lods = gargoyle->getLODs();
 	for (size_t i = 0; i < lods.size(); i++)
 	{
@@ -543,7 +542,7 @@ void Renderer::Render()
 				normalList.push_back(gobjectsToRender[index]);
 				break;
 
-			case RenderType::Instanced:
+			case RenderType::RenderInstanced:
 				instancedList.push_back(gobjectsToRender[index]);
 				break;
 		}
@@ -558,7 +557,7 @@ void Renderer::Render()
 		instancing->use();
 		instancing->setMat4("projection", projection);
 		instancing->setMat4("view", view);
-		Instanced(visibleInstanced);
+		RenderInstanced(visibleInstanced);
 	}
 	RenderNormal(visibleNormal);
 
@@ -634,15 +633,11 @@ void Renderer::Render()
 
 void Renderer::RenderNormal(std::vector<ECS::Entity> entities)
 {
-	for (const auto& entity : entities)
-	{
-		auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
-		
-		renderable.model->Draw(*renderable.shader, 0);
-	}
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->Render(gCoordinator, entities);
 }
 
-void Renderer::Instanced(std::vector<ECS::Entity> entities)
+void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 {
 	UpdateModelMat(entities, gCoordinator);
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();

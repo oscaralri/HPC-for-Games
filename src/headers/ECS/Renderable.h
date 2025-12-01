@@ -5,7 +5,7 @@
 enum class RenderType
 {
 	Normal,
-	Instanced
+	RenderInstanced
 };
 
 struct Renderable

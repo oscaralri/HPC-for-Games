@@ -190,7 +190,7 @@ struct ImGuiTypingSelectRequest;    // Storage for GetTypingSelectRequest() (aim
 struct ImGuiWindow;                 // Storage for one window
 struct ImGuiWindowDockStyle;        // Storage for window-style data which needs to be stored for docking purpose
 struct ImGuiWindowTempData;         // Temporary storage for one window (that's the data which in theory we could ditch at the end of the frame, in practice we currently keep it for each window)
-struct ImGuiWindowSettings;         // Storage for a window .ini settings (we keep one of those even if the actual window wasn't instanced during this session)
+struct ImGuiWindowSettings;         // Storage for a window .ini settings (we keep one of those even if the actual window wasn't RenderInstanced during this session)
 
 // Enumerations
 // Use your programming IDE "Go to definition" facility on the names of the center columns to find the actual flags/enum lists.
