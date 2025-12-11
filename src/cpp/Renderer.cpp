@@ -46,7 +46,7 @@ void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::En
 	{
 		auto& renderable = coordinator.GetComponent<Renderable>(entity);
 
-		if (renderable.renderType == RenderType::RenderInstanced) visibleInstanced.push_back(entity);
+		if (renderable.renderType == RenderType::Instanced) visibleInstanced.push_back(entity);
 		if (renderable.renderType == RenderType::Normal) visibleNormal.push_back(entity);
 	}
 }
@@ -252,29 +252,51 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::InitGargoylesECS()
 {
-	glGenBuffers(1, &buffer);
-
 	auto instancing = ShaderStorage::Get().GetShader("instancing");
 	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
 
 	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
 	auto rock = std::make_shared<Model>(paths2, 25);	
 	
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
 
 	// rock
-	/*
 	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Renderable{ rock, instancing, RenderType::RenderInstanced });
+	gCoordinator.AddComponent(entity, Renderable{ rock, instancing, RenderType::Instanced});
 	gCoordinator.AddComponent(entity, TransformECS{
-		glm::vec3(15.f, -2.f, -5.f),  // position
+		glm::vec3(15.f, 7.f, -5.f),  // position
 		glm::vec3(0.f, 180.f, 0.f),	// rotation
 		glm::vec3(2.f, 2.f, 2.f)	// scale
 		});
 	gCoordinator.AddComponent(entity, AABB{ rock->getMinMax()[0], rock->getMinMax()[1]} );
-	*/
+	lods = rock->getLODs();
+	for (size_t i = 0; i < lods.size(); i++)
+	{
+		for (size_t j = 0; j < lods[i].meshes.size(); j++)
+		{
+			unsigned int VAO = lods[i].meshes[j].VAO;
+			glBindVertexArray(VAO);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
-	// gargoyle
-	
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(4, 1);
+			glVertexAttribDivisor(5, 1);
+			glVertexAttribDivisor(6, 1);
+
+			glBindVertexArray(0);
+		}
+	}
+
+	// GARGOYLE
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 	gargoyle = std::make_shared<Model>(paths, 25);
 	/*
@@ -316,14 +338,12 @@ void Renderer::InitGargoylesECS()
 			glm::vec3(0.f, 180.f, 0.f), // rotation 
 			glm::vec3(0.045f, 0.045, 0.045) // scale 
 		}); 
-		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing, RenderType::RenderInstanced });
+		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing, RenderType::Instanced });
 		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
 	}
 
 	//auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW); // el 100 es maxInstances
+	 // el 100 es maxInstances
 
 	lods = gargoyle->getLODs();
 	for (size_t i = 0; i < lods.size(); i++)
@@ -549,8 +569,7 @@ void Renderer::Render()
 	}
 	*/
 
-	// TODO: esto no hace nada ahora realmente, quead por impleemntar para hacer batching mejor
-	
+	// TODO: esto no hace nada ahora realmente, quead por impleemntar para hacer batching 
 	if (visibleInstanced.size() > 0)
 	{
 		auto instancing = ShaderStorage::Get().GetShader("instancing");
@@ -637,11 +656,42 @@ void Renderer::RenderNormal(std::vector<ECS::Entity> entities)
 	renderSystem->Render(gCoordinator, entities);
 }
 
-void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
+void Renderer::CallRenderSystem(std::vector<ECS::Entity> entities)
 {
 	UpdateModelMat(entities, gCoordinator);
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->RenderInstanced(gCoordinator, entities);
+}
+
+void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
+{
+	std::sort(entities.begin(), entities.end(),
+		[&](ECS::Entity a, ECS::Entity b)
+		{
+			auto& renderableA = gCoordinator.GetComponent<Renderable>(a);
+			auto& renderableB = gCoordinator.GetComponent<Renderable>(b);
+			return renderableA.model < renderableB.model;
+		}
+	);
+
+	auto& renderable = gCoordinator.GetComponent<Renderable>(entities[0]);
+	std::shared_ptr<Model> lastModel = renderable.model;
+	std::vector<ECS::Entity> modelGroup; 
+
+	for (const auto& entity : entities)
+	{
+		auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
+
+		if (renderable.model != lastModel)
+		{
+			CallRenderSystem(modelGroup);
+			modelGroup.clear();
+		}
+
+		modelGroup.push_back(entity);
+	}
+
+	CallRenderSystem(modelGroup);
 }
 
 void Renderer::End()

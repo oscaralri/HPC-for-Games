@@ -98,6 +98,8 @@ private:
 	std::vector<ECS::Entity> visibleInstanced;
 	std::vector<ECS::Entity> visibleNormal;
 
+	std::unordered_map<std::shared_ptr<Model>, std::vector<ECS::Entity>> groupModels;
+
 
 	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -117,6 +119,7 @@ private:
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void InitGargoylesECS();
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
+	void CallRenderSystem(std::vector<ECS::Entity> entities);
 
 	// debug
 	void showFPS(GLFWwindow* window);
