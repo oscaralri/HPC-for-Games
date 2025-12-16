@@ -69,9 +69,6 @@
     <ClCompile Include="src\cpp\ECS\EntityManager.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\cpp\GameObject.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\cpp\ECS\IComponentArray.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -167,9 +164,6 @@
     <ClInclude Include="src\headers\ECS\EntityManager.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\headers\GameObject.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\headers\ECS\IComponentArray.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -222,6 +216,12 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="ResourceManager.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="HandlesBasico.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="HandlesBasicoMejorado.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

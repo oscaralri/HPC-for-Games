@@ -141,7 +141,6 @@
     <ClCompile Include="src\cpp\ECS\Coordinator.cpp" />
     <ClCompile Include="src\cpp\ECS\CullingSystem.cpp" />
     <ClCompile Include="src\cpp\ECS\EntityManager.cpp" />
-    <ClCompile Include="src\cpp\GameObject.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="src\cpp\ECS\IComponentArray.cpp" />
     <ClCompile Include="libraries\Include\imgui\imgui.cpp" />
@@ -166,6 +165,8 @@
     <ClCompile Include="src\cpp\ECS\SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HandlesBasico.h" />
+    <ClInclude Include="HandlesBasicoMejorado.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="src\headers\Application.h" />
     <ClInclude Include="src\headers\BaseScene.h" />
@@ -176,7 +177,6 @@
     <ClInclude Include="src\headers\ECS\CullingSystem.h" />
     <ClInclude Include="src\headers\ECS\ECSConfig.h" />
     <ClInclude Include="src\headers\ECS\EntityManager.h" />
-    <ClInclude Include="src\headers\GameObject.h" />
     <ClInclude Include="src\headers\ECS\IComponentArray.h" />
     <ClInclude Include="libraries\Include\imgui\imconfig.h" />
     <ClInclude Include="libraries\Include\imgui\imgui.h" />
