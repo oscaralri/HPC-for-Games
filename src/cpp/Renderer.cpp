@@ -81,7 +81,7 @@ void Renderer::GargoylesInstancing()
 	auto gargoyle = std::make_shared<Model>(paths, 25);
 
 	// matriz de mddels
-	int numGargoyles = 3000;
+	int numGargoyles = 50;
 
 	glm::mat4* modelMatrices = new glm::mat4[numGargoyles];
 	srand(500);
@@ -92,17 +92,12 @@ void Renderer::GargoylesInstancing()
 		float y = (rand() % 2000 - 1000) / 10.0f;
 		float z = (rand() % 2000 - 1000) / 10.0f;
 		model = glm::translate(model, glm::vec3(x, y, z));
-		model = glm::scale(model, glm::vec3(0.045f, 0.045, 0.045));
+		model = glm::scale(model, glm::vec3(0.045f, 0.045f, 0.045f));
 		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		modelMatrices[i] = model;
 	}
 
-	// buffer con matrices
-	unsigned int buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, numGargoyles * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 	
 	// configuracion para cada gargoyl
 	lods = gargoyle->getLODs();
@@ -130,6 +125,12 @@ void Renderer::GargoylesInstancing()
 			glBindVertexArray(0);
 		}
 	}
+
+	// buffer con matrices
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, numGargoyles * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
+
 }
 
 void SkyboxInit()
@@ -160,8 +161,6 @@ void Renderer::ShadersInit()
 
 	auto instancing = std::make_shared<Shader>("shaders/instancing.vert", "shaders/instancing.frag");
 	ShaderStorage::Get().Add("instancing", instancing);
-
-	
 }
 
 void ImGuiInit(GLFWwindow* window)
@@ -251,13 +250,14 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 }
 
 void Renderer::InitGargoylesECS()
-{
+{		
 	auto instancing = ShaderStorage::Get().GetShader("instancing");
 	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
 
 	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
 	auto rock = std::make_shared<Model>(paths2, 25);	
-	
+
+	/*
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
@@ -295,10 +295,9 @@ void Renderer::InitGargoylesECS()
 			glBindVertexArray(0);
 		}
 	}
-
+	*/
 	// GARGOYLE
-	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	gargoyle = std::make_shared<Model>(paths, 25);
+	
 	/*
 	auto entity2 = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity2, TransformECS{
@@ -329,6 +328,8 @@ void Renderer::InitGargoylesECS()
 		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
 	}
 	*/
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	gargoyle = std::make_shared<Model>(paths, 25);
 
 	for (size_t i = 0; i < 100; i++) 
 	{
@@ -344,6 +345,10 @@ void Renderer::InitGargoylesECS()
 
 	//auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
 	 // el 100 es maxInstances
+
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
 
 	lods = gargoyle->getLODs();
 	for (size_t i = 0; i < lods.size(); i++)
@@ -369,6 +374,7 @@ void Renderer::InitGargoylesECS()
 			glBindVertexArray(0);
 		}
 	}
+
 }
 
 void Renderer::ModelsInit()
@@ -536,11 +542,11 @@ void Renderer::Render()
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
-
+		
 	// RENDER
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	//renderSystem->Render(gCoordinator, visibleList);
-	/*
+	
 	if (visibleList.size() > 0)
 	{
 		UpdateModelMat(visibleList, gCoordinator);
@@ -550,7 +556,7 @@ void Renderer::Render()
 		instancing->setMat4("view", view);
 		renderSystem->RenderInstanced(gCoordinator, visibleList);
 	}
-	*/
+	
 	
 	// DRAW
 	/*
@@ -578,7 +584,7 @@ void Renderer::Render()
 		instancing->setMat4("view", view);
 		RenderInstanced(visibleInstanced);
 	}
-	RenderNormal(visibleNormal);
+	//RenderNormal(visibleNormal);
 
 	// instancing
 	/*
