@@ -26,7 +26,6 @@ public:
 	
 	Model(std::vector<std::string>& paths, int increment, bool gamma = false) : gammaCorrection(gamma)
 	{
-		
 		for (size_t i = 0; i < paths.size(); ++i)
 		{
 			lodIncrement += increment;

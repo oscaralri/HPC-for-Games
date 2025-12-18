@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ModelManager.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="src\cpp\Application.cpp" />
     <ClCompile Include="src\cpp\BaseScene.cpp" />
@@ -163,11 +164,14 @@
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="src\cpp\ECS\System.cpp" />
     <ClCompile Include="src\cpp\ECS\SystemManager.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="HandlesBasico.h" />
     <ClInclude Include="HandlesBasicoMejorado.h" />
-    <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="ModelManager.h" />
+    <ClInclude Include="ResourceStorage.h" />
     <ClInclude Include="src\headers\Application.h" />
     <ClInclude Include="src\headers\BaseScene.h" />
     <ClInclude Include="src\headers\Camera.h" />
@@ -201,6 +205,8 @@
     <ClInclude Include="src\headers\ECS\SystemManager.h" />
     <ClInclude Include="src\headers\ECS\Transform.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TextureManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basicLighting.frag" />

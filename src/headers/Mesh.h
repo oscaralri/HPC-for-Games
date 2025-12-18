@@ -14,15 +14,10 @@ struct Vertex {
 	glm::vec3 Bitangent;
 };
 
-struct Texture {
-	unsigned int id;
-	std::string type; // difusse or specular
-	std::string path;
-};
+
 
 class Mesh
 {
-
 public:
  // CAMBIAR ESTO A PRIVATE!!!!
 	unsigned int VAO;
