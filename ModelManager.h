@@ -2,30 +2,37 @@
 
 #include "ResourceStorage.h"
 #include "Model.h"
+#include <EngineResources.h>
+
 
 class ModelManager
 {
 public:
-	// la cosa es mantener la misma logica de creacion simplemente 
-		// cuando acabe de crear las cosas donde se guardan es en el modelStorage
-	ResourceHandle LoadModel(const std::string& path, bool gamma = false);
-	ResourceHandle LoadModelLOD(const std::vector<std::string>& paths, int lodIncrement, bool gamma = false);
+	ResourceHandle LoadModel(const std::string& path, bool gamma = false)
+	{
+		Model model = Model(path);
+		ResourceHandle rh = modelStorage.Create(model);
+		return rh;
+	}
 
-	Model* Get(const ResourceHandle& handle);
-	void Destroy(ResourceHandle& handle);
+	ResourceHandle LoadModelLOD(const std::vector<std::string>& paths, int increment, bool gamma = false)
+	{
+		Model model = Model(paths, increment);
+		ResourceHandle rh = modelStorage.Create(model);
+		return rh;
+	}
+
+	Model* Get(const ResourceHandle& rh)
+	{
+		return modelStorage.Get(rh);
+	}
+
+	void Destroy(ResourceHandle& rh)
+	{
+		modelStorage.Destroy(rh);
+	}
 
 private:
 	ResourceStorage<Model> modelStorage;
-
-	std::string directory;
-	std::vector<LODLevel> LODs;
-	int lodIncrement = 0; // esto se podria cambiar a uint32_t
-
-	void processNode(aiNode* node, const aiScene* scene);
-	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
-
-
-
 };
 

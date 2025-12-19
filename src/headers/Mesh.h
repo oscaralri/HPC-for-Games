@@ -5,6 +5,9 @@
 #include <vector>
 #include "Shader.h"
 #include <Camera.h>
+#include <ResourceStorage.h>
+#include "TextureManager.h"
+#include <EngineResources.h>
 
 struct Vertex {
 	glm::vec3 Position;
@@ -24,10 +27,10 @@ public:
 
 	std::vector<Vertex> vertices; 
 	std::vector<unsigned int> indices;
-	std::vector<Texture> textures;
+	std::vector<ResourceHandle> textureHandles;
 
-	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) 
-		: vertices(vertices), indices(indices), textures(textures)
+	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<ResourceHandle> textures) 
+		: vertices(vertices), indices(indices), textureHandles(textures)
 	{
 		setupMesh();
 	}

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <ResourceStorage.h>
 #include <unordered_map>
 #include <string>
@@ -18,7 +19,7 @@ struct Texture
 class TextureManager
 {
 public:
-	ResourceHandle LoadTexture(const std::string& path)
+	ResourceHandle LoadTexture(const std::string& path, std::string typeName)
 	{
 		auto it = LoadedPaths.find(path);
 		if (it != LoadedPaths.end())
@@ -26,7 +27,7 @@ public:
 			return it->second;
 		}
 
-		Texture tex = LoadTextureFromFile(path);
+		Texture tex = LoadTextureFromFile(path, typeName);
 		ResourceHandle rh = textureStorage.Create(tex);
 		LoadedPaths[path] = rh;
 		return rh;
@@ -54,11 +55,13 @@ public:
 	}
 
 private:
-	Texture LoadTextureFromFile(const std::string& path)
+	Texture LoadTextureFromFile(const std::string& path, std::string typeName)
 	{
 		Texture tex;
 		tex.path = path;
 		std::string directory = path.substr(0, path.find_last_of('/'));
+
+		tex.type = typeName;
 
 		std::string filename = std::string(path);
 		filename = directory + '/' + filename;

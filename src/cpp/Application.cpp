@@ -3,6 +3,7 @@
 
 ECS::Coordinator gCoordinator;
 
+
 void Application::Init()
 { 
 	scene = new BaseScene();
@@ -11,6 +12,7 @@ void Application::Init()
 	ECSInit(); 
 
 	Renderer::Get().Init();
+
 }
 
 void Application::Run()

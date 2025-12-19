@@ -10,8 +10,8 @@
 #include "Shader.h"
 #include "stb_image.h"
 
-// uso struct en lugar de directamnete la lista y ya porque quizas añado más variables/info al struct
-struct LODLevel {
+struct LODLevel 
+{
 	std::vector<Mesh> meshes;
 	int distance;
 };
@@ -24,7 +24,7 @@ public:
 		loadModel(path);
 	}
 	
-	Model(std::vector<std::string>& paths, int increment, bool gamma = false) : gammaCorrection(gamma)
+	Model(const std::vector<std::string>& paths, int increment, bool gamma = false) : gammaCorrection(gamma)
 	{
 		for (size_t i = 0; i < paths.size(); ++i)
 		{
@@ -42,8 +42,6 @@ public:
 
 private:
 	std::vector<LODLevel> LODs;
-
-	std::vector<Texture> textures_loaded;
 	std::string directory;
 	bool gammaCorrection;
 	int lodIncrement = 0;
@@ -52,8 +50,7 @@ private:
 	void loadModel(std::string const& path);
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
-	unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
+	std::vector<ResourceHandle> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 	void FindAABBMinMax(const std::vector<Mesh> meshes, std::array<glm::vec3, 2>& aabb);
 };
 

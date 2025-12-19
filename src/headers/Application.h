@@ -8,7 +8,7 @@
 #include "Transform.h"
 #include "Renderable.h"
 #include <CullingSystem.h>
-
+#include "EngineResources.h"
 
 extern ECS::Coordinator gCoordinator;
 
@@ -28,7 +28,7 @@ public:
 
 private:
 	Scene* scene;
-	
+	EngineResources resources;
 	Application() = default;                                
 	Application(const Application&) = delete;               
 	Application& operator=(const Application&) = delete;   
