@@ -4,7 +4,7 @@
 struct ResourceHandle
 {
 	int32_t Index = -1;
-	uint32_t Gen = 0;
+	int32_t Gen = 0;
 
 	bool IsValid() const
 	{

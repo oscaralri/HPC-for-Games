@@ -18,7 +18,6 @@
 #include "Camera.h"
 #include "Application.h"
 #include "OptimizeSystem.h"
-#include "GameObject.h"
 #include "ShaderStorage.h"
 #include "Skybox.h"
 #include "CullingSystem.h"
@@ -65,10 +64,6 @@ private:
 	std::vector<glm::mat4> models;
 	std::vector<AABB> aabb;
 	std::vector<unsigned int> outList;
-
-	std::vector<GameObject> gobjectsToRender;
-	std::vector<GameObject> normalList;
-	std::vector<GameObject> instancedList;
 
 	unsigned int framebuffer;
 	unsigned int textureColorbuffer;

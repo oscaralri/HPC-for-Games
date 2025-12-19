@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
 
+
 void Mesh::setupMesh()
 {
 	glGenVertexArrays(1, &VAO); // configurar vao: config de como estan organizados datos de vertices

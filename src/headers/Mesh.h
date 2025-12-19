@@ -7,7 +7,7 @@
 #include <Camera.h>
 #include <ResourceStorage.h>
 #include "TextureManager.h"
-#include <EngineResources.h>
+#include "EngineResources.h"
 
 struct Vertex {
 	glm::vec3 Position;

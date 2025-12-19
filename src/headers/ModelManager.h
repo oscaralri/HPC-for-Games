@@ -2,22 +2,23 @@
 
 #include "ResourceStorage.h"
 #include "Model.h"
-#include <EngineResources.h>
+#include <vector>
+#include <string>
 
 
 class ModelManager
 {
 public:
-	ResourceHandle LoadModel(const std::string& path, bool gamma = false)
+	ResourceHandle LoadModel(const std::string& path)
 	{
-		Model model = Model(path);
+		Model model(path);
 		ResourceHandle rh = modelStorage.Create(model);
 		return rh;
 	}
 
-	ResourceHandle LoadModelLOD(const std::vector<std::string>& paths, int increment, bool gamma = false)
+	ResourceHandle LoadModelLOD(const std::vector<std::string>& paths, int increment)
 	{
-		Model model = Model(paths, increment);
+		Model model(paths, increment);
 		ResourceHandle rh = modelStorage.Create(model);
 		return rh;
 	}
