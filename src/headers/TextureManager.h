@@ -1,13 +1,16 @@
 #pragma once
 
-#include <ResourceStorage.h>
 #include <unordered_map>
 #include <string>
+#include <filesystem>
 
 #include <string>
 #include <glad/glad.h>
 #include <stb_image.h>
 #include <iostream>
+
+#include "ResourceStorage.h"
+
 
 struct Texture
 {
@@ -19,17 +22,18 @@ struct Texture
 class TextureManager
 {
 public:
-	ResourceHandle LoadTexture(const std::string& path, std::string typeName)
+	ResourceHandle LoadTexture(const char* path, const std::string& directory, std::string typeName)
 	{
-		auto it = LoadedPaths.find(path);
+		std::string newPath = CleanPath(path);
+		auto it = LoadedPaths.find(newPath);
 		if (it != LoadedPaths.end())
 		{
 			return it->second;
 		}
 
-		Texture tex = LoadTextureFromFile(path, typeName);
+		Texture tex = LoadTextureFromFile(newPath, directory, typeName);
 		ResourceHandle rh = textureStorage.Create(tex);
-		LoadedPaths[path] = rh;
+		LoadedPaths[newPath] = rh;
 		return rh;
 	}
 
@@ -55,11 +59,10 @@ public:
 	}
 
 private:
-	Texture LoadTextureFromFile(const std::string& path, std::string typeName)
+	Texture LoadTextureFromFile(const std::string& path, const std::string& directory, std::string typeName)
 	{
 		Texture tex;
 		tex.path = path;
-		std::string directory = path.substr(0, path.find_last_of('/'));
 
 		tex.type = typeName;
 
@@ -100,8 +103,15 @@ private:
 		return tex;
 	}
 
+	std::string CleanPath(const char* path)
+	{
+		return std::filesystem::path(path).lexically_normal().filename().string();
+	}
+
+
 	ResourceStorage<Texture> textureStorage;
 	std::unordered_map<std::string, ResourceHandle> LoadedPaths;
+
 
 };
 

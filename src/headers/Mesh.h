@@ -1,13 +1,11 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <string>
 #include <vector>
+#include <glm/glm.hpp>
+#include <glad/glad.h>
+#include <string>
+#include "ResourceStorage.h"
 #include "Shader.h"
-#include <Camera.h>
-#include <ResourceStorage.h>
-#include "TextureManager.h"
-#include "EngineResources.h"
 
 struct Vertex {
 	glm::vec3 Position;
@@ -16,8 +14,6 @@ struct Vertex {
 	glm::vec3 Tangent;
 	glm::vec3 Bitangent;
 };
-
-
 
 class Mesh
 {

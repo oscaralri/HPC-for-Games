@@ -1,5 +1,6 @@
 #include "RenderSystem.h"
 #include "ShaderStorage.h"
+#include "EngineResources.h"
 
 void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities)
 {
@@ -19,7 +20,8 @@ void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity
 		renderable.shader->use();
 		renderable.shader->setMat4("model", modelMat);
 
-		renderable.model->Draw(*renderable.shader, 0);
+		EngineResources::GetModelManager().Get(renderable.model)->Draw(*renderable.shader, 0);
+		//renderable.model->Draw(*renderable.shader, 0);
 	}
 }
 
@@ -27,5 +29,6 @@ void RenderSystem::RenderInstanced(ECS::Coordinator& coordinator, std::vector<EC
 {
 	// el entities que se recibe suponemos que es solo de un tipo de modelo y por ello shader (todo lo que se recibe son gargoyles)
 	auto& renderable = coordinator.GetComponent<Renderable>(entities[0]);
-	renderable.model->InstancedDraw(*renderable.shader, 0, entities.size());
+	EngineResources::GetModelManager().Get(renderable.model)->InstancedDraw(*renderable.shader, 0, entities.size());
+	//renderable.model->InstancedDraw(*renderable.shader, 0, entities.size());
 }

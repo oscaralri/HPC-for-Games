@@ -44,7 +44,8 @@ public:
 private:
 	//test 
 	std::vector<LODLevel> lods;
-	std::shared_ptr<Model> gargoyle;
+	//std::shared_ptr<Model> gargoyle;
+	ResourceHandle gargoyle;
 
 	//
 	Renderer() = default;

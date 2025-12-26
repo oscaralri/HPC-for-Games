@@ -1,5 +1,8 @@
 #include "Model.h"
 
+#include "EngineResources.h"
+
+
 void Model::FindAABBMinMax(const std::vector<Mesh> meshes, std::array<glm::vec3, 2>& aabb)
 {
 	glm::vec3 maxValues = glm::vec3(std::numeric_limits<float>::lowest());
@@ -167,7 +170,7 @@ std::vector<ResourceHandle> Model::loadMaterialTextures(aiMaterial* mat, aiTextu
 		mat->GetTexture(type, i, &str);
 
 		ResourceHandle textureHandle;
-		textureHandle = EngineResources::GetTextureManager().LoadTexture(str.C_Str(), typeName);
+		textureHandle = EngineResources::GetTextureManager().LoadTexture(str.C_Str(), this->directory, typeName);
 		textureHandles.push_back(textureHandle);
 
 		// la idea es que esto que se ha hecho tiene que conseguir lo mismo

@@ -1,41 +1,6 @@
 #include "Renderer.h"
 
-
-/*
-void SeedInit()
-{
-	unsigned int seed = 12345;
-	std::mt19937 rng(seed);
-	std::cout << "" << std::endl;
-	std::cout << rng << std::endl;
-}
-*/
-
-/*
-void GargoylesInit(std::vector<GameObject>& gobjectsToRender, std::vector<glm::mat4>& models, std::vector<AABB>& aabb)
-{
-	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	auto gargoyle = std::make_shared<Model>(paths, 25);
-
-	glm::vec3 basePosition(5.f, -2.f, -5.f);
-	glm::vec3 rotation = glm::vec3(0.f, 180.f, 0.f);
-	glm::vec3 scale = glm::vec3(0.045f, 0.045, 0.045);
-
-	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
-
-	for (int i = 0; i < 20; i++)
-	{
-		glm::vec3 pos = basePosition + glm::vec3(0.f, 0.f, -i * 5.f);
-		gobjectsToRender.emplace_back(i, gargoyle, *modelLoading, pos, rotation, scale);
-	}
-
-	for (size_t i = 0; i < gobjectsToRender.size(); i++)
-	{
-		models.push_back(gobjectsToRender[i].getModelMatrix());
-		aabb.push_back(gobjectsToRender[i].getAABB());
-	}
-}
-*/
+#include "EngineResources.h"
 
 void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities)
 {
@@ -255,22 +220,26 @@ void Renderer::InitGargoylesECS()
 	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
 
 	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
-	auto rock = std::make_shared<Model>(paths2, 25);	
+	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 25);
 
 	/*
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
-
+	*/
 	// rock
 	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Renderable{ rock, instancing, RenderType::Instanced});
+	gCoordinator.AddComponent(entity, Renderable{ rock, modelLoading, RenderType::Normal});
 	gCoordinator.AddComponent(entity, TransformECS{
 		glm::vec3(15.f, 7.f, -5.f),  // position
 		glm::vec3(0.f, 180.f, 0.f),	// rotation
 		glm::vec3(2.f, 2.f, 2.f)	// scale
 		});
-	gCoordinator.AddComponent(entity, AABB{ rock->getMinMax()[0], rock->getMinMax()[1]} );
+	gCoordinator.AddComponent(entity, AABB{
+			EngineResources::GetModelManager().Get(rock)->getMinMax()[0],
+			EngineResources::GetModelManager().Get(rock)->getMinMax()[1] });
+
+	/*
 	lods = rock->getLODs();
 	for (size_t i = 0; i < lods.size(); i++)
 	{
@@ -320,8 +289,8 @@ void Renderer::InitGargoylesECS()
 
 		auto entity2 = gCoordinator.CreateEntity();
 		gCoordinator.AddComponent(entity2, TransformECS{
-			glm::vec3(x, y, z),          // posición
-			glm::vec3(0.f, 180.f, 0.f),  // rotación
+			glm::vec3(x, y, z),          // posicion
+			glm::vec3(0.f, 180.f, 0.f),  // rotacion
 			glm::vec3(0.045f, 0.045f, 0.045f) // escala
 			});
 		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing });
@@ -329,7 +298,8 @@ void Renderer::InitGargoylesECS()
 	}
 	*/
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	gargoyle = std::make_shared<Model>(paths, 25);
+	//gargoyle = std::make_shared<Model>(paths, 25);
+	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 25);
 
 	for (size_t i = 0; i < 100; i++) 
 	{
@@ -339,17 +309,19 @@ void Renderer::InitGargoylesECS()
 			glm::vec3(0.f, 180.f, 0.f), // rotation 
 			glm::vec3(0.045f, 0.045, 0.045) // scale 
 		}); 
-		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing, RenderType::Instanced });
-		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
+		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, modelLoading, RenderType::Normal});
+		gCoordinator.AddComponent(entity2, AABB{ 
+			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[0],
+			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[1] });
 	}
 
 	//auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
 	 // el 100 es maxInstances
 
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
-
+	//glGenBuffers(1, &buffer);
+	//glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	//glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
+	/*
 	lods = gargoyle->getLODs();
 	for (size_t i = 0; i < lods.size(); i++)
 	{
@@ -374,7 +346,7 @@ void Renderer::InitGargoylesECS()
 			glBindVertexArray(0);
 		}
 	}
-
+	*/
 }
 
 void Renderer::ModelsInit()
@@ -482,7 +454,7 @@ void Renderer::Init()
 	SkyboxInit();
 	//SeedInit();
 			
-	OptimizeSystem::getInstance().setCamera(mainCamera);
+	//OptimizeSystem::getInstance().setCamera(mainCamera);
 }
 
 void Renderer::Render()
@@ -544,38 +516,8 @@ void Renderer::Render()
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 		
 	// RENDER
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	//renderSystem->Render(gCoordinator, visibleList);
-	
-	if (visibleList.size() > 0)
-	{
-		UpdateModelMat(visibleList, gCoordinator);
-		auto instancing = ShaderStorage::Get().GetShader("instancing");
-		instancing->use();
-		instancing->setMat4("projection", projection);
-		instancing->setMat4("view", view);
-		renderSystem->RenderInstanced(gCoordinator, visibleList);
-	}
-	
-	
-	// DRAW
+	// Instanced
 	/*
-	for (auto index : outList)
-	{
-		switch (gobjectsToRender[index].getRenderType())
-		{
-			case RenderType::Normal:
-				normalList.push_back(gobjectsToRender[index]);
-				break;
-
-			case RenderType::RenderInstanced:
-				instancedList.push_back(gobjectsToRender[index]);
-				break;
-		}
-	}
-	*/
-
-	// TODO: esto no hace nada ahora realmente, quead por impleemntar para hacer batching 
 	if (visibleInstanced.size() > 0)
 	{
 		auto instancing = ShaderStorage::Get().GetShader("instancing");
@@ -584,16 +526,9 @@ void Renderer::Render()
 		instancing->setMat4("view", view);
 		RenderInstanced(visibleInstanced);
 	}
-	//RenderNormal(visibleNormal);
-
-	// instancing
-	/*
-	auto instancing = ShaderStorage::Get().GetShader("instancing");
-	instancing->use();
-	instancing->setMat4("projection", projection);
-	instancing->setMat4("view", view);
 	*/
-	//gargoyle->InstancedDraw(*instancing, 0, 3000);
+	// Normal
+	RenderNormal(visibleNormal);
 
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
@@ -624,9 +559,6 @@ void Renderer::Render()
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	//renderSystem->Render(gCoordinator, visibleList);
-	
-	// INSTANCING
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -674,14 +606,20 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 	std::sort(entities.begin(), entities.end(),
 		[&](ECS::Entity a, ECS::Entity b)
 		{
+			//return renderableA.model < renderableB.model;
+			
 			auto& renderableA = gCoordinator.GetComponent<Renderable>(a);
 			auto& renderableB = gCoordinator.GetComponent<Renderable>(b);
-			return renderableA.model < renderableB.model;
+
+			auto& indexA = renderableA.model.Index;
+			auto& indexB = renderableB.model.Index;
+
+			return indexA < indexB;
 		}
 	);
 
 	auto& renderable = gCoordinator.GetComponent<Renderable>(entities[0]);
-	std::shared_ptr<Model> lastModel = renderable.model;
+	ResourceHandle lastModel = renderable.model;
 	std::vector<ECS::Entity> modelGroup; 
 
 	for (const auto& entity : entities)
@@ -780,41 +718,4 @@ void Renderer::processInput(GLFWwindow* window)
 		mainCamera->ProcessKeyboard(RIGHT, deltaTime);
 
 
-}
-
-unsigned int Renderer::loadTexture(char const* path)
-{
-	unsigned int textureID;
-	glGenTextures(1, &textureID);
-
-	int width, height, nrComponents;
-	unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-	if (data)
-	{
-		GLenum format;
-		if (nrComponents == 1)
-			format = GL_RED;
-		else if (nrComponents == 3)
-			format = GL_RGB;
-		else if (nrComponents == 4)
-			format = GL_RGBA;
-
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		stbi_image_free(data);
-	}
-	else
-	{
-		std::cout << "Texture failed to load at path: " << path << std::endl;
-		stbi_image_free(data);
-	}
-
-	return textureID;
 }

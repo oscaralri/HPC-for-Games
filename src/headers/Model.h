@@ -1,14 +1,11 @@
 #pragma once
 
-#include <vector>
 #include <array>
-#include <string>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "Mesh.h"
-#include "Shader.h"
-#include "stb_image.h"
+#include <Mesh.h>
+
 
 struct LODLevel 
 {
