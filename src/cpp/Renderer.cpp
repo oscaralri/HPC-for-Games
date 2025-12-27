@@ -108,13 +108,14 @@ void SkyboxInit()
 		"textures/skybox/front.jpg",
 		"textures/skybox/back.jpg"
 	};
-	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces);
+	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces, "shaders/skybox.vert", "shaders/skybox.frag");
 	auto scene = Application::Get().GetActiveScene();
 	scene->SetSkybox(newSkybox);
 }
 
 void Renderer::ShadersInit()
 {
+	/*
 	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
 	ShaderStorage::Get().Add("modelLoading", modelLoading);
 
@@ -126,6 +127,9 @@ void Renderer::ShadersInit()
 
 	auto instancing = std::make_shared<Shader>("shaders/instancing.vert", "shaders/instancing.frag");
 	ShaderStorage::Get().Add("instancing", instancing);
+	*/
+
+	screenShader = EngineResources::GetShaderManager().LoadShader("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
 }
 
 void ImGuiInit(GLFWwindow* window)
@@ -216,17 +220,10 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::InitGargoylesECS()
 {		
-	auto instancing = ShaderStorage::Get().GetShader("instancing");
-	auto modelLoading = ShaderStorage::Get().GetShader("modelLoading");
-
 	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
 	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 25);
-
-	/*
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
-	*/
+	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
+	
 	// rock
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Renderable{ rock, modelLoading, RenderType::Normal});
@@ -238,67 +235,8 @@ void Renderer::InitGargoylesECS()
 	gCoordinator.AddComponent(entity, AABB{
 			EngineResources::GetModelManager().Get(rock)->getMinMax()[0],
 			EngineResources::GetModelManager().Get(rock)->getMinMax()[1] });
-
-	/*
-	lods = rock->getLODs();
-	for (size_t i = 0; i < lods.size(); i++)
-	{
-		for (size_t j = 0; j < lods[i].meshes.size(); j++)
-		{
-			unsigned int VAO = lods[i].meshes[j].VAO;
-			glBindVertexArray(VAO);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
-
-			glBindVertexArray(0);
-		}
-	}
-	*/
-	// GARGOYLE
 	
-	/*
-	auto entity2 = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity2, TransformECS{
-		glm::vec3(5.f, -2.f, -5.f),  // position
-		glm::vec3(0.f, 180.f, 0.f),	// rotation
-		glm::vec3(0.045f, 0.045, 0.045)	// scale
-		});
-	gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing });
-	gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
-
-	/*
-	float baseX[] = { 10.f, 100.f, 15.f, 205.f, 20.f, 210.f };
-	size_t baseCount = sizeof(baseX) / sizeof(baseX[0]);
-
-	for (size_t i = 0; i < 100; i++)
-	{
-		float x = baseX[i % baseCount] + (i / baseCount) * 5.0f; // añade un pequeño offset para no superponer
-		float y = -2.f;
-		float z = -5.f;
-
-		auto entity2 = gCoordinator.CreateEntity();
-		gCoordinator.AddComponent(entity2, TransformECS{
-			glm::vec3(x, y, z),          // posicion
-			glm::vec3(0.f, 180.f, 0.f),  // rotacion
-			glm::vec3(0.045f, 0.045f, 0.045f) // escala
-			});
-		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, instancing });
-		gCoordinator.AddComponent(entity2, AABB{ gargoyle->getMinMax()[0], gargoyle->getMinMax()[1] });
-	}
-	*/
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	//gargoyle = std::make_shared<Model>(paths, 25);
 	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 25);
 
 	for (size_t i = 0; i < 100; i++) 
@@ -314,39 +252,6 @@ void Renderer::InitGargoylesECS()
 			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[0],
 			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[1] });
 	}
-
-	//auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
-	 // el 100 es maxInstances
-
-	//glGenBuffers(1, &buffer);
-	//glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	//glBufferData(GL_ARRAY_BUFFER, 100 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
-	/*
-	lods = gargoyle->getLODs();
-	for (size_t i = 0; i < lods.size(); i++)
-	{
-		for (size_t j = 0; j < lods[i].meshes.size(); j++)
-		{
-			unsigned int VAO = lods[i].meshes[j].VAO;
-			glBindVertexArray(VAO);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
-
-			glBindVertexArray(0);
-		}
-	}
-	*/
 }
 
 void Renderer::ModelsInit()
@@ -575,8 +480,7 @@ void Renderer::Render()
 	ImGui::End();
 
 	// FULLSCREEN QUAD DRAW
-	auto screenShader = ShaderStorage::Get().GetShader("screenShader");
-	screenShader->use();
+	EngineResources::GetShaderManager().Get(screenShader)->use();
 	glBindVertexArray(quadVAO);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

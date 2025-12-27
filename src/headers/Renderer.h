@@ -46,6 +46,7 @@ private:
 	std::vector<LODLevel> lods;
 	//std::shared_ptr<Model> gargoyle;
 	ResourceHandle gargoyle;
+	ResourceHandle screenShader;
 
 	//
 	Renderer() = default;

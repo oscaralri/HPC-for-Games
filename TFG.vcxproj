@@ -160,6 +160,7 @@
     <ClCompile Include="src\cpp\ResourceStorage.cpp" />
     <ClCompile Include="src\cpp\Scene.cpp" />
     <ClCompile Include="src\cpp\Shader.cpp" />
+    <ClCompile Include="src\cpp\ShaderManager.cpp" />
     <ClCompile Include="src\cpp\ShaderStorage.cpp" />
     <ClCompile Include="src\cpp\Skybox.cpp" />
     <ClCompile Include="src\cpp\TextureManager.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="src\headers\ResourceStorage.h" />
     <ClInclude Include="src\headers\Scene.h" />
     <ClInclude Include="src\headers\Shader.h" />
+    <ClInclude Include="src\headers\ShaderManager.h" />
     <ClInclude Include="src\headers\ShaderStorage.h" />
     <ClInclude Include="src\headers\Skybox.h" />
     <ClInclude Include="src\headers\ECS\System.h" />
