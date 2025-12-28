@@ -26,8 +26,6 @@
 
 class Renderer
 {
-
-
 public:
 	static Renderer& Get()
 	{
@@ -47,7 +45,7 @@ private:
 	//std::shared_ptr<Model> gargoyle;
 	ResourceHandle gargoyle;
 	ResourceHandle screenShader;
-
+	ResourceHandle instancingShader;
 	//
 	Renderer() = default;
 	Renderer(const Renderer&) = delete;
@@ -115,6 +113,7 @@ private:
 	void ShadersInit();
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void InitGargoylesECS();
+	void InitGargoylesInstancing();
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
 	void CallRenderSystem(std::vector<ECS::Entity> entities);
 

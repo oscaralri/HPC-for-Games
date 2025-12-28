@@ -39,65 +39,6 @@ void Renderer::UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinat
 	
 }
 
-void Renderer::GargoylesInstancing()
-{
-	// crear modelo
-	std::vector<std::string> paths = {"models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj"};
-	auto gargoyle = std::make_shared<Model>(paths, 25);
-
-	// matriz de mddels
-	int numGargoyles = 50;
-
-	glm::mat4* modelMatrices = new glm::mat4[numGargoyles];
-	srand(500);
-	for (unsigned int i = 0; i < numGargoyles; i++)
-	{
-		glm::mat4 model = glm::mat4(1.f);
-		float x = (rand() % 2000 - 1000) / 10.0f;
-		float y = (rand() % 2000 - 1000) / 10.0f;
-		float z = (rand() % 2000 - 1000) / 10.0f;
-		model = glm::translate(model, glm::vec3(x, y, z));
-		model = glm::scale(model, glm::vec3(0.045f, 0.045f, 0.045f));
-		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		modelMatrices[i] = model;
-	}
-
-	
-	// configuracion para cada gargoyl
-	lods = gargoyle->getLODs();
-	for (size_t i = 0; i < lods.size(); i++)
-	{
-		int size = lods[i].meshes.size();
-		for (size_t j = 0; j < lods[i].meshes.size(); j++)
-		{
-			unsigned int VAO = lods[i].meshes[j].VAO; 
-			glBindVertexArray(VAO);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
-
-			glBindVertexArray(0);
-		}
-	}
-
-	// buffer con matrices
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, numGargoyles * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
-
-}
-
 void SkyboxInit()
 {
 	std::vector<std::string> skyboxFaces = {
@@ -115,20 +56,6 @@ void SkyboxInit()
 
 void Renderer::ShadersInit()
 {
-	/*
-	auto modelLoading = std::make_shared<Shader>("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-	ShaderStorage::Get().Add("modelLoading", modelLoading);
-
-	auto screenShader = std::make_shared<Shader>("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
-	ShaderStorage::Get().Add("screenShader", screenShader);
-
-	auto skyboxShader = std::make_shared<Shader>("shaders/skybox.vert", "shaders/skybox.frag");
-	ShaderStorage::Get().Add("skyboxShader", skyboxShader);
-
-	auto instancing = std::make_shared<Shader>("shaders/instancing.vert", "shaders/instancing.frag");
-	ShaderStorage::Get().Add("instancing", instancing);
-	*/
-
 	screenShader = EngineResources::GetShaderManager().LoadShader("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
 }
 
@@ -218,24 +145,91 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, cameraUBO);
 }
 
-void Renderer::InitGargoylesECS()
-{		
+void Renderer::InitGargoylesInstancing()
+{
+	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
+
+	// ROCK
 	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
 	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 25);
+	auto rockModel = EngineResources::GetModelManager().Get(rock);
+	auto entity = gCoordinator.CreateEntity();
+	gCoordinator.AddComponent(entity, Renderable{ rock, instancingShader, RenderType::Instanced });
+	gCoordinator.AddComponent(entity, TransformECS{
+		glm::vec3(5.f, -2.f, -5.f),  // position
+		glm::vec3(0.f, 180.f, 0.f),	// rotation
+		glm::vec3(2.f, 2.f, 2.f)	// scale
+		});
+	gCoordinator.AddComponent(entity, AABB{
+			rockModel->getMinMax()[0],
+			rockModel->getMinMax()[1] });
+
+	lods = rockModel->getLODs();
+	for (size_t i = 0; i < lods.size(); i++)
+	{
+		for (size_t j = 0; j < lods[i].meshes.size(); j++)
+		{
+			unsigned int VAO = lods[i].meshes[j].VAO;
+			glBindVertexArray(VAO);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(4, 1);
+			glVertexAttribDivisor(5, 1);
+			glVertexAttribDivisor(6, 1);
+
+			glBindVertexArray(0);
+		}
+	}
+
+	/*
+	// GARGOYLE
+	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 25);
+
+	for (size_t i = 0; i < 100; i++)
+	{
+		auto entity2 = gCoordinator.CreateEntity();
+		gCoordinator.AddComponent(entity2, TransformECS{
+			glm::vec3((i * 5) + 10.f, -2.f, -5.f), // position
+			glm::vec3(0.f, 180.f, 0.f), // rotation
+			glm::vec3(0.045f, 0.045, 0.045) // scale
+		});
+		gCoordinator.AddComponent(entity2, Renderable{ gargoyle, modelLoading, RenderType::Normal});
+		gCoordinator.AddComponent(entity2, AABB{
+			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[0],
+			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[1] });
+	}
+	*/
+}
+
+void Renderer::InitGargoylesECS()
+{		
 	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-	
-	// rock
+
+	// ROCK
+	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
+	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 25);
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Renderable{ rock, modelLoading, RenderType::Normal});
 	gCoordinator.AddComponent(entity, TransformECS{
-		glm::vec3(15.f, 7.f, -5.f),  // position
+		glm::vec3(5.f, -2.f, -5.f),  // position
 		glm::vec3(0.f, 180.f, 0.f),	// rotation
-		glm::vec3(2.f, 2.f, 2.f)	// scale
+		glm::vec3(1.f, 1.f, 1.f)	// scale
 		});
 	gCoordinator.AddComponent(entity, AABB{
 			EngineResources::GetModelManager().Get(rock)->getMinMax()[0],
 			EngineResources::GetModelManager().Get(rock)->getMinMax()[1] });
 	
+	/*
+	// GARGOYLE
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 25);
 
@@ -252,11 +246,13 @@ void Renderer::InitGargoylesECS()
 			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[0],
 			EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[1] });
 	}
+	*/
 }
 
 void Renderer::ModelsInit()
 {
-	InitGargoylesECS();
+	//InitGargoylesECS();
+	InitGargoylesInstancing();
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
@@ -422,16 +418,15 @@ void Renderer::Render()
 		
 	// RENDER
 	// Instanced
-	/*
 	if (visibleInstanced.size() > 0)
 	{
-		auto instancing = ShaderStorage::Get().GetShader("instancing");
-		instancing->use();
-		instancing->setMat4("projection", projection);
-		instancing->setMat4("view", view);
+		auto shader = EngineResources::GetShaderManager().Get(instancingShader);
+		shader->use();
+		shader->setMat4("projection", projection);
+		shader->setMat4("view", view);
 		RenderInstanced(visibleInstanced);
 	}
-	*/
+	
 	// Normal
 	RenderNormal(visibleNormal);
 
@@ -500,7 +495,7 @@ void Renderer::RenderNormal(std::vector<ECS::Entity> entities)
 
 void Renderer::CallRenderSystem(std::vector<ECS::Entity> entities)
 {
-	UpdateModelMat(entities, gCoordinator);
+	//UpdateModelMat(entities, gCoordinator);
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->RenderInstanced(gCoordinator, entities);
 }
@@ -509,9 +504,7 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 {
 	std::sort(entities.begin(), entities.end(),
 		[&](ECS::Entity a, ECS::Entity b)
-		{
-			//return renderableA.model < renderableB.model;
-			
+		{			
 			auto& renderableA = gCoordinator.GetComponent<Renderable>(a);
 			auto& renderableB = gCoordinator.GetComponent<Renderable>(b);
 

@@ -6,7 +6,6 @@
 *.VC.opendb
 
 # Archivos intermedios y binarios
-*.obj
 *.exe
 *.dll
 *.lib
