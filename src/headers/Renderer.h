@@ -46,6 +46,7 @@ private:
 	ResourceHandle gargoyle;
 	ResourceHandle screenShader;
 	ResourceHandle instancingShader;
+	Model* rockModel;
 	//
 	Renderer() = default;
 	Renderer(const Renderer&) = delete;
@@ -89,6 +90,7 @@ private:
 	unsigned int imguiTextureBuffer, imguiRBO;
 
 	unsigned int buffer;
+	unsigned int buffer2;
 
 	std::vector<ECS::Entity> visibleInstanced;
 	std::vector<ECS::Entity> visibleNormal;
