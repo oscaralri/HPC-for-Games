@@ -159,7 +159,7 @@ void Renderer::InitGargoylesInstancing()
 
 	// ROCK
 	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
-	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 25);
+	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 10);
 	auto rockModel = EngineResources::GetModelManager().Get(rock);
 	
 	int numRocks = 100;
@@ -226,7 +226,7 @@ void Renderer::InitGargoylesInstancing()
 	
 	// GARGOYLE
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 25);
+	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 75);
 
 	for (size_t i = 0; i < numRocks; i++)
 	{
@@ -292,6 +292,7 @@ void Renderer::InitGargoylesECS()
 	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
 
 	// ROCK
+	/*
 	std::vector<std::string> paths2 = { "models/rock/rock.obj" };
 	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 25);
 	auto entity = gCoordinator.CreateEntity();
@@ -305,10 +306,10 @@ void Renderer::InitGargoylesECS()
 			EngineResources::GetModelManager().Get(rock)->getMinMax()[0],
 			EngineResources::GetModelManager().Get(rock)->getMinMax()[1] });
 	
-	
+	*/
 	// GARGOYLE
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 25);
+	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 100);
 
 	for (size_t i = 0; i < 100; i++) 
 	{
@@ -432,7 +433,6 @@ void Renderer::Init()
 	SkyboxInit();
 	//SeedInit();
 			
-	//OptimizeSystem::getInstance().setCamera(mainCamera);
 }
 
 void Renderer::Render()
@@ -492,7 +492,17 @@ void Renderer::Render()
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
-		
+
+	// LODS
+	// esto no deberia estar en el loop de render
+	
+	OptimizeSystem::getInstance().setCamera(mainCamera); 
+	for (const auto& entity : visibleList)
+	{
+		auto model = EngineResources::GetModelManager().Get(gCoordinator.GetComponent<Renderable>(entity).model);
+		gCoordinator.GetComponent<Renderable>(entity).LodLevel = OptimizeSystem::getInstance().checkLOD(gCoordinator.GetComponent<TransformECS>(entity).position, model->getLODs());
+	}
+	
 	// RENDER
 	// Instanced
 	if (visibleInstanced.size() > 0)
@@ -581,29 +591,32 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 {
 	std::sort(entities.begin(), entities.end(),
 		[&](ECS::Entity a, ECS::Entity b)
-		{			
-			auto& renderableA = gCoordinator.GetComponent<Renderable>(a);
-			auto& renderableB = gCoordinator.GetComponent<Renderable>(b);
+		{
+			const auto& ra = gCoordinator.GetComponent<Renderable>(a);
+			const auto& rb = gCoordinator.GetComponent<Renderable>(b);
 
-			auto& indexA = renderableA.model.Index;
-			auto& indexB = renderableB.model.Index;
+			if (ra.model.Index != rb.model.Index)
+				return ra.model.Index < rb.model.Index;
 
-			return indexA < indexB;
+			return ra.LodLevel < rb.LodLevel;
 		}
 	);
 
-	auto& renderable = gCoordinator.GetComponent<Renderable>(entities[0]);
-	ResourceHandle lastModel = renderable.model;
-	std::vector<ECS::Entity> modelGroup; 
+	auto& firstRenderable = gCoordinator.GetComponent<Renderable>(entities[0]);
+	ResourceHandle lastModel = firstRenderable.model;
+	int lastLOD = firstRenderable.LodLevel; 
+	std::vector<ECS::Entity> modelGroup;
 
 	for (const auto& entity : entities)
 	{
 		auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
 
-		if (renderable.model != lastModel)
+		if (renderable.model != lastModel || renderable.LodLevel != lastLOD)
 		{
 			CallRenderSystem(modelGroup);
 			modelGroup.clear();
+			lastModel = renderable.model;
+			lastLOD = renderable.LodLevel;
 		}
 
 		modelGroup.push_back(entity);

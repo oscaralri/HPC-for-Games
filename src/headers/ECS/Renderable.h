@@ -13,4 +13,5 @@ struct Renderable
 	ResourceHandle model;
 	ResourceHandle shader;
 	RenderType renderType;
+	int LodLevel;
 };

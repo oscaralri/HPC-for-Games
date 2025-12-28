@@ -1,6 +1,8 @@
 #include "RenderSystem.h"
 #include "ShaderStorage.h"
 #include "EngineResources.h"
+#include "OptimizeSystem.h"
+#include "Application.h"
 
 void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities)
 {
@@ -11,7 +13,7 @@ void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity
 
 		auto model = EngineResources::GetModelManager().Get(renderable.model);
 		auto shader = EngineResources::GetShaderManager().Get(renderable.shader);
-
+		
 		glm::mat4 modelMat = glm::mat4(1.0f);
 
 		modelMat = glm::translate(modelMat, transform.position);
@@ -23,17 +25,16 @@ void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity
 		shader->use();
 		shader->setMat4("model", modelMat);
 
-		model->Draw(*shader, 0);
+		model->Draw(*shader, renderable.LodLevel);
 	}
 }
 
 void RenderSystem::RenderInstanced(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities)
 {
-	// el entities que se recibe suponemos que es solo de un tipo de modelo y por ello shader (todo lo que se recibe son gargoyles)
 	auto& renderable = coordinator.GetComponent<Renderable>(entities[0]);
 
 	auto model = EngineResources::GetModelManager().Get(renderable.model);
 	auto shader = EngineResources::GetShaderManager().Get(renderable.shader);
 
-	model->InstancedDraw(*shader, 0, entities.size());
+	model->InstancedDraw(*shader, renderable.LodLevel, entities.size());
 }

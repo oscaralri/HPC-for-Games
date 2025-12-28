@@ -10,6 +10,9 @@ class OptimizeSystem
 
 
 public:
+	// LACAMARAAA pPRIVATOOOOOOOOOOOOO
+	std::shared_ptr<Camera> camera;
+
 	static OptimizeSystem& getInstance() 
 	{
 		static OptimizeSystem instance; 
@@ -28,7 +31,6 @@ public:
 	void findAABBMinMax(const std::vector<Mesh> meshes, glm::vec3& aabbMin, glm::vec3& aabbMax);
 
 private:
-	std::shared_ptr<Camera> camera;
 
 	OptimizeSystem() {}
 	OptimizeSystem(const OptimizeSystem&) = delete;

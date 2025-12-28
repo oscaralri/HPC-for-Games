@@ -16,6 +16,7 @@ struct LODLevel
 class Model
 {
 public:
+
 	Model(std::string const& path, bool gamma = false) : gammaCorrection(gamma)
 	{
 		loadModel(path);
