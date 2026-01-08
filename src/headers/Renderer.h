@@ -17,7 +17,6 @@
 
 #include "Camera.h"
 #include "Application.h"
-#include "OptimizeSystem.h"
 #include "ShaderStorage.h"
 #include "Skybox.h"
 #include "CullingSystem.h"
@@ -97,7 +96,6 @@ private:
 
 	std::unordered_map<std::shared_ptr<Model>, std::vector<ECS::Entity>> groupModels;
 
-
 	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -114,8 +112,8 @@ private:
 	void RenderInstanced(std::vector<ECS::Entity> entities);
 	void ShadersInit();
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
-	void InitGargoylesECS();
-	void InitGargoylesInstancing();
+	void InitModelsNormal();
+	void InitModelsInstancing();
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
 	void CallRenderSystem(std::vector<ECS::Entity> entities);
 

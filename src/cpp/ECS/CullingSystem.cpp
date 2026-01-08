@@ -40,7 +40,7 @@ std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordin
 
 	for (auto const& entity : mEntities)
 	{
-		auto& transform = coordinator.GetComponent<TransformECS>(entity);
+		auto& transform = coordinator.GetComponent<Transform>(entity);
 		auto& renderable = coordinator.GetComponent<Renderable>(entity);
 		auto& aabb = coordinator.GetComponent<AABB>(entity);
 

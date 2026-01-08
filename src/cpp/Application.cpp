@@ -30,13 +30,13 @@ void Application::ECSInit()
 	gCoordinator.Init();
 
 	// RENDER SYSTEM
-	gCoordinator.RegisterComponent<TransformECS>();
+	gCoordinator.RegisterComponent<Transform>();
 	gCoordinator.RegisterComponent<Renderable>();
 	
 	gCoordinator.RegisterSystem<RenderSystem>();
 	{
 		ECS::Signature signature;
-		signature.set(gCoordinator.GetComponentType<TransformECS>());
+		signature.set(gCoordinator.GetComponentType<Transform>());
 		signature.set(gCoordinator.GetComponentType<Renderable>());
 
 		gCoordinator.SetSystemSignature<RenderSystem>(signature);
@@ -48,11 +48,22 @@ void Application::ECSInit()
 	gCoordinator.RegisterSystem<CullingSystem>();
 	{
 		ECS::Signature signature;
-		signature.set(gCoordinator.GetComponentType<TransformECS>());
+		signature.set(gCoordinator.GetComponentType<Transform>());
 		signature.set(gCoordinator.GetComponentType<Renderable>());
 		signature.set(gCoordinator.GetComponentType<AABB>());
 
 		gCoordinator.SetSystemSignature<CullingSystem>(signature);
 	}
+
+	// LOD SYSTEM
+	gCoordinator.RegisterSystem<LODSystem>();
+	{
+		ECS::Signature signature;
+		signature.set(gCoordinator.GetComponentType<Renderable>());
+		signature.set(gCoordinator.GetComponentType<Transform>());
+
+		gCoordinator.SetSystemSignature<LODSystem>(signature);
+	}
+
 	
 }

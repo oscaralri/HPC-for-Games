@@ -1,13 +1,17 @@
 #pragma once
+
 #include "Scene.h"
 #include "BaseScene.h"
 #include "Renderer.h"
-#include "RenderSystem.h"
+
 #include "ECSConfig.h"
 #include "Coordinator.h"
 #include "Transform.h"
 #include "Renderable.h"
-#include <CullingSystem.h>
+
+#include "RenderSystem.h"
+#include "LODSystem.h"
+#include "CullingSystem.h"
 
 extern ECS::Coordinator gCoordinator;
 

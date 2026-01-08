@@ -1,14 +1,13 @@
 #include "RenderSystem.h"
 #include "ShaderStorage.h"
 #include "EngineResources.h"
-#include "OptimizeSystem.h"
 #include "Application.h"
 
 void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities)
 {
 	for (auto const& entity : entities)
 	{
-		auto& transform = coordinator.GetComponent<TransformECS>(entity);
+		auto& transform = coordinator.GetComponent<Transform>(entity);
 		auto& renderable = coordinator.GetComponent<Renderable>(entity);
 
 		auto model = EngineResources::GetModelManager().Get(renderable.model);
