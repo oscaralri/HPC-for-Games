@@ -3,109 +3,6 @@
 #include "EngineResources.h"
 #include <Grid.h>
 
-void DebugAABB(glm::mat4 projection, glm::mat4 view)
-{
-	// AABB LOCAL
-	glm::vec3 min = glm::vec3(0.f, 0.f, 0.f);
-	glm::vec3 max = glm::vec3(5.f, 5.f, 5.f);
-	/*
-	float lines[] = {
-		// Bottom
-		min.x, min.y, min.z,  max.x, min.y, min.z,
-		max.x, min.y, min.z,  max.x, max.y, min.z,
-		max.x, max.y, min.z,  min.x, max.y, min.z,
-		min.x, max.y, min.z,  min.x, min.y, min.z,
-
-		// Top
-		min.x, min.y, max.z,  max.x, min.y, max.z,
-		max.x, min.y, max.z,  max.x, max.y, max.z,
-		max.x, max.y, max.z,  min.x, max.y, max.z,
-		min.x, max.y, max.z,  min.x, min.y, max.z,
-
-		// Vertical edges
-		min.x, min.y, min.z,  min.x, min.y, max.z,
-		max.x, min.y, min.z,  max.x, min.y, max.z,
-		max.x, max.y, min.z,  max.x, max.y, max.z,
-		min.x, max.y, min.z,  min.x, max.y, max.z,
-	};
-	*/
-	
-	//glm::vec3 min = glm::vec3(-47.f, 0.f, -53.f);
-	//glm::vec3 max = glm::vec3(47.f, 128.f, 46.f);
-
-	glm::vec3 corners[8] =
-	{
-		{min.x, min.y, min.z},
-		{max.x, min.y, min.z},
-		{max.x, max.y, min.z},
-		{min.x, max.y, min.z},
-		{min.x, min.y, max.z},
-		{max.x, min.y, max.z},
-		{max.x, max.y, max.z},
-		{min.x, max.y, max.z}
-	};
-
-	Transform transform = {
-		glm::vec3(0.f, 0.f, 0.f), // position 
-		glm::vec3(0.f, 180.f, 0.f), // rotation 
-		glm::vec3(1.f, 1.f, 1.f) // scale 
-	};
-
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, transform.scale);
-	model = glm::translate(model, transform.position);
-	model = glm::rotate(model, glm::radians(transform.rotation.x), glm::vec3(1, 0, 0));
-	model = glm::rotate(model, glm::radians(transform.rotation.y), glm::vec3(0, 1, 0));
-	model = glm::rotate(model, glm::radians(transform.rotation.z), glm::vec3(0, 0, 1));
-	
-	glm::vec3 worldCorners[8];
-	for (int i = 0; i < 8; i++)
-	{
-		worldCorners[i] = glm::vec3(model * glm::vec4(corners[i], 1.0f));
-	}
-
-	float lines[24 * 3];
-
-	int idx = 0;
-	auto addLine = [&](int a, int b) {
-		lines[idx++] = worldCorners[a].x; lines[idx++] = worldCorners[a].y; lines[idx++] = worldCorners[a].z;
-		lines[idx++] = worldCorners[b].x; lines[idx++] = worldCorners[b].y; lines[idx++] = worldCorners[b].z;
-		};
-
-	// Bottom face
-	addLine(0, 1); addLine(1, 2); addLine(2, 3); addLine(3, 0);
-	// Top face
-	addLine(4, 5); addLine(5, 6); addLine(6, 7); addLine(7, 4);
-	// Vertical edges
-	addLine(0, 4); addLine(1, 5); addLine(2, 6); addLine(3, 7);
-	
-	GLuint VAO, VBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(lines), lines, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
-	auto rhs = EngineResources::GetShaderManager().LoadShader("shaders/plainColor.vert", "shaders/plainColor.frag");
-	auto shader = EngineResources::GetShaderManager().Get(rhs);
-	shader->use();
-	shader->setMat4("projection", projection);
-	shader->setMat4("view", view);
-	shader->setMat4("model", model);
-
-	glDrawArrays(GL_LINES, 0, 24);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glDeleteBuffers(1, &VBO);
-	glDeleteVertexArrays(1, &VAO);
-
-}
-
 void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities)
 {
 	visibleInstanced.clear();
@@ -266,7 +163,7 @@ void Renderer::InitModelsInstancing()
 	auto rock = EngineResources::GetModelManager().LoadModelLOD(paths2, 10);
 	auto rockModel = EngineResources::GetModelManager().Get(rock);
 	
-	int numRocks = 1;
+	int numRocks = 100;
 	
 	for (size_t i = 0; i < numRocks; i++)
 	{
@@ -419,7 +316,18 @@ void Renderer::InitModelsNormal()
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 100);
 
-	for (size_t i = 0; i < 1; i++) 
+	auto entity2 = gCoordinator.CreateEntity();
+	gCoordinator.AddComponent(entity2, Transform{
+		glm::vec3((-5.f) + 10.f, 10.f, -5.f), // position 
+		glm::vec3(0.f, 180.f, 0.f), // rotation 
+		glm::vec3(2.f, 2.f, 2.f) // scale 
+		});
+	gCoordinator.AddComponent(entity2, Renderable{ gargoyle, modelLoading, RenderType::Normal });
+	gCoordinator.AddComponent(entity2, AABB{
+		EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[0],
+		EngineResources::GetModelManager().Get(gargoyle)->getMinMax()[1] });
+
+	for (size_t i = 0; i < 100; i++) 
 	{
 		auto entity2 = gCoordinator.CreateEntity(); 
 		gCoordinator.AddComponent(entity2, Transform{ 
@@ -570,8 +478,7 @@ void Renderer::Render()
 
 	// FRUSTUM
 	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
-	//std::vector<ECS::Entity> visibleList = cullingSystem->FrustumCulling(gCoordinator, mainCamera);
-	std::vector<ECS::Entity> visibleList = cullingSystem->NewFrustumCulling(gCoordinator, mainCamera);
+	std::vector<ECS::Entity> visibleList = cullingSystem->FrustumCulling(gCoordinator, mainCamera);
 
 	SortRenderType(gCoordinator, visibleList);
 
@@ -627,8 +534,6 @@ void Renderer::Render()
 	
 	// Normal
 	RenderNormal(visibleNormal);
-
-	DebugAABB(projection, view);
 
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
