@@ -16,4 +16,6 @@ class CullingSystem : public ECS::System
 {
 public:
 	std::vector<ECS::Entity> FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera);
+	std::vector<ECS::Entity> NewFrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera);
+
 };
