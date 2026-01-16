@@ -20,6 +20,7 @@
 #include "ShaderStorage.h"
 #include "Skybox.h"
 #include "CullingSystem.h"
+#include "Grid.h"
 
 
 
@@ -70,9 +71,6 @@ private:
 	unsigned int quadVAO, quadVBO;
 	unsigned int imguiFBO;
 
-	//std::vector<Camera> cameras;
-	//unsigned int mainCameraID;
-
 	// time
 	float deltaTime;
 	float lastFrame;
@@ -95,6 +93,8 @@ private:
 	std::vector<ECS::Entity> visibleNormal;
 
 	std::unordered_map<std::shared_ptr<Model>, std::vector<ECS::Entity>> groupModels;
+
+	std::unique_ptr<Grid> grid;
 
 	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);

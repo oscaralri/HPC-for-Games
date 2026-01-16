@@ -8,6 +8,8 @@
 
 struct GridCell
 {
+    glm::vec3 min;
+    glm::vec3 max;
     std::vector<ECS::Entity> entities;
 };
 
@@ -25,12 +27,30 @@ struct Grid
     Grid(const glm::vec3& origin_, const glm::vec3& worldSize, const glm::vec3& cellSize_) 
         : origin(origin_), cellSize(cellSize_)
     {
-        cellsX = worldSize.x / cellSize.x;
+        // esto es el numero de celdas en cada eje
+        cellsX = worldSize.x / cellSize.x; 
         cellsY = worldSize.y / cellSize.y;
         cellsZ = worldSize.z / cellSize.z;
 
         int totalCells = cellsX * cellsY * cellsZ;
         cells.resize(totalCells);
+
+        for (int z = 0; z < cellsZ; ++z)
+        {
+            for (int y = 0; y < cellsY; ++y)
+            {
+                for (int x = 0; x < cellsX; ++x)
+                {
+                    int index = GetIndex(x, y, z);
+
+                    glm::vec3 cellMin = origin + glm::vec3(x, y, z) * cellSize;
+                    glm::vec3 cellMax = cellMin + cellSize;
+
+                    cells[index].min = cellMin;
+                    cells[index].max = cellMax;
+                }
+            }
+        }
     }
 
     int GetIndex(int x, int y, int z) const
@@ -49,9 +69,8 @@ struct Grid
             {
                 for (int x = minCell.x; x <= maxCell.x; ++x)
                 {
-                    int index = x + y * cellsX + z * cellsX * cellsY;
-                    cells[index].entities.push_back(entity);
-                }
+                    int index = GetIndex(x, y, z);
+                    cells[index].entities.push_back(entity);                }
             }
         }    
     }
@@ -68,18 +87,3 @@ struct Grid
         return glm::ivec3(int(rel.x / cellSize.x), int(rel.y / cellSize.y), int(rel.z / cellSize.z));
     }
 };
-
-
-
-
-
-// algoritmo
-	// tener escena subdividida en GridPartition, tener lista? de todas en Grid
-		// será algo muy sencillo a la hora de que estarán definidos los límites manualmente y tal
-	// comprobar con GridSystem qué entidades están dentro de qué GridPartitions y meterlas 
-		// son estáticas así que no tengo que preocuparme de cambios
-
-// frustum culling
-	// primero comprobar sobre los gridCell (comprubeas qué gridcell colisiona con la cámara)
-		// cuando entras dentro de un grid partition ya compruebas dentro de él
-

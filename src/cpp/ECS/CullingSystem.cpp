@@ -44,7 +44,6 @@ Frustum CreateFrustum(glm::mat4 projection, glm::mat4 view, const std::shared_pt
 	// normalizar
 	for (auto& plane : frustum.planes)
 	{
-		
 		float len = glm::length(plane.n);
 		plane.n /= len;
 		plane.d /= len;
@@ -98,12 +97,40 @@ bool AABBIntersection(Frustum frustum, AABB aabb, Transform transform)
 	return true;
 }
 
-std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera)
+std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell> cells)
 {
+	std::vector<ECS::Entity> cellsVisible;
 	std::vector<ECS::Entity> visibleList;
 	Frustum frustum = CreateFrustum(camera->projection, camera->view, camera);
+	
+	for (auto const& cell : cells)
+	{
+		AABB aabb
+		{
+			cell.min,
+			cell.max
+		};
 
-	for (auto const& entity : mEntities)
+		Transform transform
+		{
+			glm::vec3(0.f,0.f,0.f),
+			glm::vec3(0.f, 0.f, 0.f),
+			glm::vec3(1.f, 1.f, 1.f)
+		};
+
+		if (AABBIntersection(frustum, aabb, transform))
+		{
+			//std::cout << "celda activa: " << cell.min.x << " " << cell.min.y << " " << cell.min.z << " / " << cell.max.x << " " << cell.max.y << " " << cell.max.y << "\n" << std::endl;
+
+			for (auto const& entity : cell.entities)
+			{
+				cellsVisible.push_back(entity);
+			}
+		}
+	}
+	//std::cout << "----------------------------" << "\n" << std::endl;
+	
+	for (auto const& entity : cellsVisible)
 	{
 		auto& aabb = coordinator.GetComponent<AABB>(entity);
 		auto& transform = coordinator.GetComponent<Transform>(entity);
