@@ -432,7 +432,7 @@ void Renderer::InitModelsNormal()
 
 	std::vector<std::string> paths = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 	gargoyle = EngineResources::GetModelManager().LoadModelLOD(paths, 100);
-	/*
+	
 	for (size_t i = 0; i < 100; i++) 
 	{
 		auto entity2 = gCoordinator.CreateEntity(); 
@@ -453,7 +453,6 @@ void Renderer::InitModelsNormal()
 		glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
 		grid->Insert(entity2, worldMin, worldMax);
 	}
-	*/
 }
 
 void Renderer::ModelsInit()
@@ -654,8 +653,6 @@ void Renderer::Render()
 	ImGui::Text("%s", str.c_str());
 	ImGui::PopTextWrapPos();
 	ImGui::End();
-
-	DebugAABB(projection, view);
 
 	// RENDERIZAR TO IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);

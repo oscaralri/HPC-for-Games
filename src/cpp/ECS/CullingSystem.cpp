@@ -101,33 +101,25 @@ std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordin
 {
 	std::vector<ECS::Entity> cellsVisible;
 	std::vector<ECS::Entity> visibleList;
+	std::vector<bool> entityVisited(mEntities.size(), false);
 	Frustum frustum = CreateFrustum(camera->projection, camera->view, camera);
 	
 	for (auto const& cell : cells)
 	{
-		AABB aabb
-		{
-			cell.min,
-			cell.max
-		};
+		AABB aabb { cell.min, cell.max };
 
-		Transform transform
-		{
-			glm::vec3(0.f,0.f,0.f),
-			glm::vec3(0.f, 0.f, 0.f),
-			glm::vec3(1.f, 1.f, 1.f)
-		};
+		Transform transform { glm::vec3(0.f,0.f,0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 1.f, 1.f)};
 
 		if (AABBIntersection(frustum, aabb, transform))
 		{
-			//std::cout << "celda activa: " << cell.min.x << " " << cell.min.y << " " << cell.min.z << " / " << cell.max.x << " " << cell.max.y << " " << cell.max.y << "\n" << std::endl;
-
 			for (auto const& entity : cell.entities)
 			{
 				cellsVisible.push_back(entity);
 			}
 		}
 	}
+
+	//std::cout << "celda activa: " << cell.min.x << " " << cell.min.y << " " << cell.min.z << " / " << cell.max.x << " " << cell.max.y << " " << cell.max.y << "\n" << std::endl;
 	//std::cout << "----------------------------" << "\n" << std::endl;
 	
 	for (auto const& entity : cellsVisible)
@@ -137,7 +129,12 @@ std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordin
 		
 		if (AABBIntersection(frustum, aabb, transform))
 		{
-			visibleList.push_back(entity);
+			if (!entityVisited[entity])
+			{
+				entityVisited[entity] = true;
+				visibleList.push_back(entity);
+			}
+			
 		}
 	}
 
