@@ -21,6 +21,7 @@
 #include "Skybox.h"
 #include "CullingSystem.h"
 #include "Grid.h"
+#include "RandomGenerator.h"
 
 
 
@@ -111,12 +112,13 @@ private:
 	void RenderInstanced(std::vector<ECS::Entity> entities);
 	void ShadersInit();
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
-	void InitModelsNormal();
-	void InitModelsInstancing();
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
 	void CallRenderSystem(std::vector<ECS::Entity> entities);
+	
 	void GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
 	void GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
+	void GenerateInstancedEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
+	void GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
 
 	// debug
 	void showFPS(GLFWwindow* window);

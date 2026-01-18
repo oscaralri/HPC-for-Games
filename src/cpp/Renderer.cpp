@@ -134,6 +134,34 @@ void Renderer::GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::v
 	grid->Insert(entity, worldMin, worldMax);
 }
 
+void Renderer::GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
+{
+	auto shaderRH = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
+
+	// GARGOYLE
+	auto asd = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
+	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
+
+	auto entity = gCoordinator.CreateEntity();
+	gCoordinator.AddComponent(entity, Transform{
+		random.GetPosition(),
+		rotation,
+		scale
+		});
+	gCoordinator.AddComponent(entity, Renderable{ modelRH, shaderRH, RenderType::Normal });
+	gCoordinator.AddComponent(entity, AABB{
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1]
+		});
+
+	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
+	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
+
+	glm::vec3 worldMin = transform.position + aabb.min * transform.scale;
+	glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
+	grid->Insert(entity, worldMin, worldMax);
+}
+
 void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities)
 {
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
@@ -203,6 +231,74 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 	} 
 }
 
+void Renderer::GenerateInstancedEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities)
+{
+	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
+	auto model = EngineResources::GetModelManager().Get(modelRH);
+
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, numEntities * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
+
+	glm::mat4* modelMatrices = new glm::mat4[numEntities];
+
+	for (size_t i = 0; i < numEntities; i++)
+	{
+		auto position = random.GetPosition();
+		auto entity = gCoordinator.CreateEntity();
+		gCoordinator.AddComponent(entity, Renderable{ modelRH, instancingShader, RenderType::Instanced });
+		gCoordinator.AddComponent(entity, Transform{
+			position, // position
+			rotation, // rotation
+			scale // scale
+			});
+		gCoordinator.AddComponent(entity, AABB{ model->getMinMax()[0], model->getMinMax()[1] });
+
+		AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
+		Transform& transform = gCoordinator.GetComponent<Transform>(entity);
+
+		glm::vec3 worldMin = transform.position + aabb.min * transform.scale;
+		glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
+		grid->Insert(entity, worldMin, worldMax);
+
+		buffers[entity] = buffer;
+
+		glm::mat4 modelMat = glm::mat4(1.f);
+		modelMat = glm::translate(modelMat, position);
+		modelMat = glm::scale(modelMat, scale);
+		modelMat = glm::rotate(modelMat, glm::radians(rotation.x), glm::vec3(1, 0, 0));
+		modelMat = glm::rotate(modelMat, glm::radians(rotation.y), glm::vec3(0, 1, 0));
+		modelMat = glm::rotate(modelMat, glm::radians(rotation.z), glm::vec3(0, 0, 1));
+
+		modelMatrices[i] = modelMat;
+	}
+
+	lods = model->getLODs();
+	for (size_t i = 0; i < lods.size(); i++)
+	{
+		for (size_t j = 0; j < lods[i].meshes.size(); j++)
+		{
+			unsigned int VAO = lods[i].meshes[j].VAO;
+			glBindVertexArray(VAO);
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+			glEnableVertexAttribArray(6);
+			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+			glVertexAttribDivisor(3, 1);
+			glVertexAttribDivisor(4, 1);
+			glVertexAttribDivisor(5, 1);
+			glVertexAttribDivisor(6, 1);
+
+			glBindVertexArray(0);
+		}
+	}
+}
+
 
 
 void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities)
@@ -241,20 +337,6 @@ void Renderer::UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinat
 
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data());
-	
-	/*
-	if (buffer > 0)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, buffer);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data());
-	}
-	
-	if (buffer2 > 0)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, buffer2);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data());
-	}
-	*/
 }
 
 void SkyboxInit()
@@ -367,9 +449,11 @@ void Renderer::ModelsInit()
 {
 	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(100.f));
 	
+	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, 0, 0, -300, 0);
+
+	/*
 	// INSTANCING
 	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
-	
 	// gargoyle
 	{
 		int numGargoyle = 10;
@@ -385,7 +469,6 @@ void Renderer::ModelsInit()
 	
 	// NORMAL
 	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-	
 	// gargoyle
 	{
 		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
@@ -394,13 +477,46 @@ void Renderer::ModelsInit()
 			GenerateNormalEntity(path, glm::vec3(i * -10.f), glm::vec3(0.f), glm::vec3(0.09f), 25);
 		}
 	}
-
 	// rock
 	{
 		std::vector<std::string> path = { "models/rock/rock.obj" };
 		for (size_t i = 0; i < 25; i++)
 		{
 			GenerateNormalEntity(path, glm::vec3(i * 10.f), glm::vec3(55.f), glm::vec3(1.f), 50);
+		}
+	}
+	*/
+
+	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
+	// gargoyle
+	{
+		int numGargoyle = 10;
+		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 100, numGargoyle);
+	}
+	// rock
+	{
+		int numRocks = 5;
+		std::vector<std::string> path = { "models/rock/rock.obj" };
+		GenerateInstancedEntityRandom(path, random, glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
+	}
+
+	// NORMAL
+	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
+	// gargoyle
+	{
+		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+		for (size_t i = 0; i < 50; i++)
+		{
+			GenerateNormalEntityRandom(path, random, glm::vec3(0.f), glm::vec3(0.09f), 25);
+		}
+	}
+	// rock
+	{
+		std::vector<std::string> path = { "models/rock/rock.obj" };
+		for (size_t i = 0; i < 25; i++)
+		{
+			GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 50);
 		}
 	}
 }
@@ -598,9 +714,7 @@ void Renderer::Render()
 	}
 	ImGui::Text("%s", str.c_str());
 	ImGui::PopTextWrapPos();
-	ImGui::End();
-
-	DebugAABB(projection, view);
+	ImGui::End();	
 
 	// RENDERIZAR TO IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);

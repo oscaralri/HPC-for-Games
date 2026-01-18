@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="GridInitializer.cpp" />
     <ClCompile Include="LODSystem.cpp" />
+    <ClCompile Include="RandomGenerator.cpp" />
     <ClCompile Include="src\cpp\Application.cpp" />
     <ClCompile Include="src\cpp\BaseScene.cpp" />
     <ClCompile Include="src\cpp\Camera.cpp" />
@@ -173,6 +174,7 @@
   <ItemGroup>
     <ClInclude Include="GridInitializer.h" />
     <ClInclude Include="LODSystem.h" />
+    <ClInclude Include="RandomGenerator.h" />
     <ClInclude Include="src\headers\Application.h" />
     <ClInclude Include="src\headers\BaseScene.h" />
     <ClInclude Include="src\headers\Camera.h" />

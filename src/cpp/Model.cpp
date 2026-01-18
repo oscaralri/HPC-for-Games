@@ -57,8 +57,6 @@ void Model::loadModel(std::string const& path)
 
 	directory = path.substr(0, path.find_last_of('/'));
 	processNode(scene->mRootNode, scene);
-
-	std::cout << "lods cuando " << path << ": " << LODs.size() << std::endl;
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
