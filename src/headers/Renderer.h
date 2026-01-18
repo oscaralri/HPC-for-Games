@@ -46,7 +46,7 @@ private:
 	ResourceHandle gargoyle;
 	ResourceHandle screenShader;
 	ResourceHandle instancingShader;
-	Model* rockModel;
+
 	//
 	Renderer() = default;
 	Renderer(const Renderer&) = delete;
@@ -89,6 +89,8 @@ private:
 	unsigned int buffer;
 	unsigned int buffer2;
 
+	std::vector<unsigned int> buffers;
+
 	std::vector<ECS::Entity> visibleInstanced;
 	std::vector<ECS::Entity> visibleNormal;
 
@@ -102,12 +104,9 @@ private:
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	void processInput(GLFWwindow* window);
-	unsigned int loadTexture(const char* path);
 	int WindowInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void FBOInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void ModelsInit();
-	static void MouseCallbackDispatch(GLFWwindow* window, double xpos, double ypos);
-	void GargoylesInstancing();
 	void RenderNormal(std::vector<ECS::Entity> entities);
 	void RenderInstanced(std::vector<ECS::Entity> entities);
 	void ShadersInit();
@@ -116,6 +115,8 @@ private:
 	void InitModelsInstancing();
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
 	void CallRenderSystem(std::vector<ECS::Entity> entities);
+	void GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
+	void GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
 
 	// debug
 	void showFPS(GLFWwindow* window);

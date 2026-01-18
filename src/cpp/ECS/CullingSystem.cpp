@@ -48,7 +48,7 @@ Frustum CreateFrustum(glm::mat4 projection, glm::mat4 view, const std::shared_pt
 		plane.n /= len;
 		plane.d /= len;
 	}
-
+	
 	return frustum;
 }
 
@@ -114,14 +114,18 @@ std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordin
 		{
 			for (auto const& entity : cell.entities)
 			{
-				cellsVisible.push_back(entity);
+				if (!entityVisited[entity])
+				{
+					entityVisited[entity] = true;
+					cellsVisible.push_back(entity);
+
+				}
 			}
 		}
 	}
 
 	//std::cout << "celda activa: " << cell.min.x << " " << cell.min.y << " " << cell.min.z << " / " << cell.max.x << " " << cell.max.y << " " << cell.max.y << "\n" << std::endl;
 	//std::cout << "----------------------------" << "\n" << std::endl;
-	
 	for (auto const& entity : cellsVisible)
 	{
 		auto& aabb = coordinator.GetComponent<AABB>(entity);
@@ -129,12 +133,7 @@ std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordin
 		
 		if (AABBIntersection(frustum, aabb, transform))
 		{
-			if (!entityVisited[entity])
-			{
-				entityVisited[entity] = true;
-				visibleList.push_back(entity);
-			}
-			
+			visibleList.push_back(entity);
 		}
 	}
 

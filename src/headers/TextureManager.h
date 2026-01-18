@@ -108,7 +108,6 @@ private:
 		return std::filesystem::path(path).lexically_normal().filename().string();
 	}
 
-
 	ResourceStorage<Texture> textureStorage;
 	std::unordered_map<std::string, ResourceHandle> LoadedPaths;
 

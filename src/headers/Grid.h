@@ -6,6 +6,8 @@
 #include <glm/ext/vector_int3.hpp>
 #include <glm/common.hpp>
 
+#include <iostream>
+
 struct GridCell
 {
     glm::vec3 min;
@@ -51,6 +53,11 @@ struct Grid
                 }
             }
         }
+
+        glm::vec3 gridMin = origin;
+        glm::vec3 gridMax = origin + glm::vec3(cellsX, cellsY, cellsZ) * cellSize;
+        std::cout << "Grid AABB Min: " << gridMin.x << ", " << gridMin.y << ", " << gridMin.z << "\n";
+        std::cout << "Grid AABB Max: " << gridMax.x << ", " << gridMax.y << ", " << gridMax.z << "\n";
     }
 
     int GetIndex(int x, int y, int z) const
