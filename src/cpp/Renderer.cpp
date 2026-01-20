@@ -485,13 +485,13 @@ void Renderer::ModelsInit()
 		}
 	}
 	*/
-	/*
+	
 	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
 	// gargoyle
 	{
 		int numGargoyle = 10;
 		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 100, numGargoyle);
+		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 300, numGargoyle);
 	}
 	// rock
 	{
@@ -499,8 +499,8 @@ void Renderer::ModelsInit()
 		std::vector<std::string> path = { "models/rock/rock.obj" };
 		GenerateInstancedEntityRandom(path, random, glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
 	}
-	*/
-	/*
+	
+	
 	// NORMAL
 	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
 	// gargoyle
@@ -508,7 +508,7 @@ void Renderer::ModelsInit()
 		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 		for (size_t i = 0; i < 50; i++)
 		{
-			GenerateNormalEntityRandom(path, random, glm::vec3(0.f), glm::vec3(0.09f), 25);
+			GenerateNormalEntityRandom(path, random, glm::vec3(0.f), glm::vec3(0.09f), 300);
 		}
 	}
 	// rock
@@ -519,9 +519,8 @@ void Renderer::ModelsInit()
 			GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 50);
 		}
 	}
-	*/
-	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
-
+	
+	/*
 	// test
 	{
 		std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx" };
@@ -529,6 +528,7 @@ void Renderer::ModelsInit()
 		//GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 250);
 		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f), glm::vec3(0.5f), 250, 6);
 	}
+	*/
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
