@@ -407,7 +407,6 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, imguiTextureBuffer, 0);
 
-	// no estoy seguro si esto aqui hace falta
 	glGenRenderbuffers(1, &imguiRBO);
 	glBindRenderbuffer(GL_RENDERBUFFER, imguiRBO);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
@@ -486,7 +485,7 @@ void Renderer::ModelsInit()
 		}
 	}
 	*/
-
+	/*
 	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
 	// gargoyle
 	{
@@ -500,7 +499,8 @@ void Renderer::ModelsInit()
 		std::vector<std::string> path = { "models/rock/rock.obj" };
 		GenerateInstancedEntityRandom(path, random, glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
 	}
-
+	*/
+	/*
 	// NORMAL
 	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
 	// gargoyle
@@ -518,6 +518,16 @@ void Renderer::ModelsInit()
 		{
 			GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 50);
 		}
+	}
+	*/
+	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
+
+	// test
+	{
+		std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx" };
+		
+		//GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 250);
+		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f), glm::vec3(0.5f), 250, 6);
 	}
 }
 
