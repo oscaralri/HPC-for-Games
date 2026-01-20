@@ -632,9 +632,7 @@ void Renderer::Init()
 	ModelsInit();
 	FBOInit(SCR_WIDTH, SCR_HEIGHT);
 	ImGuiInit(window);
-	SkyboxInit();
-	//SeedInit();
-			
+	SkyboxInit();			
 }
 
 void Renderer::Render()
