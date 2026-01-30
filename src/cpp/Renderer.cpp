@@ -446,7 +446,7 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::ModelsInit()
 {
-	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(100.f));
+	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(500.f));
 	
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, 0, 0, -300, 0);
 
@@ -730,7 +730,6 @@ void Renderer::Render()
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// projection / view
 	projection = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 	view = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
 

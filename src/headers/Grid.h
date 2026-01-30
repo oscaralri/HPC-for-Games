@@ -58,6 +58,7 @@ struct Grid
         glm::vec3 gridMax = origin + glm::vec3(cellsX, cellsY, cellsZ) * cellSize;
         std::cout << "Grid AABB Min: " << gridMin.x << ", " << gridMin.y << ", " << gridMin.z << "\n";
         std::cout << "Grid AABB Max: " << gridMax.x << ", " << gridMax.y << ", " << gridMax.z << "\n";
+        std::cout << "Total Cells: " << totalCells;
     }
 
     int GetIndex(int x, int y, int z) const

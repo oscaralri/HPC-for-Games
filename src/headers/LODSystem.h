@@ -9,6 +9,6 @@
 class LODSystem : public ECS::System
 {
 public:
-	void SetLOD(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<ECS::Entity> visibleList);
+	void SetLOD(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<ECS::Entity>& visibleList);
 };
 

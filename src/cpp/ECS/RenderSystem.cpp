@@ -25,6 +25,8 @@ void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity
 		shader->setMat4("model", modelMat);
 
 		model->Draw(*shader, renderable.LodLevel);
+
+		// agrupar por shader
 	}
 }
 

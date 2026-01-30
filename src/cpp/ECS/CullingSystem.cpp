@@ -97,7 +97,7 @@ bool AABBIntersection(Frustum frustum, AABB aabb, Transform transform)
 	return true;
 }
 
-std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell> cells)
+std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell>& cells)
 {
 	std::vector<ECS::Entity> cellsVisible;
 	std::vector<ECS::Entity> visibleList;
@@ -124,8 +124,6 @@ std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordin
 		}
 	}
 
-	//std::cout << "celda activa: " << cell.min.x << " " << cell.min.y << " " << cell.min.z << " / " << cell.max.x << " " << cell.max.y << " " << cell.max.y << "\n" << std::endl;
-	//std::cout << "----------------------------" << "\n" << std::endl;
 	for (auto const& entity : cellsVisible)
 	{
 		auto& aabb = coordinator.GetComponent<AABB>(entity);

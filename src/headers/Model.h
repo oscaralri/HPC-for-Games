@@ -35,8 +35,8 @@ public:
 	void Draw(Shader& shader, int lodLevel); 
 	void InstancedDraw(Shader& shader, int lodLevel, int amount);
 
-	std::vector<LODLevel> getLODs() { return LODs; }
-	std::array<glm::vec3, 2> getMinMax() { return minMax; }
+	std::vector<LODLevel>& getLODs() { return LODs; }
+	std::array<glm::vec3, 2>& getMinMax() { return minMax; }
 
 private:
 	std::vector<LODLevel> LODs;
