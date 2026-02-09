@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
 #include "ECSConfig.h"
+
+#include <vector>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_int3.hpp>
 #include <glm/common.hpp>
@@ -13,6 +14,7 @@ struct GridCell
     glm::vec3 min;
     glm::vec3 max;
     std::vector<ECS::Entity> entities;
+    std::vector<StaticBatch> lodBatches[3];
 };
 
 struct Grid
@@ -56,6 +58,8 @@ struct Grid
 
         glm::vec3 gridMin = origin;
         glm::vec3 gridMax = origin + glm::vec3(cellsX, cellsY, cellsZ) * cellSize;
+        
+        // debug
         std::cout << "Grid AABB Min: " << gridMin.x << ", " << gridMin.y << ", " << gridMin.z << "\n";
         std::cout << "Grid AABB Max: " << gridMax.x << ", " << gridMax.y << ", " << gridMax.z << "\n";
         std::cout << "Total Cells: " << totalCells;

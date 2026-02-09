@@ -139,7 +139,6 @@ void Renderer::GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, 
 	auto shaderRH = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
 
 	// GARGOYLE
-	auto asd = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 
 	auto entity = gCoordinator.CreateEntity();
@@ -167,6 +166,7 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 	auto model = EngineResources::GetModelManager().Get(modelRH);
 
+	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, numEntities * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
@@ -205,7 +205,7 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 		modelMatrices[i] = modelMat;
 	}
 
-	lods = model->getLODs();
+	auto& lods = model->getLODs();
 	for (size_t i = 0; i < lods.size(); i++)
 	{
 		for (size_t j = 0; j < lods[i].meshes.size(); j++)
@@ -236,6 +236,7 @@ void Renderer::GenerateInstancedEntityRandom(std::vector<std::string>& modelPath
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 	auto model = EngineResources::GetModelManager().Get(modelRH);
 
+	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, numEntities * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
@@ -273,7 +274,7 @@ void Renderer::GenerateInstancedEntityRandom(std::vector<std::string>& modelPath
 		modelMatrices[i] = modelMat;
 	}
 
-	lods = model->getLODs();
+	auto& lods = model->getLODs();
 	for (size_t i = 0; i < lods.size(); i++)
 	{
 		for (size_t j = 0; j < lods[i].meshes.size(); j++)
@@ -299,12 +300,35 @@ void Renderer::GenerateInstancedEntityRandom(std::vector<std::string>& modelPath
 	}
 }
 
+void Renderer::GenerateBatchEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
+{	 
+	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
+
+	auto entity = gCoordinator.CreateEntity();
+	gCoordinator.AddComponent(entity, Transform{
+		position,
+		rotation,
+		scale
+		});
+	gCoordinator.AddComponent(entity, Renderable{ modelRH, batchingShader, RenderType::Batch });
+	gCoordinator.AddComponent(entity, AABB{
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1]
+		});
+	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
+	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
+
+	glm::vec3 worldMin = transform.position + aabb.min * transform.scale;
+	glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
+	grid->Insert(entity, worldMin, worldMax);
+}
 
 
 void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities)
 {
 	visibleInstanced.clear();
 	visibleNormal.clear();
+	visibleBatching.clear();
 
 	for (const auto& entity : entities)
 	{
@@ -312,6 +336,7 @@ void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::En
 
 		if (renderable.renderType == RenderType::Instanced) visibleInstanced.push_back(entity);
 		if (renderable.renderType == RenderType::Normal) visibleNormal.push_back(entity);
+		if (renderable.renderType == RenderType::Batch) visibleBatching.push_back(entity);
 	}
 }
 
@@ -485,23 +510,9 @@ void Renderer::ModelsInit()
 		}
 	}
 	*/
-	
-	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
-	// gargoyle
-	{
-		int numGargoyle = 10;
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 300, numGargoyle);
-	}
-	// rock
-	{
-		int numRocks = 5;
-		std::vector<std::string> path = { "models/rock/rock.obj" };
-		GenerateInstancedEntityRandom(path, random, glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
-	}
-	
-	
+
 	// NORMAL
+	/*
 	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
 	// gargoyle
 	{
@@ -519,16 +530,39 @@ void Renderer::ModelsInit()
 			GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 50);
 		}
 	}
-	
+	*/
+	// INSTANCING
 	/*
-	// test
+	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
+	// gargoyle
 	{
-		std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx" };
-		
-		//GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 250);
-		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f), glm::vec3(0.5f), 250, 6);
+		int numGargoyle = 10;
+		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 300, numGargoyle);
+	}
+	// rock
+	{
+		int numRocks = 5;
+		std::vector<std::string> path = { "models/rock/rock.obj" };
+		GenerateInstancedEntityRandom(path, random, glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
 	}
 	*/
+
+	// BATCHING
+	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
+	// gargoyle
+	{
+		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
+		for (int i = 0; i < 25; i++)
+		{
+			GenerateBatchEntity(path, glm::vec3(i * -10.f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+		}
+	}
+	for (auto& cell : grid->cells)
+	{
+		auto batchSystem = gCoordinator.GetSystem<BatchSystem>();
+		batchSystem->BuildCellBatches(cell, cell.entities, gCoordinator);
+	}
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)

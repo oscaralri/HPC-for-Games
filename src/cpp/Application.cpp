@@ -64,6 +64,15 @@ void Application::ECSInit()
 
 		gCoordinator.SetSystemSignature<LODSystem>(signature);
 	}
-
 	
+	// BATCH SYSTEM
+	gCoordinator.RegisterSystem<BatchSystem>();
+	{
+		ECS::Signature signature;
+		signature.set(gCoordinator.GetComponentType<Renderable>());
+		signature.set(gCoordinator.GetComponentType<Transform>());
+
+		gCoordinator.SetSystemSignature<BatchSystem>(signature);
+
+	}
 }

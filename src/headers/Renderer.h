@@ -41,14 +41,6 @@ public:
 	void End();
 
 private:
-	//test 
-	std::vector<LODLevel> lods;
-	//std::shared_ptr<Model> gargoyle;
-	ResourceHandle gargoyle;
-	ResourceHandle screenShader;
-	ResourceHandle instancingShader;
-
-	//
 	Renderer() = default;
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
@@ -62,10 +54,10 @@ private:
 	std::shared_ptr<Camera> mainCamera;
 	unsigned int cameraUBO;
 
-	// frustum culling
-	std::vector<glm::mat4> models;
-	std::vector<AABB> aabb;
-	std::vector<unsigned int> outList;
+	// shaders 
+	ResourceHandle screenShader;
+	ResourceHandle instancingShader;
+	ResourceHandle batchingShader;
 
 	unsigned int framebuffer;
 	unsigned int textureColorbuffer;
@@ -87,15 +79,11 @@ private:
 	// Imgui
 	unsigned int imguiTextureBuffer, imguiRBO;
 
-	unsigned int buffer;
-	unsigned int buffer2;
-
 	std::vector<unsigned int> buffers;
 
 	std::vector<ECS::Entity> visibleInstanced;
 	std::vector<ECS::Entity> visibleNormal;
-
-	std::unordered_map<std::shared_ptr<Model>, std::vector<ECS::Entity>> groupModels;
+	std::vector<ECS::Entity> visibleBatching;
 
 	std::unique_ptr<Grid> grid;
 
@@ -119,6 +107,7 @@ private:
 	void GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
 	void GenerateInstancedEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
 	void GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
+	void GenerateBatchEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
 
 	// debug
 	void showFPS(GLFWwindow* window);

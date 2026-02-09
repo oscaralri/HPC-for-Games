@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Batch.cpp" />
     <ClCompile Include="src\cpp\GridInitializer.cpp" />
     <ClCompile Include="src\cpp\LODSystem.cpp" />
     <ClCompile Include="src\cpp\RandomGenerator.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="src\cpp\ECS\SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Batch.h" />
     <ClInclude Include="src\headers\GridInitializer.h" />
     <ClInclude Include="src\headers\LODSystem.h" />
     <ClInclude Include="src\headers\RandomGenerator.h" />

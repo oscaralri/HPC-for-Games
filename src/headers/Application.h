@@ -12,6 +12,7 @@
 #include "RenderSystem.h"
 #include "LODSystem.h"
 #include "CullingSystem.h"
+#include "BatchSystem.h"
 
 extern ECS::Coordinator gCoordinator;
 
