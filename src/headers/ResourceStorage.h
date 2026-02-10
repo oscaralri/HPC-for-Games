@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 
 struct ResourceHandle
@@ -19,6 +20,22 @@ struct ResourceHandle
 	bool operator!=(const ResourceHandle& other) const
 	{
 		return !(*this == other);
+	}
+
+	bool operator<(const ResourceHandle& other) const
+	{
+		if (Index != other.Index) {
+			return Index < other.Index;
+		}
+		return Gen < other.Gen;
+	}
+
+	bool operator>(const ResourceHandle& other) const
+	{
+		if (Index != other.Index) {
+			return Index > other.Index;
+		}
+		return Gen > other.Gen;
 	}
 };
 

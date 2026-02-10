@@ -336,7 +336,7 @@ void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::En
 
 		if (renderable.renderType == RenderType::Instanced) visibleInstanced.push_back(entity);
 		if (renderable.renderType == RenderType::Normal) visibleNormal.push_back(entity);
-		if (renderable.renderType == RenderType::Batch) visibleBatching.push_back(entity);
+		//if (renderable.renderType == RenderType::Batch) visibleBatching.push_back(entity);
 	}
 }
 
@@ -471,7 +471,9 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::ModelsInit()
 {
-	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(500.f));
+	// Grid(origin, worldSize, cellSize)
+	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(1000.f));
+	
 	
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, 0, 0, -300, 0);
 
@@ -553,15 +555,31 @@ void Renderer::ModelsInit()
 	// gargoyle
 	{
 		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		for (int i = 0; i < 25; i++)
+		for (int i = 0; i < 2000; i++)
 		{
-			GenerateBatchEntity(path, glm::vec3(i * -10.f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+			GenerateBatchEntity(path, glm::vec3(i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
 		}
+		
+		for (int i = 0; i < 15; i++)
+		{
+			GenerateBatchEntity(path, glm::vec3(i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+		}
+		/*
+		for (int i = 0; i < 500; i++)
+		{
+			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+		}
+		for (int i = 0; i < 500; i++)
+		{
+			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+		}
+		*/
 	}
 	for (auto& cell : grid->cells)
 	{
 		auto batchSystem = gCoordinator.GetSystem<BatchSystem>();
 		batchSystem->BuildCellBatches(cell, cell.entities, gCoordinator);
+		visibleBatching.insert(visibleBatching.end(), cell.lodBatches[0].begin(), cell.lodBatches[0].end());
 	}
 }
 
@@ -686,10 +704,10 @@ void Renderer::Render()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// FRUSTUM
-	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
-	std::vector<ECS::Entity> visibleList = cullingSystem->FrustumCulling(gCoordinator, mainCamera, grid->cells);
+	//auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
+	//std::vector<ECS::Entity> visibleList = cullingSystem->FrustumCulling(gCoordinator, mainCamera, grid->cells);
 
-	SortRenderType(gCoordinator, visibleList);
+	//SortRenderType(gCoordinator, visibleList);
 
 	// FRAMEBUFFER
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -723,15 +741,16 @@ void Renderer::Render()
 	showFPS(window);
 
 	// SKYBOX
-	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
-	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
+	//glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
+	//scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
 	// LODS
-	auto lodSystem = gCoordinator.GetSystem<LODSystem>();
-	lodSystem->SetLOD(gCoordinator, mainCamera, visibleList);
+	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();
+	//lodSystem->SetLOD(gCoordinator, mainCamera, visibleList);
 	
 	// RENDER
 	// Instanced
+	/*
 	if (visibleInstanced.size() > 0)
 	{
 		auto shader = EngineResources::GetShaderManager().Get(instancingShader);
@@ -743,7 +762,14 @@ void Renderer::Render()
 	
 	// Normal
 	RenderNormal(visibleNormal);
+	*/
 
+	// BATCHING
+	RenderBatching(visibleBatching);
+
+
+
+	/*
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
 	ImGui::PushTextWrapPos(wrapWidth);
@@ -757,6 +783,7 @@ void Renderer::Render()
 	ImGui::Text("%s", str.c_str());
 	ImGui::PopTextWrapPos();
 	ImGui::End();	
+	*/
 
 	// RENDERIZAR TO IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
@@ -849,6 +876,12 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 	}
 
 	CallRenderSystem(modelGroup);
+}
+
+void Renderer::RenderBatching(std::vector<StaticBatch>& batches)
+{
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->RenderBatch(batches);
 }
 
 void Renderer::End()

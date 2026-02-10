@@ -36,7 +36,7 @@ StaticBatch UploadToGPU(std::vector<Vertex>& vertices, std::vector<unsigned int>
 void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
 {
 	// para cada lod crear batch (hardcodeado como 3 niveles de lod)
-	for (int lodLevel = 0; lodLevel < 3; lodLevel++)
+	for (int lodLevel = 0; lodLevel < 1; lodLevel++)
 	{
 		std::map<ResourceHandle, std::vector<ECS::Entity>> groups;
 		// agrupar por shader (material)

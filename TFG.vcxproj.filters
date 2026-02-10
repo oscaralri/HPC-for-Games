@@ -132,7 +132,7 @@
     <ClCompile Include="src\cpp\RandomGenerator.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="Batch.cpp">
+    <ClCompile Include="BatchSystem.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -260,7 +260,7 @@
     <ClInclude Include="src\headers\RandomGenerator.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="Batch.h">
+    <ClInclude Include="BatchSystem.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
@@ -374,6 +374,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\modelLoading_v2.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\HPC-for-Games-main\shaders\batching.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\..\..\HPC-for-Games-main\shaders\batching.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

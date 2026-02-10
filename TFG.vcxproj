@@ -134,7 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Batch.cpp" />
+    <ClCompile Include="BatchSystem.cpp" />
     <ClCompile Include="src\cpp\GridInitializer.cpp" />
     <ClCompile Include="src\cpp\LODSystem.cpp" />
     <ClCompile Include="src\cpp\RandomGenerator.cpp" />
@@ -173,7 +173,7 @@
     <ClCompile Include="src\cpp\ECS\SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Batch.h" />
+    <ClInclude Include="BatchSystem.h" />
     <ClInclude Include="src\headers\GridInitializer.h" />
     <ClInclude Include="src\headers\LODSystem.h" />
     <ClInclude Include="src\headers\RandomGenerator.h" />
@@ -217,6 +217,8 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\HPC-for-Games-main\shaders\batching.frag" />
+    <None Include="..\..\..\HPC-for-Games-main\shaders\batching.vert" />
     <None Include="shaders\basicLighting.frag" />
     <None Include="shaders\basicLighting.vert" />
     <None Include="shaders\framebuffer_screen.frag" />

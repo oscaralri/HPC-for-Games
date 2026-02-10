@@ -83,7 +83,7 @@ private:
 
 	std::vector<ECS::Entity> visibleInstanced;
 	std::vector<ECS::Entity> visibleNormal;
-	std::vector<ECS::Entity> visibleBatching;
+	std::vector<StaticBatch> visibleBatching;
 
 	std::unique_ptr<Grid> grid;
 
@@ -96,9 +96,12 @@ private:
 	int WindowInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void FBOInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void ModelsInit();
+	void ShadersInit();
+
 	void RenderNormal(std::vector<ECS::Entity> entities);
 	void RenderInstanced(std::vector<ECS::Entity> entities);
-	void ShadersInit();
+	void RenderBatching(std::vector<StaticBatch>& batches);
+
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
 	void CallRenderSystem(std::vector<ECS::Entity> entities);

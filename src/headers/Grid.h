@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ECSConfig.h"
+#include "ResourceStorage.h"
 
 #include <vector>
 #include <glm/ext/vector_float3.hpp>
@@ -8,6 +9,13 @@
 #include <glm/common.hpp>
 
 #include <iostream>
+
+struct StaticBatch
+{
+    unsigned int vao, vbo, ebo;
+    unsigned int indexCount;
+    ResourceHandle shader; // esto es lo que diferencia cada batch y define si pueden ir juntos
+};
 
 struct GridCell
 {
