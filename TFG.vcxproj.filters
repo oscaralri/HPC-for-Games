@@ -382,5 +382,11 @@
     <None Include="..\..\..\HPC-for-Games-main\shaders\batching.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\batching2.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\batching2.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -221,6 +221,8 @@
     <None Include="..\..\..\HPC-for-Games-main\shaders\batching.vert" />
     <None Include="shaders\basicLighting.frag" />
     <None Include="shaders\basicLighting.vert" />
+    <None Include="shaders\batching2.frag" />
+    <None Include="shaders\batching2.vert" />
     <None Include="shaders\framebuffer_screen.frag" />
     <None Include="shaders\framebuffer_screen.vert" />
     <None Include="shaders\glslTests.frag" />

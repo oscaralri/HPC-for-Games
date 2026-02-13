@@ -2,11 +2,8 @@
 
 #include "EngineResources.h"
 
-void DebugAABB(glm::mat4 projection, glm::mat4 view)
+void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 max)
 {
-	// AABB LOCAL
-	glm::vec3 min = glm::vec3(-500.f);
-	glm::vec3 max = glm::vec3(500.f);
 	
 	/*
 	float lines[] = {
@@ -300,8 +297,8 @@ void Renderer::GenerateInstancedEntityRandom(std::vector<std::string>& modelPath
 	}
 }
 
-void Renderer::GenerateBatchEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
-{	 
+void Renderer::GenerateBatchEntity(std::vector<std::string>& modelPaths, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
+{
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 
 	auto entity = gCoordinator.CreateEntity();
@@ -310,7 +307,7 @@ void Renderer::GenerateBatchEntity(std::vector<std::string>& modelPaths, glm::ve
 		rotation,
 		scale
 		});
-	gCoordinator.AddComponent(entity, Renderable{ modelRH, batchingShader, RenderType::Batch });
+	gCoordinator.AddComponent(entity, Renderable{ modelRH, shader, RenderType::Batch });
 	gCoordinator.AddComponent(entity, AABB{
 		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
 		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1]
@@ -472,8 +469,7 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(1000.f));
-	
+	grid = std::make_unique<Grid>(glm::vec3(-250.f), glm::vec3(1000.f), glm::vec3(500.f));
 	
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, 0, 0, -300, 0);
 
@@ -555,16 +551,25 @@ void Renderer::ModelsInit()
 	// gargoyle
 	{
 		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		for (int i = 0; i < 2000; i++)
+		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
+		for (int i = 0; i < 2; i++)
 		{
-			GenerateBatchEntity(path, glm::vec3(i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+			GenerateBatchEntity(path, shader, glm::vec3(i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
 		}
 		
+		std::vector<std::string> path2 = { "models/rock/rock.obj" };
+		auto shader2 = EngineResources::GetShaderManager().LoadShader("shaders/batching2.vert", "shaders/batching2.frag");
+		for (int i = 0; i < 2; i++)
+		{
+			GenerateBatchEntity(path2, shader, glm::vec3((i+2) + 250.5f), glm::vec3(0.f), glm::vec3(1.f), 25);
+		}
+
+		/*
 		for (int i = 0; i < 15; i++)
 		{
 			GenerateBatchEntity(path, glm::vec3(i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
 		}
-		/*
+		
 		for (int i = 0; i < 500; i++)
 		{
 			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
@@ -575,6 +580,7 @@ void Renderer::ModelsInit()
 		}
 		*/
 	}
+
 	for (auto& cell : grid->cells)
 	{
 		auto batchSystem = gCoordinator.GetSystem<BatchSystem>();
@@ -642,8 +648,6 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glFrontFace(GL_CW);
 }
 
-
-
 void Renderer::showFPS(GLFWwindow* window) {
 	double currentTime = glfwGetTime();
 	nbFrames++;
@@ -663,16 +667,17 @@ void Renderer::showFPS(GLFWwindow* window) {
 
 void Renderer::Init()
 {
-	SCR_WIDTH = 1366;
-	SCR_HEIGHT = 768;
+	SCR_WIDTH = 1024; // porta: 1024 x 576, PC: 1366x768 
+	SCR_HEIGHT = 576;
 	near = 0.1f;
-	far = 1000.f;
+	far = 2000.f;
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
 	nbFrames = 0;
 	lastTime = 0.;
 	fps = 0.;
 	moveEnabled = true;
+	firstMouse = true;
 	firstMouse = true;
 	lastX = SCR_WIDTH / 2.0f;
 	lastY = SCR_HEIGHT / 2.0f;
@@ -740,9 +745,14 @@ void Renderer::Render()
 	
 	showFPS(window);
 
+	// DEBUG AABB
+	//DebugAABB(projection, view, glm::vec3(-250.f), glm::vec3(500.f));
+	//DebugAABB(projection, view, glm::vec3(0.f), glm::vec3(500.f));
+
+
 	// SKYBOX
-	//glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
-	//scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
+	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
+	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
 	// LODS
 	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();
@@ -767,8 +777,6 @@ void Renderer::Render()
 	// BATCHING
 	RenderBatching(visibleBatching);
 
-
-
 	/*
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
@@ -784,6 +792,20 @@ void Renderer::Render()
 	ImGui::PopTextWrapPos();
 	ImGui::End();	
 	*/
+
+	ImGui::Begin("OutList");
+	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
+	ImGui::PushTextWrapPos(wrapWidth);
+	ImGui::Text("outlist:");
+	std::string str;
+	for (size_t i = 0; i < visibleBatching.size(); ++i) {
+		str += std::to_string(visibleBatching[i].vao);
+		if (i != visibleBatching.size() - 1)
+			str += ", ";
+	}
+	ImGui::Text("%s", str.c_str());
+	ImGui::PopTextWrapPos();
+	ImGui::End();
 
 	// RENDERIZAR TO IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
