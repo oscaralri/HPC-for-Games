@@ -2,6 +2,19 @@
 
 #include "EngineResources.h"
 
+float LoadTexture(aiMaterial* mat, aiTextureType type, std::string typeName)
+{
+	// esto creo que deberia funcionar pero como tal no tiene sentido el for
+	float texIndex;
+	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
+	{
+		aiString str;
+		mat->GetTexture(type, i, &str);
+		texIndex = EngineResources::GetTextureManager().GetTextureIndex(str.C_Str());
+	}
+	return texIndex;
+}
+
 
 void Model::FindAABBMinMax(const std::vector<Mesh> meshes, std::array<glm::vec3, 2>& aabb)
 {
@@ -88,9 +101,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	std::vector<unsigned int> indices;
 	std::vector<ResourceHandle> textures;
 
+	Vertex vertex;
+
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		Vertex vertex;
 		glm::vec3 vector;
 		// positions
 		vector.x = mesh->mVertices[i].x;
@@ -141,23 +155,14 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	}
 
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+	
+	float texIndex = LoadTexture(material, aiTextureType_DIFFUSE, "texture_diffuse");
+	std::cout << "\n" << (int)texIndex;
 
-	// Textures
-	std::vector<ResourceHandle> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-	textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-	std::vector<ResourceHandle> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-
-	std::vector<ResourceHandle> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-	textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-
-	std::vector<ResourceHandle> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-	textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-	return Mesh(vertices, indices, textures);
+	return Mesh(vertices, indices, texIndex);
 }
 
+/*
 std::vector<ResourceHandle> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
 	std::vector<ResourceHandle> textureHandles;
@@ -167,15 +172,13 @@ std::vector<ResourceHandle> Model::loadMaterialTextures(aiMaterial* mat, aiTextu
 		aiString str;
 		mat->GetTexture(type, i, &str);
 
+		// realmente si este resource handle apuntase a lo mismo de antes pero guardado en otro sitio estaria bien?
+
 		ResourceHandle textureHandle;
 		textureHandle = EngineResources::GetTextureManager().LoadTexture(str.C_Str(), this->directory, typeName);
 		textureHandles.push_back(textureHandle);
-
-		// la idea es que esto que se ha hecho tiene que conseguir lo mismo
-			// definir una textura con su id, type y path
-			// luego se guarda en el textureStorage
-			// en el model se guarda la referencia con un handle
 	}
 
 	return textureHandles;
 };
+*/

@@ -263,6 +263,9 @@
     <ClInclude Include="BatchSystem.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\v1.frag">
@@ -386,6 +389,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\batching2.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\a_buffers.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\a_buffers.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

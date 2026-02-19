@@ -1,0 +1,11 @@
+{
+  "texture_array": {
+    "width": 256,
+    "height": 256,
+    "files": [	
+	 "models/chair/chair_wood_Base_color.jpg",
+	 "asd/ash",
+	 "textures/gargoyle/gargoyle_256.png"
+    ]
+  }
+}

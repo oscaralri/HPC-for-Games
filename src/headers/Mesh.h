@@ -13,6 +13,9 @@ struct Vertex {
 	glm::vec2 TexCoords;
 	glm::vec3 Tangent;
 	glm::vec3 Bitangent;
+
+	// batching
+	float TexIndex;
 };
 
 class Mesh
@@ -23,16 +26,18 @@ public:
 
 	std::vector<Vertex> vertices; 
 	std::vector<unsigned int> indices;
+	float texIndex;
+
 	std::vector<ResourceHandle> textureHandles;
 
-	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<ResourceHandle> textures) 
-		: vertices(vertices), indices(indices), textureHandles(textures)
+	Mesh(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, float _texIndex) 
+		: vertices(_vertices), indices(_indices), texIndex(_texIndex)
 	{
 		setupMesh();
 	}
 	void Draw(Shader& shader);
 	void InstancedDraw(Shader& shader, int amount);
-
+	
 private:
 	unsigned int VBO, EBO;
 	void setupMesh();

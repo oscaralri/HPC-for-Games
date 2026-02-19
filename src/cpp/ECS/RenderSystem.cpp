@@ -40,10 +40,15 @@ void RenderSystem::RenderInstanced(ECS::Coordinator& coordinator, std::vector<EC
 
 void RenderSystem::RenderBatch(std::vector<StaticBatch> batches)
 {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, EngineResources::GetTextureManager().GetGlobalArrayID());
+
 	for (auto& batch : batches)
 	{
 		auto shader = EngineResources::GetShaderManager().Get(batch.shader);
 		shader->use();
+
+		shader->setInt("uTextureArray", 0);	
 
 		glBindVertexArray(batch.vao);
 

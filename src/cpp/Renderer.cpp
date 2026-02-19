@@ -546,24 +546,26 @@ void Renderer::ModelsInit()
 	}
 	*/
 
+	EngineResources::GetTextureManager().LoadTextures("textures/texturesJSON.json");
+
 	// BATCHING
 	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
 	// gargoyle
 	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
-		for (int i = 0; i < 2; i++)
+		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj"};
+		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/a_buffers.vert", "shaders/a_buffers.frag");
+		for (int i = 0; i < 100; i++)
 		{
-			GenerateBatchEntity(path, shader, glm::vec3(i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+			GenerateBatchEntity(path, shader, glm::vec3((i - 10.f) * 1.5f, (i) * -1.5f, -35.0f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.09f), 25);
 		}
-		
+		/*
 		std::vector<std::string> path2 = { "models/rock/rock.obj" };
 		auto shader2 = EngineResources::GetShaderManager().LoadShader("shaders/batching2.vert", "shaders/batching2.frag");
 		for (int i = 0; i < 2; i++)
 		{
 			GenerateBatchEntity(path2, shader, glm::vec3((i+2) + 250.5f), glm::vec3(0.f), glm::vec3(1.f), 25);
 		}
-
+		*/
 		/*
 		for (int i = 0; i < 15; i++)
 		{
@@ -579,7 +581,14 @@ void Renderer::ModelsInit()
 			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
 		}
 		*/
+
+		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx"};
+		for (int i = 0; i < 100; i++)
+		{
+			GenerateBatchEntity(path2, shader, glm::vec3((i + 10.f) * 1.5f, (i) * 1.5f, -35.0f), glm::vec3(0.f), glm::vec3(0.09f), 25);
+		}
 	}
+
 
 	for (auto& cell : grid->cells)
 	{
@@ -751,8 +760,8 @@ void Renderer::Render()
 
 
 	// SKYBOX
-	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
-	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
+	//glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
+	//scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
 	// LODS
 	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();

@@ -27,6 +27,9 @@ StaticBatch UploadToGPU(std::vector<Vertex>& vertices, std::vector<unsigned int>
 	// vertex texcoords
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+	// vertex texIndex
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexIndex));
 
 	glBindVertexArray(0);
 
@@ -80,6 +83,8 @@ void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity
 						Vertex vWorld = v;
 						vWorld.Position = glm::vec3(modelMat * glm::vec4(v.Position, 1.0f));
 						vWorld.Normal = glm::normalize(normalMat * v.Normal); // esto me puede dar errores tener cuidado
+						vWorld.TexIndex = mesh.texIndex;
+
 						mergedVertices.push_back(vWorld);
 					}
 
