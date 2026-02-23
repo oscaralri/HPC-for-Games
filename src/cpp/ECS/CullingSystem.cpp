@@ -97,43 +97,21 @@ bool AABBIntersection(Frustum frustum, AABB aabb, Transform transform)
 	return true;
 }
 
-std::vector<ECS::Entity> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell>& cells)
+std::vector<GridCell> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell>& cells)
 {
-	std::vector<ECS::Entity> cellsVisible;
-	std::vector<ECS::Entity> visibleList;
-	std::vector<bool> entityVisited(mEntities.size(), false);
+	std::vector<GridCell> cellsVisible;
 	Frustum frustum = CreateFrustum(camera->projection, camera->view, camera);
 	
 	for (auto const& cell : cells)
 	{
 		AABB aabb { cell.min, cell.max };
-
 		Transform transform { glm::vec3(0.f,0.f,0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 1.f, 1.f)};
 
 		if (AABBIntersection(frustum, aabb, transform))
 		{
-			for (auto const& entity : cell.entities)
-			{
-				if (!entityVisited[entity])
-				{
-					entityVisited[entity] = true;
-					cellsVisible.push_back(entity);
-
-				}
-			}
+			cellsVisible.push_back(cell);
 		}
 	}
 
-	for (auto const& entity : cellsVisible)
-	{
-		auto& aabb = coordinator.GetComponent<AABB>(entity);
-		auto& transform = coordinator.GetComponent<Transform>(entity);
-		
-		if (AABBIntersection(frustum, aabb, transform))
-		{
-			visibleList.push_back(entity);
-		}
-	}
-
-	return visibleList;
+	return cellsVisible;
 }

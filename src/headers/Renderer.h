@@ -100,7 +100,7 @@ private:
 
 	void RenderNormal(std::vector<ECS::Entity> entities);
 	void RenderInstanced(std::vector<ECS::Entity> entities);
-	void RenderBatching(std::vector<StaticBatch>& batches);
+	void RenderBatching(std::vector<GridCell>& cells);
 
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
