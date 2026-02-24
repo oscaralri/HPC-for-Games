@@ -32,6 +32,7 @@ void Application::ECSInit()
 	// RENDER SYSTEM
 	gCoordinator.RegisterComponent<Transform>();
 	gCoordinator.RegisterComponent<Renderable>();
+	gCoordinator.RegisterComponent<MeshEntry>();
 	
 	gCoordinator.RegisterSystem<RenderSystem>();
 	{
@@ -74,5 +75,14 @@ void Application::ECSInit()
 
 		gCoordinator.SetSystemSignature<BatchSystem>(signature);
 
+	}
+
+	// MDI SYSTEM
+	gCoordinator.RegisterSystem<MDI>();
+	{
+		ECS::Signature signature;
+		signature.set(gCoordinator.GetComponentType<MeshEntry>());
+		
+		gCoordinator.SetSystemSignature<MDI>(signature);
 	}
 }

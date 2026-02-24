@@ -320,6 +320,32 @@ void Renderer::GenerateBatchEntity(std::vector<std::string>& modelPaths, Resourc
 	grid->Insert(entity, worldMin, worldMax);
 }
 
+void Renderer::GenerateMDIEntity(std::vector<std::string>& modelPaths, int lodIncrement)
+{
+	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
+	auto model = EngineResources::GetModelManager().Get(modelRH);
+
+	auto entity = gCoordinator.CreateEntity();
+	gCoordinator.AddComponent(entity, Transform{
+		glm::vec3(0.f),
+		glm::vec3(0.f),
+		glm::vec3(1.f)
+		});
+	gCoordinator.AddComponent(entity, AABB{
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1]
+		});
+	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
+	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
+
+	gCoordinator.AddComponent(entity, MeshEntry{ EngineResources::GetMDI().AddMesh(model->getLODs()[0].meshes[0].vertices, model->getLODs()[0].meshes[0].indices, aabb, model->getLODs()[0].meshes[0].texIndex) });
+
+	glm::vec3 worldMin = transform.position + aabb.min * transform.scale;
+	glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
+	grid->Insert(entity, worldMin, worldMax);
+
+}
+
 /*
 void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<GridCell> cells)
 {
@@ -552,6 +578,7 @@ void Renderer::ModelsInit()
 	*/
 
 	// BATCHING
+	/*
 	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
 	// gargoyle
 	{
@@ -561,15 +588,15 @@ void Renderer::ModelsInit()
 		{
 			GenerateBatchEntity(path, shader, glm::vec3((i + 10.f) * 1.5f, (i) * -1.5f, -250.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.5f), 25);
 		}
-		/*
+		
 		std::vector<std::string> path2 = { "models/rock/rock.obj" };
 		auto shader2 = EngineResources::GetShaderManager().LoadShader("shaders/batching2.vert", "shaders/batching2.frag");
 		for (int i = 0; i < 2; i++)
 		{
 			GenerateBatchEntity(path2, shader, glm::vec3((i+2) + 250.5f), glm::vec3(0.f), glm::vec3(1.f), 25);
 		}
-		*/
-		/*
+		
+		
 		for (int i = 0; i < 15; i++)
 		{
 			GenerateBatchEntity(path, glm::vec3(i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
@@ -583,7 +610,7 @@ void Renderer::ModelsInit()
 		{
 			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
 		}
-		*/
+		
 
 		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx"};
 		for (int i = 0; i < 2; i++)
@@ -596,8 +623,16 @@ void Renderer::ModelsInit()
 	{
 		auto batchSystem = gCoordinator.GetSystem<BatchSystem>();
 		batchSystem->BuildCellBatches(cell, cell.entities, gCoordinator);
-		//visibleBatching.insert(visibleBatching.end(), cell.lodBatches[0].begin(), cell.lodBatches[0].end());
 	}
+	*/
+
+	std::vector<std::string> path = { "models/gargoyle/gargoyle.obj" };
+	GenerateMDIEntity(path, 15);
+	EngineResources::GetMDI().GenerateDataBuffers();
+	EngineResources::GetMDI().GenerateMeshBuffers();
+	EngineResources::GetMDI().GenerateDrawCmds(gCoordinator);
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->UpdateIndirectCmd(gCoordinator);
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
@@ -721,9 +756,10 @@ void Renderer::Render()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// FRUSTUM
+	/*
 	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
 	std::vector<GridCell> visibleCells = cullingSystem->FrustumCulling(gCoordinator, mainCamera, grid->cells);
-
+	*/
 	//SortRenderType(gCoordinator, visibleCells);
 
 	// FRAMEBUFFER
@@ -731,6 +767,10 @@ void Renderer::Render()
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->UpdateIndirectCmd(gCoordinator);
+
 
 	// IMGUI 
 	static float posX = -16.000;
@@ -758,17 +798,23 @@ void Renderer::Render()
 	showFPS(window);
 
 	// DEBUG AABB
+	/*
 	for (const auto& cell : grid->cells)
 	{
 		DebugAABB(projection, view, cell.min, cell.max);
 	}
-	
+	*/
 	//DebugAABB(projection, view, glm::vec3(-250.f), glm::vec3(500.f));
 	//DebugAABB(projection, view, glm::vec3(0.f), glm::vec3(500.f));
 
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
+
+	auto shader = EngineResources::GetShaderManager().LoadShader("shaders/mdi.vert", "shaders/mdi.frag");
+	auto s = EngineResources::GetShaderManager().Get(shader);
+
+	renderSystem->RenderMDI(*s);
 
 	// LODS
 	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();
@@ -794,7 +840,7 @@ void Renderer::Render()
 	//RenderInstanced(visibleCells);
 
 	// BATCHING
-	RenderBatching(visibleCells);
+	//RenderBatching(visibleCells);
 
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
@@ -810,7 +856,7 @@ void Renderer::Render()
 	ImGui::PopTextWrapPos();
 	ImGui::End();
 	
-
+	/*
 	ImGui::Begin("visibleCells");
 	wrapWidth = ImGui::GetWindowContentRegionMax().x;
 	ImGui::PushTextWrapPos(wrapWidth);
@@ -819,7 +865,7 @@ void Renderer::Render()
 	ImGui::Text("%s", str.c_str());
 	ImGui::PopTextWrapPos();
 	ImGui::End();
-
+	*/
 	// RENDERIZAR TO IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
 	glEnable(GL_DEPTH_TEST);

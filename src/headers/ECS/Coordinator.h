@@ -26,7 +26,7 @@ namespace ECS {
 		{
 			mEntityManager->DestroyEntity(entity);
 			mComponentManager->EntityDestroyed(entity);
-			mSystemManager->EntityDestroyed(entity);
+			//mSystemManager->EntityDestroyed(entity);
 		}
 
 		template<typename T>
@@ -44,7 +44,7 @@ namespace ECS {
 			signature.set(mComponentManager->GetComponentType<T>(), true);
 			mEntityManager->SetSignature(entity, signature);
 
-			mSystemManager->EntitySignatureChanged(entity, signature);
+			//mSystemManager->EntitySignatureChanged(entity, signature);
 		}
 
 		template<typename T>
@@ -56,7 +56,7 @@ namespace ECS {
 			signature.set(mComponentManager->GetComponentType<T>(), false);
 			mEntityManager->SetSignature(entity, signature);
 
-			mSystemManager->EntitySignatureChanged(entity, signature);
+			//mSystemManager->EntitySignatureChanged(entity, signature);
 		}
 
 		template<typename T>

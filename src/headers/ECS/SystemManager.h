@@ -32,7 +32,7 @@ namespace ECS {
 
 			mSignatures.insert({ typeName, signature });
 		}
-
+		/*
 		void EntityDestroyed(Entity entity)
 		{
 			for (auto const& pair : mSystems)
@@ -42,7 +42,8 @@ namespace ECS {
 				system->mEntities.erase(entity);
 			}
 		}
-
+		*/
+		/*
 		void EntitySignatureChanged(Entity entity, Signature entitySignature)
 		{
 			for (auto const& pair : mSystems)
@@ -61,7 +62,7 @@ namespace ECS {
 				}
 			}
 		}
-
+		*/
 		template<typename T>
 		std::shared_ptr<T> GetSystem()
 		{

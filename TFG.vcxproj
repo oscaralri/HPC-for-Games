@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BatchSystem.cpp" />
+    <ClCompile Include="MDI.cpp" />
     <ClCompile Include="src\cpp\GridInitializer.cpp" />
     <ClCompile Include="src\cpp\LODSystem.cpp" />
     <ClCompile Include="src\cpp\RandomGenerator.cpp" />
@@ -175,6 +176,7 @@
   <ItemGroup>
     <ClInclude Include="BatchSystem.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="MDI.h" />
     <ClInclude Include="src\headers\GridInitializer.h" />
     <ClInclude Include="src\headers\LODSystem.h" />
     <ClInclude Include="src\headers\RandomGenerator.h" />
@@ -238,6 +240,8 @@
     <None Include="shaders\lightingMaps.vert" />
     <None Include="shaders\materialLight.frag" />
     <None Include="shaders\materialLight.vert" />
+    <None Include="shaders\mdi.frag" />
+    <None Include="shaders\mdi.vert" />
     <None Include="shaders\modelLoading.frag" />
     <None Include="shaders\modelLoading.vert" />
     <None Include="shaders\modelLoading_v2.frag" />

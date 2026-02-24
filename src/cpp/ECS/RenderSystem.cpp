@@ -2,6 +2,7 @@
 #include "ShaderStorage.h"
 #include "EngineResources.h"
 #include "Application.h"
+#include "MDI.h"
 
 void RenderSystem::Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities)
 {
@@ -56,4 +57,51 @@ void RenderSystem::RenderBatch(std::vector<StaticBatch> batches)
 
 		glBindVertexArray(0);
 	}
+}
+
+void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
+	std::vector<InstanceData> instanceDataList;
+	std::vector<DrawElementsIndirectCommand> commands;
+
+	// quizas si que hago que trabaje con todas las entidades porque el culling se va a hacer en gpu
+	for (auto const& entity : mEntities) {
+		auto& transform = coordinator.GetComponent<Transform>(entity);
+		auto& meshEntry = coordinator.GetComponent<MeshEntry>(entity);
+
+		// datos shader
+		InstanceData data{};
+		data.modelMatrix = transform.GetModelMatrix();
+		data.textureLayer = meshEntry.textureLayer;
+		data.entityID = (uint32_t)entity;
+		instanceDataList.push_back(data);
+
+		// datos mdi 
+		DrawElementsIndirectCommand cmd{};
+		cmd.count = meshEntry.indexCount;
+		cmd.instanceCount = 1;
+		cmd.firstIndex = meshEntry.firstIndex;
+		cmd.baseVertex = meshEntry.baseVertex;
+		cmd.baseInstance = entity; 
+		commands.push_back(cmd);
+
+		//index++; // en la implementacion baseInstance era esto, yo estoy probando con entity como baseInstance
+	}
+
+	// upload to gpu
+	glNamedBufferSubData(EngineResources::GetMDI().GetInstanceSSBO(), 0, instanceDataList.size() * sizeof(InstanceData), instanceDataList.data());
+	glNamedBufferSubData(EngineResources::GetMDI().GetCommandsSSBO(), 0, commands.size() * sizeof(DrawElementsIndirectCommand), commands.data());
+}
+
+void RenderSystem::RenderMDI(Shader& shader)
+{
+	shader.use();
+	glBindVertexArray(EngineResources::GetMDI().GetGlobalVAO());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, EngineResources::GetMDI().GetInstanceSSBO());
+
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, EngineResources::GetMDI().GetCommandsSSBO());
+
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, (GLsizei)mEntities.size(), 0);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }

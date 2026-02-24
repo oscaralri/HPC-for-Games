@@ -3,6 +3,7 @@
 #include "TextureManager.h"
 #include "ModelManager.h"
 #include "ShaderManager.h"
+#include "MDI.h"
 
 class EngineResources
 {
@@ -23,6 +24,12 @@ public:
     {
         static ShaderManager shaderManager;
         return shaderManager;
+    }
+
+    static MDI& GetMDI()
+    {
+        static MDI mdi;
+        return mdi;
     }
 
 private:

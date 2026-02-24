@@ -135,6 +135,9 @@
     <ClCompile Include="BatchSystem.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="MDI.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libraries\Include\imgui\imconfig.h">
@@ -266,6 +269,9 @@
     <ClInclude Include="json.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
+    <ClInclude Include="MDI.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\v1.frag">
@@ -395,6 +401,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\a_buffers.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\mdi.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\mdi.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

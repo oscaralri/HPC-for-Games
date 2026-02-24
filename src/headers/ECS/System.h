@@ -1,13 +1,13 @@
 #pragma once
 
-#include <set>
 #include "ECSConfig.h"
+#include <vector>
 
 namespace ECS {
 	class System
 	{
 	public:
-		std::set<Entity> mEntities;
+		std::vector<Entity> mEntities;
 	};
 }
 

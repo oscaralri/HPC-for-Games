@@ -6,6 +6,7 @@
 #include "Renderable.h"
 #include "ECSConfig.h"
 #include "BatchSystem.h"
+#include "MDI.h"
 
 
 class RenderSystem : public ECS::System
@@ -14,5 +15,7 @@ public:
 	void Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities);
 	void RenderInstanced(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities);
 	void RenderBatch(std::vector<StaticBatch> batches);
-};
+	void UpdateIndirectCmd(ECS::Coordinator& coordinator);
+	void RenderMDI(Shader& shader);
 
+};
