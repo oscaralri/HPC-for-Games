@@ -1,69 +1,70 @@
 #pragma once
 #include "ECSConfig.h"
 #include <unordered_map>
+#include <vector>
+#include <cassert>
+
 namespace ECS {
 
-	class IComponentArray
-	{
-	public:
-		virtual ~IComponentArray() = default;
-		virtual void EntityDestroyed(Entity entity) = 0;
-	};
+    class IComponentArray {
+    public:
+        virtual ~IComponentArray() = default;
+        virtual void EntityDestroyed(Entity entity) = 0;
+    };
 
+    template<typename T>
+    class ComponentArray : public IComponentArray {
+    public:
+        ComponentArray() {
+            mComponentVector.reserve(MAX_ENTITIES);
+        }
 
-	template<typename T>
-	class ComponentArray : public IComponentArray
-	{
-	public:
-		void InsertData(Entity entity, T component)
-		{
-			assert(mEntityToIndexMap.find(entity) == mEntityToIndexMap.end() && "Component added to same entity more than once.");
+        void InsertData(Entity entity, T component) {
+            assert(mEntityToIndexMap.find(entity) == mEntityToIndexMap.end() && "Component added to same entity more than once.");
 
-			size_t newIndex = mSize;
-			mEntityToIndexMap[entity] = newIndex;
-			mIndexToEntityMap[newIndex] = entity;
-			mComponentArray[newIndex] = component;
-			++mSize;
-		}
+            size_t newIndex = mComponentVector.size();
+            mEntityToIndexMap[entity] = newIndex;
+            mIndexToEntityMap[newIndex] = entity;
 
-		void RemoveData(Entity entity)
-		{
-			assert(mEntityToIndexMap.find(entity) != mEntityToIndexMap.end() && "Removing non-existent component.");
+            mComponentVector.push_back(component);
+        }
 
-			size_t indexOfRemovedEntity = mEntityToIndexMap[entity];
-			size_t indexOfLastElement = mSize - 1;
-			mComponentArray[indexOfRemovedEntity] = mComponentArray[indexOfLastElement];
+        void RemoveData(Entity entity) {
+            assert(mEntityToIndexMap.find(entity) != mEntityToIndexMap.end() && "RemoveData: Removing non-existent component.");
 
-			Entity entityOfLastElement = mIndexToEntityMap[indexOfLastElement];
-			mEntityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
-			mIndexToEntityMap[indexOfRemovedEntity] = entityOfLastElement;
+            size_t indexOfRemovedEntity = mEntityToIndexMap[entity];
+            size_t indexOfLastElement = mComponentVector.size() - 1;
 
-			mEntityToIndexMap.erase(entity);
-			mIndexToEntityMap.erase(indexOfLastElement);
+            mComponentVector[indexOfRemovedEntity] = mComponentVector[indexOfLastElement];
 
-			--mSize;
-		}
+            Entity entityOfLastElement = mIndexToEntityMap[indexOfLastElement];
+            mEntityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
+            mIndexToEntityMap[indexOfRemovedEntity] = entityOfLastElement;
 
-		T& GetData(Entity entity)
-		{
-			assert(mEntityToIndexMap.find(entity) != mEntityToIndexMap.end() && "Retrieving non-existent component.");
+            mEntityToIndexMap.erase(entity);
+            mIndexToEntityMap.erase(indexOfLastElement);
 
-			return mComponentArray[mEntityToIndexMap[entity]];
-		}
+            mComponentVector.pop_back();
+        }
 
-		void EntityDestroyed(Entity entity) override
-		{
-			if (mEntityToIndexMap.find(entity) != mEntityToIndexMap.end())
-			{
-				RemoveData(entity);
-			}
-		}
+        T& GetData(Entity entity) {
+            auto it = mEntityToIndexMap.find(entity);
+            assert(it != mEntityToIndexMap.end() && "GetData: Retrieving non-existent component.");
+            return mComponentVector[it->second];
+        }
 
-	private:
-		std::array<T, MAX_ENTITIES> mComponentArray;
-		std::unordered_map<Entity, size_t> mEntityToIndexMap;
-		std::unordered_map<size_t, Entity> mIndexToEntityMap;
-		size_t mSize = 0;
-	};
+        void EntityDestroyed(Entity entity) override {
+            if (mEntityToIndexMap.find(entity) != mEntityToIndexMap.end()) {
+                RemoveData(entity);
+            }
+        }
 
+        //std::vector<T>& GetRawVector() { return mComponentVector; }
+
+    private:
+        std::vector<T> mComponentVector;
+
+        std::unordered_map<Entity, size_t> mEntityToIndexMap;
+        std::unordered_map<size_t, Entity> mIndexToEntityMap;
+    };
 }

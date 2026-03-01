@@ -38,7 +38,7 @@ void Application::ECSInit()
 	{
 		ECS::Signature signature;
 		signature.set(gCoordinator.GetComponentType<Transform>());
-		signature.set(gCoordinator.GetComponentType<Renderable>());
+		//signature.set(gCoordinator.GetComponentType<Renderable>());
 
 		gCoordinator.SetSystemSignature<RenderSystem>(signature);
 	}

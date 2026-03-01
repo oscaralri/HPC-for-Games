@@ -29,9 +29,10 @@ struct MeshEntry
 
 // entiendo que lo del alignas(16) es por como va a leer la info la gpu
 struct alignas(16) InstanceData {
-	uint32_t entityID;
-	glm::mat4 modelMatrix; 
-	uint32_t textureLayer;   
+	glm::mat4 modelMatrix;   // 64 bytes 
+	uint32_t entityID;       // 4 bytes
+	uint32_t textureLayer;   // 4 bytes  
+	uint32_t padding[2];     // 8 bytes		
 };
 
 static_assert(sizeof(InstanceData) % 16 == 0, "InstanceData no alineado correctamente para GPU");
@@ -48,6 +49,9 @@ public:
 	GLuint& GetCommandsSSBO() { return commandsSSBO; }
 	GLuint& GetGlobalVAO() { return globalVAO; }
 
+	DrawElementsIndirectCommand* GetCommandsPtr() { return commandsPtr; }
+	InstanceData* GetInstanceDataPtr() { return instancePtr; }
+
 private:
 	GLuint globalVAO;
 	GLuint globalVBO;
@@ -61,5 +65,8 @@ private:
 
 	GLuint instanceSSBO;
 	GLuint commandsSSBO;
+
+	DrawElementsIndirectCommand* commandsPtr;
+	InstanceData* instancePtr;
 };
 

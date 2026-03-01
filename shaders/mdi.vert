@@ -1,9 +1,11 @@
-#version 460
+#version 460 
 
 struct InstanceData {
-    uint entityID;      
     mat4 modelMatrix;  
+    uint entityID;      
     uint textureLayer;
+    uint pad0;
+    uint pad1;
 };
 
 layout (location = 0) in vec3 inPos;
@@ -13,11 +15,11 @@ layout(std140, binding = 3) uniform CameraBuffer {
     mat4 view;
     mat4 projection;
 };
+
 layout (location = 4) in float aTexIndex; 
 
-out vec3 TexCoords; 
+out vec3 vTexCoords;
 
-// El binding=0 debe coincidir con el que pongas en glBindBufferBase
 layout(std430, binding = 0) buffer InstanceBuffer {
     InstanceData instances[];
 };
@@ -25,6 +27,6 @@ layout(std430, binding = 0) buffer InstanceBuffer {
 void main() {
     InstanceData data = instances[gl_DrawID];
 
-    TexCoords = vec3(aTexCoords, data.textureLayer);
+    vTexCoords = vec3(aTexCoords, float(data.textureLayer));
     gl_Position = projection * view * data.modelMatrix * vec4(inPos, 1.0);
 }

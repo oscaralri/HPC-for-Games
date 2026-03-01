@@ -32,18 +32,16 @@ namespace ECS {
 
 			mSignatures.insert({ typeName, signature });
 		}
-		/*
+		
 		void EntityDestroyed(Entity entity)
 		{
 			for (auto const& pair : mSystems)
 			{
 				auto const& system = pair.second;
-
-				system->mEntities.erase(entity);
+				RemoveEntityFromSystem(system->mEntities, entity);
 			}
 		}
-		*/
-		/*
+
 		void EntitySignatureChanged(Entity entity, Signature entitySignature)
 		{
 			for (auto const& pair : mSystems)
@@ -52,17 +50,22 @@ namespace ECS {
 				auto const& system = pair.second;
 				auto const& systemSignature = mSignatures[type];
 
-				if ((entitySignature & systemSignature) == systemSignature)
+				bool matches = (entitySignature & systemSignature) == systemSignature;
+
+				auto it = std::find(system->mEntities.begin(), system->mEntities.end(), entity);
+				bool exists = (it != system->mEntities.end());
+
+				if (matches && !exists)
 				{
-					system->mEntities.insert(entity);
+					system->mEntities.push_back(entity);
 				}
-				else
+				else if (!matches && exists)
 				{
-					system->mEntities.erase(entity);
+					RemoveEntityFromSystem(system->mEntities, entity);
 				}
 			}
 		}
-		*/
+
 		template<typename T>
 		std::shared_ptr<T> GetSystem()
 		{
@@ -77,6 +80,16 @@ namespace ECS {
 	private:
 		std::unordered_map<const char*, Signature> mSignatures{};
 		std::unordered_map<const char*, std::shared_ptr<System>> mSystems{};
+
+		void RemoveEntityFromSystem(std::vector<Entity>& entities, Entity entity)
+		{
+			auto it = std::find(entities.begin(), entities.end(), entity);
+			if (it != entities.end())
+			{
+				*it = entities.back();
+				entities.pop_back();
+			}
+		}
 	};
 
 }

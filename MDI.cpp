@@ -47,21 +47,20 @@ void MDI::GenerateDataBuffers()
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 	*/
 
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
 	GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+
+	glGenBuffers(1, &instanceSSBO); // datos de entidades 
+	glGenBuffers(1, &commandsSSBO); // ordenes de dibujo (indices, instancia...)
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER, ECS::MAX_ENTITIES * sizeof(InstanceData), nullptr, flags);
-	InstanceData* instancePtr = (InstanceData*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ECS::MAX_ENTITIES * sizeof(InstanceData), flags);
+	instancePtr = (InstanceData*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ECS::MAX_ENTITIES * sizeof(InstanceData), flags);
 
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandsSSBO);
-	GLbitfield flags2 = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-	glBufferStorage(GL_DRAW_INDIRECT_BUFFER, ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), nullptr, flags2);
+	glBufferStorage(GL_DRAW_INDIRECT_BUFFER, ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), nullptr, flags);
 
-	DrawElementsIndirectCommand* commandsPtr = (DrawElementsIndirectCommand*)glMapBufferRange(
-		GL_DRAW_INDIRECT_BUFFER,
-		0,
-		ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand),
-		flags2
-	);
+	commandsPtr = (DrawElementsIndirectCommand*)glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, 
+		ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), flags);
 }
 
 // no se esta gestionando el max vertices ni max indices para que no se escriba en memoria incorrecta
