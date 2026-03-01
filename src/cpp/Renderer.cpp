@@ -347,7 +347,7 @@ void Renderer::GenerateMDIEntity(std::vector<std::string>& modelPaths, int lodIn
 
 }
 
-void Renderer::GenerateMDIEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, int lodIncrement)
+void Renderer::GenerateMDIEntityRandom(std::vector<std::string>& modelPaths, MeshEntry& mesh, RandomGenerator& random, int lodIncrement)
 {
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 	auto model = EngineResources::GetModelManager().Get(modelRH);
@@ -366,7 +366,7 @@ void Renderer::GenerateMDIEntityRandom(std::vector<std::string>& modelPaths, Ran
 	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
 	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
 
-	gCoordinator.AddComponent(entity, MeshEntry{ mdiSystem->AddMesh(model->getLODs()[0].meshes[0].vertices, model->getLODs()[0].meshes[0].indices, aabb, model->getLODs()[0].meshes[0].texIndex) });
+	gCoordinator.AddComponent(entity, mesh);
 
 	glm::vec3 worldMin = transform.position + aabb.min * transform.scale;
 	glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
@@ -527,9 +527,12 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	grid = std::make_unique<Grid>(glm::vec3(-250.f, -250.f, -1000.f), glm::vec3(1000.f), glm::vec3(500.f));
+	glm::vec3 maxValues = glm::vec3(1000.f);
+	glm::vec3 minValues = glm::vec3(-250.f, -250.f, -1000.f);
+	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(500.f));
 	
-	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, 0, 0, -300, 0);
+	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
+	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, maxValues.x, minValues.y, minValues.y, minValues.z, maxValues.z);
 
 	/*
 	// INSTANCING
@@ -660,14 +663,26 @@ void Renderer::ModelsInit()
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 	mdiSystem->GenerateDataBuffers();
 	mdiSystem->GenerateMeshBuffers();
-	for (int i = 0; i < 1000; i++)
+	
+	/*
+	for (int i = 0; i < 500; i++)
 	{
 		GenerateMDIEntityRandom(path, random, 15);
-	}
-	for (int i = 0; i < 1000; i++)
+	}*/
+	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(path2, 25);
+	auto model = EngineResources::GetModelManager().Get(modelRH);
+	AABB aabb
 	{
-		GenerateMDIEntityRandom(path2, random, 15);
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1]
+	};
+	MeshEntry mesh { mdiSystem->AddMesh(model->getLODs()[0].meshes[0].vertices, model->getLODs()[0].meshes[0].indices, aabb, model->getLODs()[0].meshes[0].texIndex) };
+
+	for (int i = 0; i < 500; i++)
+	{
+		GenerateMDIEntityRandom(path2, mesh, random, 15);
 	}
+	
 	mdiSystem->GenerateDrawCmds(gCoordinator);
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();

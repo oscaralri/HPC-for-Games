@@ -57,8 +57,8 @@ private:
 	GLuint globalVBO;
 	GLuint globalEBO;
 
-	const unsigned int MAX_VERTICES = 500000;
-	const unsigned int MAX_INDICES = 500000;
+	const unsigned int MAX_VERTICES = 5000000;
+	const unsigned int MAX_INDICES = 10000000;
 
 	uint32_t currentVertexOffset;
 	uint32_t currentIndexOffset;

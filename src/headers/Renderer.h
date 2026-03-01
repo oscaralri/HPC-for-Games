@@ -22,7 +22,7 @@
 #include "CullingSystem.h"
 #include "Grid.h"
 #include "RandomGenerator.h"
-
+#include "MDI.h"
 
 
 class Renderer
@@ -112,7 +112,7 @@ private:
 	void GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
 	void GenerateBatchEntity(std::vector<std::string>& modelPaths, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
 	void GenerateMDIEntity(std::vector<std::string>& modelPaths, int lodIncrement);
-	void GenerateMDIEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, int lodIncrement);
+	void GenerateMDIEntityRandom(std::vector<std::string>& modelPaths, MeshEntry& mesh, RandomGenerator& random, int lodIncrement);
 	// debug
 	void showFPS(GLFWwindow* window);
 };
