@@ -344,10 +344,9 @@ void Renderer::GenerateMDIEntity(std::vector<std::string>& modelPaths, int lodIn
 	glm::vec3 worldMin = transform.position + aabb.min * transform.scale;
 	glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
 	grid->Insert(entity, worldMin, worldMax);
-
 }
 
-void Renderer::GenerateMDIEntityRandom(std::vector<std::string>& modelPaths, MeshEntry& mesh, RandomGenerator& random, int lodIncrement)
+void Renderer::GenerateMDIEntityRandom(const std::vector<std::string>& modelPaths, MeshEntry& mesh, RandomGenerator& random, int lodIncrement)
 {
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 	auto model = EngineResources::GetModelManager().Get(modelRH);
@@ -524,6 +523,24 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, cameraUBO);
 }
 
+void Renderer::AddMeshToBuffer(const std::vector<std::string>& path, int lodIncrement, RandomGenerator& random)
+{
+	auto mdiSystem = gCoordinator.GetSystem<MDI>();
+
+	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(path, lodIncrement);
+	auto model = EngineResources::GetModelManager().Get(modelRH);
+
+	AABB aabb
+	{
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
+		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1]
+	};
+
+	MeshEntry meshChair{ mdiSystem->AddMesh(model->getLODs()[0].meshes[0].vertices, model->getLODs()[0].meshes[0].indices, aabb, model->getLODs()[0].meshes[0].texIndex) };
+	
+	GenerateMDIEntityRandom(path, meshChair, random, lodIncrement);
+}
+
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
@@ -656,33 +673,26 @@ void Renderer::ModelsInit()
 	}
 	*/
 
-	std::vector<std::string> path = { "models/gargoyle/gargoyle.obj" };
-	std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx" };
+	// MDI 
+	std::vector<std::string> path2 = { "models/gargoyle/gargoyle.obj" };
+	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx" };
 
-	//GenerateNormalEntityRandom(path, random, glm::vec3(0.f), glm::vec3(1.f), 20);
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 	mdiSystem->GenerateDataBuffers();
 	mdiSystem->GenerateMeshBuffers();
 	
-	/*
-	for (int i = 0; i < 500; i++)
+	// chair
+	for (int i = 0; i < 10; i++)
 	{
-		GenerateMDIEntityRandom(path, random, 15);
-	}*/
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(path2, 25);
-	auto model = EngineResources::GetModelManager().Get(modelRH);
-	AABB aabb
-	{
-		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
-		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1]
-	};
-	MeshEntry mesh { mdiSystem->AddMesh(model->getLODs()[0].meshes[0].vertices, model->getLODs()[0].meshes[0].indices, aabb, model->getLODs()[0].meshes[0].texIndex) };
-
-	for (int i = 0; i < 500; i++)
-	{
-		GenerateMDIEntityRandom(path2, mesh, random, 15);
+		AddMeshToBuffer(path, 25, random);
 	}
-	
+
+	// gargoyle
+	for (int i = 0; i < 10; i++)
+	{
+		AddMeshToBuffer(path2, 25, random);
+	}
+
 	mdiSystem->GenerateDrawCmds(gCoordinator);
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
