@@ -682,21 +682,19 @@ void Renderer::ModelsInit()
 	mdiSystem->GenerateMeshBuffers();
 	
 	// chair
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 200; i++)
 	{
 		AddMeshToBuffer(path, 25, random);
 	}
 
 	// gargoyle
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 0; i++)
 	{
 		AddMeshToBuffer(path2, 25, random);
 	}
-
+	
 	mdiSystem->GenerateDrawCmds(gCoordinator);
 
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->UpdateIndirectCmd(gCoordinator);
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
@@ -820,10 +818,18 @@ void Renderer::Render()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// FRUSTUM
-	/*
 	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
 	std::vector<GridCell> visibleCells = cullingSystem->FrustumCulling(gCoordinator, mainCamera, grid->cells);
-	*/
+
+	std::vector<ECS::Entity> visibleEntities;
+	for (const auto& cells : visibleCells)
+	{
+		for (const auto& entity : cells.entities)
+		{
+			visibleEntities.push_back(entity);
+		}
+	}
+
 	//SortRenderType(gCoordinator, visibleCells);
 
 	// FRAMEBUFFER
@@ -833,7 +839,7 @@ void Renderer::Render()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	//renderSystem->UpdateIndirectCmd(gCoordinator);
+	renderSystem->UpdateIndirectCmd(gCoordinator, visibleEntities);
 
 
 	// IMGUI 
@@ -878,7 +884,7 @@ void Renderer::Render()
 	auto shader = EngineResources::GetShaderManager().LoadShader("shaders/mdi.vert", "shaders/mdi.frag");
 	auto s = EngineResources::GetShaderManager().Get(shader);
 
-	renderSystem->RenderMDI(*s);
+	renderSystem->RenderMDI(*s, visibleEntities);
 
 	// LODS
 	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();
@@ -911,11 +917,12 @@ void Renderer::Render()
 	ImGui::PushTextWrapPos(wrapWidth);
 	ImGui::Text("outlist:");
 	std::string str;
-	for (size_t i = 0; i < visibleBatching.size(); ++i) {
-		str += std::to_string(visibleBatching[i].vao);
-		if (i != visibleBatching.size() - 1)
-			str += ", ";
+	int c = 0;
+	for (int i = 0; i < visibleCells.size(); ++i)
+	{
+		++c;
 	}
+	str += std::to_string(c);
 	ImGui::Text("%s", str.c_str());
 	ImGui::PopTextWrapPos();
 	ImGui::End();
@@ -930,6 +937,7 @@ void Renderer::Render()
 	ImGui::PopTextWrapPos();
 	ImGui::End();
 	*/
+
 	// RENDERIZAR TO IMGUI
 	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
 	glEnable(GL_DEPTH_TEST);

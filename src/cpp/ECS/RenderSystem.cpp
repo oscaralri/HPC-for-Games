@@ -59,7 +59,7 @@ void RenderSystem::RenderBatch(std::vector<StaticBatch> batches)
 	}
 }
 
-void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
+void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities) {
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 
 	InstanceData* gpuInstances = mdiSystem->GetInstanceDataPtr();
@@ -68,7 +68,8 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 	unsigned int index = 0;
 
 	// quizas si que hago que trabaje con todas las entidades porque el culling se va a hacer en gpu
-	for (auto const& entity : mEntities) {
+	for (auto const& entity : entities)
+	{
 		auto& transform = coordinator.GetComponent<Transform>(entity);
 		auto& meshEntry = coordinator.GetComponent<MeshEntry>(entity);
 
@@ -85,9 +86,11 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 
 		index++;
 	}
+
+	std::cout << "\n" << index;
 }
 
-void RenderSystem::RenderMDI(Shader& shader)
+void RenderSystem::RenderMDI(Shader& shader, std::vector<ECS::Entity> entities)
 {
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 	shader.use();
@@ -96,7 +99,7 @@ void RenderSystem::RenderMDI(Shader& shader)
 
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdiSystem->GetCommandsSSBO());
 
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, (GLsizei)mEntities.size(), 0);
+	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, (GLsizei)entities.size(), 0);
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
