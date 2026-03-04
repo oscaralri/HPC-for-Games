@@ -20,6 +20,13 @@ public:
 		return rh; 
 	}
 
+	ResourceHandle LoadShaderCompute(const char* computePath)
+	{
+		Shader shader(computePath);
+		ResourceHandle rh = shaderStorage.Create(shader);
+		return rh;
+	}
+
 	Shader* Get(const ResourceHandle& rh)
 	{
 		return shaderStorage.Get(rh);

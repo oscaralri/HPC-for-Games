@@ -232,6 +232,7 @@
     <None Include="shaders\framebuffer_screen.vert" />
     <None Include="shaders\glslTests.frag" />
     <None Include="shaders\glslTests.vert" />
+    <None Include="shaders\gpuFrustumCulling.comp" />
     <None Include="shaders\instancing.frag" />
     <None Include="shaders\instancing.vert" />
     <None Include="shaders\instancingV2.frag" />

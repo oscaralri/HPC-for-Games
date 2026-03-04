@@ -51,6 +51,7 @@ void MDI::GenerateDataBuffers()
 
 	glGenBuffers(1, &instanceSSBO); // datos de entidades 
 	glGenBuffers(1, &commandsSSBO); // ordenes de dibujo (indices, instancia...)
+	glGenBuffers(1, &aabbSSBO);
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER, ECS::MAX_ENTITIES * sizeof(InstanceData), nullptr, flags);
@@ -58,9 +59,12 @@ void MDI::GenerateDataBuffers()
 
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandsSSBO);
 	glBufferStorage(GL_DRAW_INDIRECT_BUFFER, ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), nullptr, flags);
-
 	commandsPtr = (DrawElementsIndirectCommand*)glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, 
 		ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), flags);
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, aabbSSBO);
+	glBufferStorage(GL_SHADER_STORAGE_BUFFER, ECS::MAX_ENTITIES * sizeof(AABB), nullptr, flags);
+	aabbPtr = (AABB*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ECS::MAX_ENTITIES * sizeof(AABB), flags);
 }
 
 // no se esta gestionando el max vertices ni max indices para que no se escriba en memoria incorrecta
@@ -71,7 +75,8 @@ MeshEntry MDI::AddMesh(const std::vector<Vertex>& vertices, std::vector<uint32_t
 	entry.firstIndex = currentIndexOffset;
 	entry.indexCount = indices.size();
 	entry.textureLayer = texLayer;
-		
+	entry.aabb = aabb;
+
 	glBindBuffer(GL_ARRAY_BUFFER, globalVBO);
 	glBufferSubData(GL_ARRAY_BUFFER, currentVertexOffset * sizeof(Vertex), vertices.size() * sizeof(Vertex), vertices.data());
 
@@ -80,8 +85,6 @@ MeshEntry MDI::AddMesh(const std::vector<Vertex>& vertices, std::vector<uint32_t
 
 	currentVertexOffset += (uint32_t)vertices.size();
 	currentIndexOffset += (uint32_t)indices.size();
-
-	entry.boundingBox = aabb;
 
 	return entry;
 }

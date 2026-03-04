@@ -16,8 +16,29 @@
 
 #include "Grid.h"
 
+enum FrustumPlane
+{
+	LEFT_FRUSTUM, RIGHT_FRUSTUM, BOTTOM_FRUSTUM, TOP_FRUSTUM, NEAR_FRUSTUM, FAR_FRUSTUM
+};
+
+struct Plane
+{
+	glm::vec3 n;
+	float d;
+};
+
+struct Frustum
+{
+	Plane planes[6];
+};
+
 class CullingSystem : public ECS::System
 {
 public:
 	std::vector<GridCell> FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell>& cells);
+	Frustum CreateFrustum(glm::mat4 projection, glm::mat4 view, const std::shared_ptr<Camera>& camera);
+	Frustum& GetFrustum() { return frustum; }
+
+private:
+	Frustum frustum;
 };

@@ -1,22 +1,6 @@
 #include "CullingSystem.h"
 
-enum FrustumPlane
-{
-	LEFT_FRUSTUM, RIGHT_FRUSTUM, BOTTOM_FRUSTUM, TOP_FRUSTUM, NEAR_FRUSTUM, FAR_FRUSTUM
-};
-
-struct Plane
-{
-	glm::vec3 n;
-	float d;
-};
-
-struct Frustum
-{
-	Plane planes[6];
-};
-
-Frustum CreateFrustum(glm::mat4 projection, glm::mat4 view, const std::shared_ptr<Camera>& camera)
+Frustum CullingSystem::CreateFrustum(glm::mat4 projection, glm::mat4 view, const std::shared_ptr<Camera>& camera)
 {
 	glm::mat4 projView = glm::transpose(projection * view);
 	
@@ -100,11 +84,11 @@ bool AABBIntersection(Frustum frustum, AABB aabb, Transform transform)
 std::vector<GridCell> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell>& cells)
 {
 	std::vector<GridCell> cellsVisible;
-	Frustum frustum = CreateFrustum(camera->projection, camera->view, camera);
+	frustum = CreateFrustum(camera->projection, camera->view, camera);
 	
 	for (auto const& cell : cells)
 	{
-		AABB aabb { cell.min, cell.max };
+		AABB aabb { glm::vec4(cell.min, 0), glm::vec4(cell.max, 0) }; 
 		Transform transform { glm::vec3(0.f,0.f,0.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 1.f, 1.f)};
 
 		if (AABBIntersection(frustum, aabb, transform))

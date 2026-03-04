@@ -1,0 +1,95 @@
+#version 460 
+
+struct Plane {
+    vec3 n;
+    float d;
+};
+
+layout(std140, binding = 5) uniform FrustumBuffer {
+    vec4 cameraPos; // usamos vec4 por 16 bytes, como tal solo se usa xyz
+    vec4 planes[6]; //plane: glm::vec3 n + float d
+};
+
+struct DrawElementsIndirectCommand {
+    uint count;
+    uint instanceCount; // este es el valor que nos es util para aplicar visibilidad
+    uint firstIndex;
+    int  baseVertex;
+    uint baseInstance;
+};
+
+layout(std140, binding = 2) buffer CommandBuffer {
+    DrawElementsIndirectCommand commands[];
+};
+
+struct AABBData
+{
+    vec4 min; // se usa xyz, w = 0, w solo sirve para rellenar el vec4
+    vec4 max;
+};
+
+layout(std140, binding = 1) buffer AABBBuffer {
+    AABBData aabbs[];
+};
+
+struct InstanceData {
+    mat4 modelMatrix;  
+    uint entityID;      
+    uint textureLayer;
+    uint pad0;
+    uint pad1;
+};
+
+layout(std430, binding = 0) buffer InstanceBuffer {
+    InstanceData instances[];
+};
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+bool isVisible(vec3 min, vec3 max, InstanceData data) {
+    vec3 corners[8];
+    corners[0] = min;
+    corners[1] = vec3(max.x, min.y, min.z);
+    corners[2] = vec3(min.x, max.y, min.z);
+    corners[3] = vec3(max.x, max.y, min.z);
+    corners[4] = vec3(min.x, min.y, max.z);
+    corners[5] = vec3(max.x, min.y, max.z);
+    corners[6] = vec3(min.x, max.y, max.z);
+    corners[7] = max;
+
+    vec3 worldCorners[8];
+	for (int i = 0; i < 8; i++)
+	{
+		worldCorners[i] = vec3(data.modelMatrix * vec4(corners[i], 1.0f));
+	}
+
+
+    for (int i = 0; i < 6; i++) {
+        int outCount = 0;
+        for (int j = 0; j < 8; j++) {
+            if (dot(worldCorners[j], planes[i].xyz) + planes[i].w < 0.0) {
+                outCount++;
+            }
+        }
+        if (outCount == 8) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    InstanceData data = instances[idx];
+
+    if (idx >= commands.length()) return;
+
+    vec3 min = aabbs[idx].min.xyz;
+    vec3 max = aabbs[idx].max.xyz;
+
+    if (isVisible(min, max, data)) {
+        commands[idx].instanceCount = 1; // es visible = se dibuja
+    } else {
+        commands[idx].instanceCount = 0; // no dibuja
+    }
+}

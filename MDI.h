@@ -24,7 +24,7 @@ struct MeshEntry
 	uint32_t firstIndex;    // ebo offset
 	uint32_t indexCount;    // n indices
 	uint32_t textureLayer;
-	AABB boundingBox;
+	AABB aabb;
 };
 
 // entiendo que lo del alignas(16) es por como va a leer la info la gpu
@@ -34,8 +34,6 @@ struct alignas(16) InstanceData {
 	uint32_t textureLayer;   // 4 bytes  
 	uint32_t padding[2];     // 8 bytes		
 };
-
-static_assert(sizeof(InstanceData) % 16 == 0, "InstanceData no alineado correctamente para GPU");
 
 class MDI : public ECS::System
 {
@@ -47,10 +45,12 @@ public:
 
 	GLuint& GetInstanceSSBO() { return instanceSSBO; }
 	GLuint& GetCommandsSSBO() { return commandsSSBO; }
+	GLuint& GetAABBSSBO() { return aabbSSBO; }
 	GLuint& GetGlobalVAO() { return globalVAO; }
 
 	DrawElementsIndirectCommand* GetCommandsPtr() { return commandsPtr; }
 	InstanceData* GetInstanceDataPtr() { return instancePtr; }
+	AABB* GetAABBPtr() { return aabbPtr; }
 
 private:
 	GLuint globalVAO;
@@ -65,8 +65,10 @@ private:
 
 	GLuint instanceSSBO;
 	GLuint commandsSSBO;
+	GLuint aabbSSBO;
 
 	DrawElementsIndirectCommand* commandsPtr;
 	InstanceData* instancePtr;
+	AABB* aabbPtr;
 };
 

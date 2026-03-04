@@ -52,7 +52,8 @@ private:
 	float near;
 	float far;
 	std::shared_ptr<Camera> mainCamera;
-	unsigned int cameraUBO;
+	GLuint cameraUBO;
+	GLuint frustumUBO;
 
 	// shaders 
 	ResourceHandle screenShader;
