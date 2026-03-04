@@ -112,7 +112,7 @@ void RenderSystem::RenderMDI(Shader& shader, std::vector<ECS::Entity> entities)
 void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader& computeShader, Shader& renderShader, std::vector<ECS::Entity> entities)
 {
 	UpdateIndirectCmd(coordinator, mEntities);
-
+	glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 	auto mdiSystem = coordinator.GetSystem<MDI>();
 
 	computeShader.use();
@@ -120,8 +120,9 @@ void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader& compu
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetAABBSSBO());            
 	glDispatchCompute((mEntities.size() + 63) / 64, 1, 1);
+	//glDispatchCompute(1, 1, 1);
 
-	//glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+	glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
 	RenderMDI(renderShader, mEntities);
 }
