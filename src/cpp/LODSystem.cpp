@@ -34,7 +34,7 @@ int CheckLODBatches(glm::vec3 position, int distance, glm::vec3 cameraPos)
 	//std::cout << "\n" << cameraPos.x << " " << cameraPos.y << "" << cameraPos.z;
 	//std::cout << "\n" << position.x << " " << position.y << " " << position.z;
 
-	if (glm::distance(cameraPos, position) < 50.f)
+	if (glm::distance(cameraPos, position) < distance)
 	{
 		return 0;
 	}

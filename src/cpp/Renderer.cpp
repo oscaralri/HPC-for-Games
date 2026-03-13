@@ -555,9 +555,9 @@ void Renderer::ModelsInit()
 	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
 	// gargoyle
 	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj"};
+		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/a_buffers.vert", "shaders/a_buffers.frag");
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 300; i++)
 		{
 			GenerateBatchEntity(path, shader, glm::vec3((i + 10.f) * 1.5f, (i) * -1.5f, -250.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.5f), 25);
 		}
@@ -574,7 +574,7 @@ void Renderer::ModelsInit()
 		{
 			GenerateBatchEntity(path, glm::vec3(i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
 		}
-		
+
 		for (int i = 0; i < 500; i++)
 		{
 			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
@@ -585,11 +585,11 @@ void Renderer::ModelsInit()
 		}
 		*/
 
-		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx"};
-		
-		for (int i = 0; i < 2; i++)
+		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx", "models/gargoyle/gargoyleLOW.obj" };
+
+		for (int i = 0; i < 200; i++)
 		{
-			GenerateBatchEntity(path2, shader, glm::vec3((i + 600.f) * 1.5f, (i * 500) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
+			GenerateBatchEntity(path2, shader, glm::vec3(i * 1.5f, (i) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
 		}
 	}
 
@@ -771,10 +771,11 @@ void Renderer::Render()
 	showFPS(window);
 
 	// DEBUG AABB
+	/*
 	for (const auto& cell : grid->cells)
 	{
 		DebugAABB(projection, view, cell.min, cell.max);
-	}
+	}*/
 	
 	//DebugAABB(projection, view, glm::vec3(-250.f), glm::vec3(500.f));
 	//DebugAABB(projection, view, glm::vec3(0.f), glm::vec3(500.f));
@@ -924,19 +925,16 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 void Renderer::RenderBatching(std::vector<GridCell>& cells, std::shared_ptr<Camera> camera)
 {
 	visibleBatching.clear();
-	int lodLevel;
+	int lodLevel = 0;
 	for (const auto& cell : cells)
 	{
 		auto lodSystem = gCoordinator.GetSystem<LODSystem>();
 		lodLevel = lodSystem->SetLODFromAABB(cell, camera->Position);
-		//int lodLevel = 0;
 		for (auto& batch : cell.lodBatches[lodLevel])
 		{
 			visibleBatching.push_back(batch);
 		}
 	}
-	
-	std::cout << lodLevel;
 
 	std::sort(visibleBatching.begin(), visibleBatching.end(), [](StaticBatch a, StaticBatch b) {
 		return a.shader < b.shader;
