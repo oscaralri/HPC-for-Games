@@ -297,9 +297,9 @@ void Renderer::GenerateInstancedEntityRandom(std::vector<std::string>& modelPath
 	}
 }
 
-void Renderer::GenerateBatchEntity(std::vector<std::string>& modelPaths, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
+void Renderer::GenerateBatchEntity(ResourceHandle modelRH, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
 {
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
+	//auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
@@ -557,9 +557,11 @@ void Renderer::ModelsInit()
 	{
 		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
 		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/a_buffers.vert", "shaders/a_buffers.frag");
+		auto modelRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
+
 		for (int i = 0; i < 300; i++)
 		{
-			GenerateBatchEntity(path, shader, glm::vec3((i + 10.f) * 1.5f, (i) * -1.5f, -250.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.5f), 25);
+			GenerateBatchEntity(modelRH, shader, glm::vec3((i + 10.f) * 1.5f, (i) * -1.5f, -250.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.5f), 25);
 		}
 		/*
 		std::vector<std::string> path2 = { "models/rock/rock.obj" };
@@ -586,10 +588,10 @@ void Renderer::ModelsInit()
 		*/
 
 		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx", "models/gargoyle/gargoyleLOW.obj" };
-
+		auto modelRH2 = EngineResources::GetModelManager().LoadModelLOD(path2, 25);
 		for (int i = 0; i < 200; i++)
 		{
-			GenerateBatchEntity(path2, shader, glm::vec3(i * 1.5f, (i) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
+			GenerateBatchEntity(modelRH2, shader, glm::vec3(i * 1.5f, (i) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
 		}
 	}
 
@@ -734,9 +736,10 @@ void Renderer::Render()
 	}
 
 	// LOD SYSTEM
+	/*
 	auto lodSystem = gCoordinator.GetSystem<LODSystem>();
 	lodSystem->SetLOD(gCoordinator, mainCamera, visibleEntities);
-
+	*/
 	//SortRenderType(gCoordinator, visibleCells);
 
 	// FRAMEBUFFER
