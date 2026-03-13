@@ -68,7 +68,6 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator, std::vector<
 
 	unsigned int index = 0;
 
-	// quizas si que hago que trabaje con todas las entidades porque el culling se va a hacer en gpu
 	for (auto const& entity : entities)
 	{
 		auto& transform = coordinator.GetComponent<Transform>(entity);
@@ -80,24 +79,23 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator, std::vector<
 		gpuInstances[index].entityID = (uint32_t)entity;
 
 		// aabbs
-		gpuAABB[index] = meshEntry.aabb ;
+		gpuAABB[index] = meshEntry.aabb;
 
 		// draw cmds
 		gpuCommands[index].count = meshEntry.indexCount;
-		gpuCommands[index].instanceCount = 1; // 1 para que sea visible
+		gpuCommands[index].instanceCount = 0; // 1 para que sea visible
 		gpuCommands[index].firstIndex = meshEntry.firstIndex;
 		gpuCommands[index].baseVertex = meshEntry.baseVertex;
-
 		gpuCommands[index].baseInstance = index;
 
-		index++;
+		++index;
 	}
 }
 
-void RenderSystem::RenderMDI(Shader& shader, std::vector<ECS::Entity> entities)
+void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 {
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
-	shader.use();
+	shader->use(); // A VECES SALTA ERROR AQUI
 	glBindVertexArray(mdiSystem->GetGlobalVAO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
 
@@ -109,19 +107,23 @@ void RenderSystem::RenderMDI(Shader& shader, std::vector<ECS::Entity> entities)
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }
 
-void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader& computeShader, Shader& renderShader, std::vector<ECS::Entity> entities)
+void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader& computeShader, Shader* renderShader, std::vector<ECS::Entity> entities)
 {
 	UpdateIndirectCmd(coordinator, mEntities);
+	
+	// barrara para que cpu escriba en buffers
 	glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+
 	auto mdiSystem = coordinator.GetSystem<MDI>();
 
 	computeShader.use();
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetAABBSSBO());            
-	glDispatchCompute((mEntities.size() + 63) / 64, 1, 1);
+	glDispatchCompute((mEntities.size() + 7 / 8), 1, 1);
 	//glDispatchCompute(1, 1, 1);
 
+	// barrera para que compute shader acabe
 	glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
 	RenderMDI(renderShader, mEntities);

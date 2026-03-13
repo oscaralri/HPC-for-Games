@@ -93,6 +93,7 @@ std::vector<DrawElementsIndirectCommand> MDI::GenerateDrawCmds(ECS::Coordinator&
 {
 	std::vector<DrawElementsIndirectCommand> commands;
 
+	int idx = 0;
 	for (int i = 0; i < mEntities.size(); i++)
 	{
 		auto& meshEntry = coordinator.GetComponent<MeshEntry>(mEntities[i]);
@@ -108,6 +109,7 @@ std::vector<DrawElementsIndirectCommand> MDI::GenerateDrawCmds(ECS::Coordinator&
 		// se hara mas tarde en paralelo
 
 		commands.push_back(cmd);
+		idx++;
 	}
 
 	return commands;

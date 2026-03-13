@@ -16,6 +16,6 @@ public:
 	void RenderInstanced(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities);
 	void RenderBatch(std::vector<StaticBatch> batches);
 	void UpdateIndirectCmd(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
-	void RenderMDI(Shader& shader, std::vector<ECS::Entity> entities);
-	void RenderGPUCulling(ECS::Coordinator& coordinator, Shader& computeShader, Shader& renderShader, std::vector<ECS::Entity> entities);
+	void RenderMDI(Shader* shader, std::vector<ECS::Entity> entities);
+	void RenderGPUCulling(ECS::Coordinator& coordinator, Shader& computeShader, Shader* renderShader, std::vector<ECS::Entity> entities);
 };

@@ -5,7 +5,7 @@
         "commandLine": "",
         "environment": [
         ],
-        "executable": "C:\\Users\\oscar\\Desktop\\cosas\\proyectos\\HPC-for-Games\\x64\\Debug\\TFG.exe",
+        "executable": "C:\\Users\\oscar\\Desktop\\cosas\\github\\HPC-for-Games\\x64\\Debug\\TFG.exe",
         "inject": false,
         "numQueuedFrames": 0,
         "options": {
@@ -23,6 +23,6 @@
             "verifyBufferAccess": false
         },
         "queuedFrameCap": 0,
-        "workingDir": "C:/Users/oscar/Desktop/cosas/proyectos/HPC-for-Games"
+        "workingDir": "C:/Users/oscar/Desktop/cosas/github/HPC-for-Games"
     }
 }

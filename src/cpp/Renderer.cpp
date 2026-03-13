@@ -554,12 +554,12 @@ void Renderer::AddMeshToBuffer(const std::vector<std::string>& path, int lodIncr
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(1000.f);
-	glm::vec3 minValues = glm::vec3(-250.f, -250.f, -1000.f);
+	glm::vec3 maxValues = glm::vec3(1000.f); // origin + maxValue 
+	glm::vec3 minValues = glm::vec3(-250.f, -250.f, -250.f); // origin
 	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(500.f));
 	
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
-	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, maxValues.x, minValues.y, minValues.y, minValues.z, maxValues.z);
+	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
 
 	/*
 	// INSTANCING
@@ -617,6 +617,7 @@ void Renderer::ModelsInit()
 		}
 	}
 	*/
+
 	// INSTANCING
 	/*
 	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
@@ -692,7 +693,7 @@ void Renderer::ModelsInit()
 	mdiSystem->GenerateMeshBuffers();
 	
 	// chair
-	for (int i = 0; i < 25; i++)
+	for (int i = 0; i < 50; i++)
 	{
 		AddMeshToBuffer(path, 25, random);
 	}
@@ -864,9 +865,9 @@ void Renderer::Render()
 
 
 	// IMGUI 
-	static float posX = -16.000;
-	static float posY = 75.f;
-	static float posZ = -10.f;
+	static float posX = 0.f;
+	static float posY = 1700.f;
+	static float posZ = -0.f;
 	imguiCamera->Position = glm::vec3(posX, posY, posZ);
 
 	ImGui_ImplOpenGL3_NewFrame();
@@ -889,12 +890,12 @@ void Renderer::Render()
 	showFPS(window);
 
 	// DEBUG AABB
-	/*
+	
 	for (const auto& cell : grid->cells)
 	{
 		DebugAABB(projection, view, cell.min, cell.max);
 	}
-	*/
+	
 	//DebugAABB(projection, view, glm::vec3(-250.f), glm::vec3(500.f));
 	//DebugAABB(projection, view, glm::vec3(0.f), glm::vec3(500.f));
 
@@ -909,7 +910,7 @@ void Renderer::Render()
 	auto cs = EngineResources::GetShaderManager().Get(computeShader);
 
 	//renderSystem->RenderMDI(*s, visibleEntities);
-	renderSystem->RenderGPUCulling(gCoordinator, *cs, *s, visibleEntities); // no se está usando visibleEntities realmente
+	renderSystem->RenderGPUCulling(gCoordinator, *cs, s, visibleEntities); // no se está usando visibleEntities realmente
 
 	// LODS
 	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();
@@ -936,7 +937,7 @@ void Renderer::Render()
 
 	// BATCHING
 	//RenderBatching(visibleCells);
-
+	/*
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
 	ImGui::PushTextWrapPos(wrapWidth);
@@ -951,7 +952,7 @@ void Renderer::Render()
 	ImGui::Text("%s", str.c_str());
 	ImGui::PopTextWrapPos();
 	ImGui::End();
-	
+	*/
 	/*
 	ImGui::Begin("visibleCells");
 	wrapWidth = ImGui::GetWindowContentRegionMax().x;
@@ -976,6 +977,8 @@ void Renderer::Render()
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	renderSystem->RenderGPUCulling(gCoordinator, *cs, s, visibleEntities);
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
