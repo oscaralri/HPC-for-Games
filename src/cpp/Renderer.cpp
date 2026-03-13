@@ -693,7 +693,7 @@ void Renderer::ModelsInit()
 	mdiSystem->GenerateMeshBuffers();
 	
 	// chair
-	for (int i = 0; i < 50; i++)
+	for (int i = 0; i < 3000; i++)
 	{
 		AddMeshToBuffer(path, 25, random);
 	}
@@ -706,6 +706,8 @@ void Renderer::ModelsInit()
 	
 	mdiSystem->GenerateDrawCmds(gCoordinator);
 
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->UpdateIndirectCmd(gCoordinator);
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
@@ -890,12 +892,12 @@ void Renderer::Render()
 	showFPS(window);
 
 	// DEBUG AABB
-	
+	/*
 	for (const auto& cell : grid->cells)
 	{
 		DebugAABB(projection, view, cell.min, cell.max);
 	}
-	
+	*/
 	//DebugAABB(projection, view, glm::vec3(-250.f), glm::vec3(500.f));
 	//DebugAABB(projection, view, glm::vec3(0.f), glm::vec3(500.f));
 

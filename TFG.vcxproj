@@ -74,6 +74,10 @@
     <IncludePath>.\libraries\Include;$(ProjectDir)src/headers;$(ProjectDir)src/headers/ECS;$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>.\libraries\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>.\libraries\Include;$(ProjectDir)src/headers;$(ProjectDir)src/headers/ECS;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>.\libraries\Libs;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
