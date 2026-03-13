@@ -38,8 +38,8 @@ StaticBatch UploadToGPU(std::vector<Vertex>& vertices, std::vector<unsigned int>
 
 void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
 {
-	// para cada lod crear batch (hardcodeado como 3 niveles de lod)
-	for (int lodLevel = 0; lodLevel < 1; lodLevel++)
+	// para cada lod crear batch (hardcodeado como 2 niveles de lod)
+	for (int lodLevel = 0; lodLevel < 2; lodLevel++)
 	{
 		std::map<ResourceHandle, std::vector<ECS::Entity>> groups;
 		// agrupar por shader (material)
@@ -52,17 +52,18 @@ void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity
 				auto model = EngineResources::GetModelManager().Get(renderable.model);
 				if (model->getLODs().size() > lodLevel)
 				{
-					groups[renderable.shader].push_back(entity);
+					groups[renderable.shader].push_back(entity); // dentro del grupo en la posicion del rh shader meto esa entidad
 				}
 			}
 		}
 
-		for (auto& [shader, groupEntities] : groups)
+		for (auto& [shader, groupEntities] : groups) // por cada RH Shader , Entity 
 		{
 			std::vector<Vertex> mergedVertices;
 			std::vector<unsigned int> mergedIndices;
 			unsigned int vertexOffset = 0;
 
+			// unes toda la info de las entidades que comparten shader
 			for (auto& entity : groupEntities)
 			{
 				auto renderable = coordinator.GetComponent<Renderable>(entity);

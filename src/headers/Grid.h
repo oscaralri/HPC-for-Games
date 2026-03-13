@@ -22,7 +22,8 @@ struct GridCell
     glm::vec3 min;
     glm::vec3 max;
     std::vector<ECS::Entity> entities;
-    std::vector<StaticBatch> lodBatches[3];
+    std::vector<StaticBatch> lodBatches[2];
+    int lodDistance = 15;
 };
 
 struct Grid

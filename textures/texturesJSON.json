@@ -5,7 +5,8 @@
     "files": [	
 	 "models/chair/chair_wood_Base_color.jpg",
 	 "asd/ash",
-	 "textures/gargoyle/gargoyle_256.png"
+	 "textures/gargoyle/gargoyle_256.png",
+	 "textures/gargoyle/gargoyle_256_red.png"
     ]
   }
 }

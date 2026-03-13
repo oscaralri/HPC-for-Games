@@ -5,10 +5,12 @@
 #include "Camera.h"
 #include "Renderable.h"
 #include "Transform.h"
+#include "Grid.h"
 
 class LODSystem : public ECS::System
 {
 public:
 	void SetLOD(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<ECS::Entity>& visibleList);
+	int SetLODFromAABB(GridCell cell, glm::vec3 cameraPos);
 };
 

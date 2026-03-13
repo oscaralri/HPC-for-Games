@@ -26,3 +26,28 @@ void LODSystem::SetLOD(ECS::Coordinator& coordinator,
 	}
 }
 
+int CheckLODBatches(glm::vec3 position, int distance, glm::vec3 cameraPos)
+{
+	// si no excede una distancia -> batch 1
+	// si excede una distancia -> batch 2
+
+	//std::cout << "\n" << cameraPos.x << " " << cameraPos.y << "" << cameraPos.z;
+	//std::cout << "\n" << position.x << " " << position.y << " " << position.z;
+
+	if (glm::distance(cameraPos, position) < 50.f)
+	{
+		return 0;
+	}
+
+	return 1;
+}
+
+int LODSystem::SetLODFromAABB(GridCell cell, glm::vec3 cameraPos)
+{
+	glm::vec3 centrePos = (cell.max + cell.min) * 0.5f;
+
+	int lodLevel = CheckLODBatches(centrePos, cell.lodDistance, cameraPos);
+
+	return lodLevel;
+}
+

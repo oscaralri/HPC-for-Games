@@ -555,9 +555,9 @@ void Renderer::ModelsInit()
 	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
 	// gargoyle
 	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj"};
+		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj"};
 		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/a_buffers.vert", "shaders/a_buffers.frag");
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			GenerateBatchEntity(path, shader, glm::vec3((i + 10.f) * 1.5f, (i) * -1.5f, -250.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.5f), 25);
 		}
@@ -586,9 +586,10 @@ void Renderer::ModelsInit()
 		*/
 
 		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx"};
+		
 		for (int i = 0; i < 2; i++)
 		{
-			GenerateBatchEntity(path2, shader, glm::vec3((i + 600.f) * 1.5f, (i) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
+			GenerateBatchEntity(path2, shader, glm::vec3((i + 600.f) * 1.5f, (i * 500) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
 		}
 	}
 
@@ -596,7 +597,6 @@ void Renderer::ModelsInit()
 	{
 		auto batchSystem = gCoordinator.GetSystem<BatchSystem>();
 		batchSystem->BuildCellBatches(cell, cell.entities, gCoordinator);
-		//visibleBatching.insert(visibleBatching.end(), cell.lodBatches[0].begin(), cell.lodBatches[0].end());
 	}
 }
 
@@ -724,6 +724,19 @@ void Renderer::Render()
 	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
 	std::vector<GridCell> visibleCells = cullingSystem->FrustumCulling(gCoordinator, mainCamera, grid->cells);
 
+	std::vector<ECS::Entity> visibleEntities;
+	for (const auto& cells : visibleCells)
+	{
+		for (const auto& entity : cells.entities)
+		{
+			visibleEntities.push_back(entity);
+		}
+	}
+
+	// LOD SYSTEM
+	auto lodSystem = gCoordinator.GetSystem<LODSystem>();
+	lodSystem->SetLOD(gCoordinator, mainCamera, visibleEntities);
+
 	//SortRenderType(gCoordinator, visibleCells);
 
 	// FRAMEBUFFER
@@ -769,10 +782,6 @@ void Renderer::Render()
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
-
-	// LODS
-	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();
-	//lodSystem->SetLOD(gCoordinator, mainCamera, visibleList);
 	
 	// RENDER
 	// Instanced
@@ -794,7 +803,7 @@ void Renderer::Render()
 	//RenderInstanced(visibleCells);
 
 	// BATCHING
-	RenderBatching(visibleCells);
+	RenderBatching(visibleCells, mainCamera);
 
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
@@ -912,19 +921,22 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 	CallRenderSystem(modelGroup);
 }
 
-void Renderer::RenderBatching(std::vector<GridCell>& cells)
+void Renderer::RenderBatching(std::vector<GridCell>& cells, std::shared_ptr<Camera> camera)
 {
-	//std::vector<StaticBatch> visibleBatches;
-
 	visibleBatching.clear();
-
+	int lodLevel;
 	for (const auto& cell : cells)
 	{
-		for (auto& batch : cell.lodBatches[0])
+		auto lodSystem = gCoordinator.GetSystem<LODSystem>();
+		lodLevel = lodSystem->SetLODFromAABB(cell, camera->Position);
+		//int lodLevel = 0;
+		for (auto& batch : cell.lodBatches[lodLevel])
 		{
 			visibleBatching.push_back(batch);
 		}
 	}
+	
+	std::cout << lodLevel;
 
 	std::sort(visibleBatching.begin(), visibleBatching.end(), [](StaticBatch a, StaticBatch b) {
 		return a.shader < b.shader;
@@ -932,11 +944,6 @@ void Renderer::RenderBatching(std::vector<GridCell>& cells)
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->RenderBatch(visibleBatching);;
-
-	/*
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->RenderBatch(batches);
-	*/
 }
 
 void Renderer::End()
