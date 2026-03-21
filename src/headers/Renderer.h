@@ -54,6 +54,15 @@ private:
 	std::shared_ptr<Camera> mainCamera;
 	unsigned int cameraUBO;
 
+	//ImGUI
+	bool isImgui;
+	bool isDebugAABB;
+	float imguiCamPosX;
+	float imguiCamPosY;
+	float imguiCamPosZ;
+	unsigned int imguiTextureBuffer, imguiRBO;
+
+
 	// shaders 
 	ResourceHandle screenShader;
 	ResourceHandle instancingShader;
@@ -76,9 +85,6 @@ private:
 	float lastX;
 	float lastY;
 
-	// Imgui
-	unsigned int imguiTextureBuffer, imguiRBO;
-
 	std::vector<unsigned int> buffers;
 
 	std::vector<ECS::Entity> visibleInstanced;
@@ -98,19 +104,13 @@ private:
 	void ModelsInit();
 	void ShadersInit();
 
-	void RenderNormal(std::vector<ECS::Entity> entities);
-	void RenderInstanced(std::vector<ECS::Entity> entities);
 	void RenderBatching(std::vector<GridCell>& cells, std::shared_ptr<Camera> camera);
 
-	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
-	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
-	void CallRenderSystem(std::vector<ECS::Entity> entities);
-	
-	void GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
-	void GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
-	void GenerateInstancedEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
-	void GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
+	void RenderImGUI(std::vector<GridCell> cells);
+	void RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view);
+
 	void GenerateBatchEntity(ResourceHandle modelRH, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
+
 
 	// debug
 	void showFPS(GLFWwindow* window);
