@@ -4,32 +4,6 @@
 
 void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 max)
 {
-	
-	/*
-	float lines[] = {
-		// Bottom
-		min.x, min.y, min.z,  max.x, min.y, min.z,
-		max.x, min.y, min.z,  max.x, max.y, min.z,
-		max.x, max.y, min.z,  min.x, max.y, min.z,
-		min.x, max.y, min.z,  min.x, min.y, min.z,
-
-		// Top
-		min.x, min.y, max.z,  max.x, min.y, max.z,
-		max.x, min.y, max.z,  max.x, max.y, max.z,
-		max.x, max.y, max.z,  min.x, max.y, max.z,
-		min.x, max.y, max.z,  min.x, min.y, max.z,
-
-		// Vertical edges
-		min.x, min.y, min.z,  min.x, min.y, max.z,
-		max.x, min.y, min.z,  max.x, min.y, max.z,
-		max.x, max.y, min.z,  max.x, max.y, max.z,
-		min.x, max.y, min.z,  min.x, max.y, max.z,
-	};
-	*/
-
-	//glm::vec3 min = glm::vec3(-47.f, 0.f, -53.f);
-	//glm::vec3 max = glm::vec3(47.f, 128.f, 46.f);
-
 	glm::vec3 corners[8] =
 	{
 		{min.x, min.y, min.z},
@@ -103,260 +77,32 @@ void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 ma
 
 }
 
-void Renderer::GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
+void Renderer::GenerateMDIEntity(ResourceHandle modelRH, MeshEntry& mesh, glm::vec3 position)
 {
-	auto shaderRH = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-
-	// GARGOYLE
-	auto asd = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-
-	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Transform{
-		position,  
-		rotation,  
-		scale 
-		});
-	gCoordinator.AddComponent(entity, Renderable{ modelRH, shaderRH, RenderType::Normal });
-	gCoordinator.AddComponent(entity, AABB{
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0),
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
-		});
-
-	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
-	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
-
-	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
-	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
-	grid->Insert(entity, worldMin, worldMax);
-}
-
-void Renderer::GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
-{
-	auto shaderRH = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-
-	// GARGOYLE
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-
-	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Transform{
-		random.GetPosition(),
-		rotation,
-		scale
-		});
-	gCoordinator.AddComponent(entity, Renderable{ modelRH, shaderRH, RenderType::Normal });
-	gCoordinator.AddComponent(entity, AABB{
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0),
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
-		});
-
-	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
-	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
-
-	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
-	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
-	grid->Insert(entity, worldMin, worldMax);
-}
-
-void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities)
-{
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-	auto model = EngineResources::GetModelManager().Get(modelRH);
-
-	unsigned int buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, numEntities * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
-
-	for (size_t i = 0; i < numEntities; i++)
-	{
-		auto entity = gCoordinator.CreateEntity();
-		gCoordinator.AddComponent(entity, Renderable{ modelRH, instancingShader, RenderType::Instanced });
-		gCoordinator.AddComponent(entity, Transform{
-			glm::vec3((i * 5) + position.x, position.y, position.z), // position
-			rotation, // rotation
-			scale // scale
-		});
-		gCoordinator.AddComponent(entity, AABB{ 
-			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0),
-			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0) });
-
-		AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
-		Transform& transform = gCoordinator.GetComponent<Transform>(entity);
-
-		glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
-		glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
-		grid->Insert(entity, worldMin, worldMax);
-
-		buffers[entity] = buffer;
-	}
-	
-	glm::mat4* modelMatrices = new glm::mat4[numEntities];
-	for (unsigned int i = 0; i < numEntities; i++)
-	{
-		glm::mat4 modelMat = glm::mat4(1.f);
-		modelMat = glm::translate(modelMat, position);
-		modelMat = glm::scale(modelMat, scale);
-		modelMat = glm::rotate(modelMat, glm::radians(rotation.x), glm::vec3(1, 0, 0));
-		modelMat = glm::rotate(modelMat, glm::radians(rotation.y), glm::vec3(0, 1, 0));
-		modelMat = glm::rotate(modelMat, glm::radians(rotation.z), glm::vec3(0, 0, 1));
-
-		modelMatrices[i] = modelMat;
-	}
-
-	auto& lods = model->getLODs();
-	for (size_t i = 0; i < lods.size(); i++)
-	{
-		for (size_t j = 0; j < lods[i].meshes.size(); j++)
-		{
-			unsigned int VAO = lods[i].meshes[j].VAO;
-			glBindVertexArray(VAO);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
-
-			glBindVertexArray(0);
-		}
-	} 
-}
-
-void Renderer::GenerateInstancedEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities)
-{
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-	auto model = EngineResources::GetModelManager().Get(modelRH);
-
-	unsigned int buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, numEntities * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
-
-	glm::mat4* modelMatrices = new glm::mat4[numEntities];
-
-	for (size_t i = 0; i < numEntities; i++)
-	{
-		auto position = random.GetPosition();
-		auto entity = gCoordinator.CreateEntity();
-		gCoordinator.AddComponent(entity, Renderable{ modelRH, instancingShader, RenderType::Instanced });
-		gCoordinator.AddComponent(entity, Transform{
-			position, // position
-			rotation, // rotation
-			scale // scale
-			});
-		gCoordinator.AddComponent(entity, AABB{ 
-			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0),
-			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
-			});
-
-		AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
-		Transform& transform = gCoordinator.GetComponent<Transform>(entity);
-
-		glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
-		glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
-		grid->Insert(entity, worldMin, worldMax);
-
-		buffers[entity] = buffer;
-
-		glm::mat4 modelMat = glm::mat4(1.f);
-		modelMat = glm::translate(modelMat, position);
-		modelMat = glm::scale(modelMat, scale);
-		modelMat = glm::rotate(modelMat, glm::radians(rotation.x), glm::vec3(1, 0, 0));
-		modelMat = glm::rotate(modelMat, glm::radians(rotation.y), glm::vec3(0, 1, 0));
-		modelMat = glm::rotate(modelMat, glm::radians(rotation.z), glm::vec3(0, 0, 1));
-
-		modelMatrices[i] = modelMat;
-	}
-
-	auto& lods = model->getLODs();
-	for (size_t i = 0; i < lods.size(); i++)
-	{
-		for (size_t j = 0; j < lods[i].meshes.size(); j++)
-		{
-			unsigned int VAO = lods[i].meshes[j].VAO;
-			glBindVertexArray(VAO);
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-			glEnableVertexAttribArray(6);
-			glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
-
-			glVertexAttribDivisor(3, 1);
-			glVertexAttribDivisor(4, 1);
-			glVertexAttribDivisor(5, 1);
-			glVertexAttribDivisor(6, 1);
-
-			glBindVertexArray(0);
-		}
-	}
-}
-
-void Renderer::GenerateBatchEntity(std::vector<std::string>& modelPaths, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
-{
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
 		position,
-		rotation,
-		scale
+		glm::vec3(0.f),
+		glm::vec3(0.5f)
 		});
-	gCoordinator.AddComponent(entity, Renderable{ modelRH, shader, RenderType::Batch });
+
 	gCoordinator.AddComponent(entity, AABB{
 		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0),
 		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
 		});
+
 	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
 	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
+
+	gCoordinator.AddComponent(entity, mesh);
 
 	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
 	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
 	grid->Insert(entity, worldMin, worldMax);
 }
 
-void Renderer::GenerateMDIEntity(std::vector<std::string>& modelPaths, int lodIncrement)
+void Renderer::GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, RandomGenerator& random)
 {
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-	auto model = EngineResources::GetModelManager().Get(modelRH);
-	auto mdiSystem = gCoordinator.GetSystem<MDI>();
-
-	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Transform{
-		glm::vec3(0.f),
-		glm::vec3(0.f),
-		glm::vec3(1.f)
-		});
-	gCoordinator.AddComponent(entity, AABB{
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0),
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
-		});
-	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
-	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
-
-	gCoordinator.AddComponent(entity, MeshEntry{ mdiSystem->AddMesh(model->getLODs()[0].meshes[0].vertices, model->getLODs()[0].meshes[0].indices, aabb, model->getLODs()[0].meshes[0].texIndex) });
-
-	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
-	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
-	grid->Insert(entity, worldMin, worldMax);
-}
-
-void Renderer::GenerateMDIEntityRandom(const std::vector<std::string>& modelPaths, MeshEntry& mesh, RandomGenerator& random, int lodIncrement)
-{
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-	auto model = EngineResources::GetModelManager().Get(modelRH);
-	auto mdiSystem = gCoordinator.GetSystem<MDI>();
-
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
 		random.GetPosition(),
@@ -375,47 +121,6 @@ void Renderer::GenerateMDIEntityRandom(const std::vector<std::string>& modelPath
 	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
 	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
 	grid->Insert(entity, worldMin, worldMax);
-}
-
-/*
-void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<GridCell> cells)
-{
-	visibleInstanced.clear();
-	visibleNormal.clear();
-	visibleBatching.clear();
-
-	for (const auto& entity : entities)
-	{
-		auto& renderable = coordinator.GetComponent<Renderable>(entity);
-
-		if (renderable.renderType == RenderType::Instanced) visibleInstanced.push_back(entity);
-		if (renderable.renderType == RenderType::Normal) visibleNormal.push_back(entity);
-		if (renderable.renderType == RenderType::Batch) visibleBatching.push_back(entity);
-	}
-}
-*/
-void Renderer::UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
-{
-	std::vector<glm::mat4> modelMatrices;
-
-	for (const auto& entity : entities)
-	{
-		auto& transform = coordinator.GetComponent<Transform>(entity);
-
-		glm::mat4 modelMat = glm::mat4(1.0f);
-		modelMat = glm::translate(modelMat, transform.position);
-		modelMat = glm::scale(modelMat, transform.scale);
-		modelMat = glm::rotate(modelMat, glm::radians(transform.rotation.x), glm::vec3(1, 0, 0));
-		modelMat = glm::rotate(modelMat, glm::radians(transform.rotation.y), glm::vec3(0, 1, 0));
-		modelMat = glm::rotate(modelMat, glm::radians(transform.rotation.z), glm::vec3(0, 0, 1));
-
-		modelMatrices.push_back(modelMat);
-	}
-
-	unsigned int buffer = buffers[entities[0]];
-
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, modelMatrices.size() * sizeof(glm::mat4), modelMatrices.data());
 }
 
 void SkyboxInit()
@@ -441,6 +146,8 @@ void TexturesInit()
 void Renderer::ShadersInit()
 {
 	screenShader = EngineResources::GetShaderManager().LoadShader("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
+	renderShader = EngineResources::GetShaderManager().LoadShader("shaders/mdi.vert", "shaders/mdi.frag");
+	computeShader = EngineResources::GetShaderManager().LoadShaderCompute("shaders/gpuFrustumCulling.comp");
 }
 
 void ImGuiInit(GLFWwindow* window)
@@ -533,24 +240,6 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glBindBufferBase(GL_UNIFORM_BUFFER, 5, frustumUBO);
 }
 
-void Renderer::AddMeshToBuffer(const std::vector<std::string>& path, int lodIncrement, RandomGenerator& random)
-{
-	auto mdiSystem = gCoordinator.GetSystem<MDI>();
-
-	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(path, lodIncrement);
-	auto model = EngineResources::GetModelManager().Get(modelRH);
-
-	AABB aabb
-	{
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0), // se anade 0 para cumplir con vec4 pero no se utilizara ese valor
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
-	};
-
-	MeshEntry meshChair{ mdiSystem->AddMesh(model->getLODs()[0].meshes[0].vertices, model->getLODs()[0].meshes[0].indices, aabb, model->getLODs()[0].meshes[0].texIndex) };
-	
-	GenerateMDIEntityRandom(path, meshChair, random, lodIncrement);
-}
-
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
@@ -561,149 +250,20 @@ void Renderer::ModelsInit()
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
 
-	/*
-	// INSTANCING
-	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
-	// gargoyle
-	{
-		int numGargoyle = 10;
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		GenerateInstancedEntity(path, glm::vec3(-100.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 100, numGargoyle);
-	}
-	// rock
-	{
-		int numRocks = 5;
-		std::vector<std::string> path = { "models/rock/rock.obj" };
-		GenerateInstancedEntity(path, glm::vec3(5.f), glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
-	}
-	
-	// NORMAL
-	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-	// gargoyle
-	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		for (size_t i = 0; i < 50; i++)
-		{
-			GenerateNormalEntity(path, glm::vec3(i * -10.f), glm::vec3(0.f), glm::vec3(0.09f), 25);
-		}
-	}
-	// rock
-	{
-		std::vector<std::string> path = { "models/rock/rock.obj" };
-		for (size_t i = 0; i < 25; i++)
-		{
-			GenerateNormalEntity(path, glm::vec3(i * 10.f), glm::vec3(55.f), glm::vec3(1.f), 50);
-		}
-	}
-	*/
-
-	// NORMAL
-	/*
-	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-	// gargoyle
-	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		for (size_t i = 0; i < 50; i++)
-		{
-			GenerateNormalEntityRandom(path, random, glm::vec3(0.f), glm::vec3(0.09f), 300);
-		}
-	}
-	// rock
-	{
-		std::vector<std::string> path = { "models/rock/rock.obj" };
-		for (size_t i = 0; i < 25; i++)
-		{
-			GenerateNormalEntityRandom(path, random, glm::vec3(55.f), glm::vec3(1.f), 50);
-		}
-	}
-	*/
-
-	// INSTANCING
-	/*
-	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
-	// gargoyle
-	{
-		int numGargoyle = 10;
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		GenerateInstancedEntityRandom(path, random, glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 300, numGargoyle);
-	}
-	// rock
-	{
-		int numRocks = 5;
-		std::vector<std::string> path = { "models/rock/rock.obj" };
-		GenerateInstancedEntityRandom(path, random, glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
-	}
-	*/
-
-	// BATCHING
-	/*
-	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
-	// gargoyle
-	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj"};
-		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/a_buffers.vert", "shaders/a_buffers.frag");
-		for (int i = 0; i < 2; i++)
-		{
-			GenerateBatchEntity(path, shader, glm::vec3((i + 10.f) * 1.5f, (i) * -1.5f, -250.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.5f), 25);
-		}
-		
-		std::vector<std::string> path2 = { "models/rock/rock.obj" };
-		auto shader2 = EngineResources::GetShaderManager().LoadShader("shaders/batching2.vert", "shaders/batching2.frag");
-		for (int i = 0; i < 2; i++)
-		{
-			GenerateBatchEntity(path2, shader, glm::vec3((i+2) + 250.5f), glm::vec3(0.f), glm::vec3(1.f), 25);
-		}
-		
-		
-		for (int i = 0; i < 15; i++)
-		{
-			GenerateBatchEntity(path, glm::vec3(i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
-		}
-		
-		for (int i = 0; i < 500; i++)
-		{
-			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * 1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
-		}
-		for (int i = 0; i < 500; i++)
-		{
-			GenerateBatchEntity(path, glm::vec3(0.f, 0.f, i * -1.5f), glm::vec3(0.f), glm::vec3(0.09f), 25);
-		}
-		
-
-		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx"};
-		for (int i = 0; i < 2; i++)
-		{
-			GenerateBatchEntity(path2, shader, glm::vec3((i + 600.f) * 1.5f, (i) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
-		}
-	}
-
-	for (auto& cell : grid->cells)
-	{
-		auto batchSystem = gCoordinator.GetSystem<BatchSystem>();
-		batchSystem->BuildCellBatches(cell, cell.entities, gCoordinator);
-	}
-	*/
-
 	// MDI 
-	std::vector<std::string> path2 = { "models/gargoyle/gargoyle.obj" };
 	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx" };
+	std::vector<std::string> path2 = { "models/gargoyle/gargoyle.obj" };
 
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 	mdiSystem->GenerateDataBuffers();
 	mdiSystem->GenerateMeshBuffers();
 	
 	// chair
-	for (int i = 0; i < 3000; i++)
-	{
-		AddMeshToBuffer(path, 25, random);
-	}
+	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
+	MeshEntry chairMesh{ mdiSystem->AddMesh(chairRH) };
 
-	// gargoyle
-	for (int i = 0; i < 0; i++)
-	{
-		AddMeshToBuffer(path2, 25, random);
-	}
-	
+	GenerateMDIEntity(chairRH, chairMesh, glm::vec3(0.f, 0.f, 0.f));
+
 	mdiSystem->GenerateDrawCmds(gCoordinator);
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
@@ -802,8 +362,11 @@ void Renderer::Init()
 	firstMouse = true;
 	lastX = SCR_WIDTH / 2.0f;
 	lastY = SCR_HEIGHT / 2.0f;
-
-	buffers = std::vector<unsigned int>(ECS::MAX_ENTITIES);
+	isImgui = true;
+	isDebugGrid = false;
+	imguiCamPosX = -28.f;
+	imguiCamPosY = 1400.f;
+	imguiCamPosZ = 500.f;
 
 	WindowInit(SCR_WIDTH, SCR_HEIGHT); // glfw and glad
 	ShadersInit();
@@ -816,6 +379,7 @@ void Renderer::Init()
 
 void Renderer::Render()
 {
+	// DATA
 	auto scene = Application::Get().GetActiveScene();
 	mainCamera = scene->GetCamera("MainCamera");
 	auto imguiCamera = scene->GetCamera("ImguiCamera");
@@ -839,38 +403,11 @@ void Renderer::Render()
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec4), sizeof(Plane) * 6, &frustum.planes[0]);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	// FRUSTUM
-	std::vector<GridCell> visibleCells;
-	//= cullingSystem->FrustumCulling(gCoordinator, mainCamera, grid->cells);
-
-	
-	std::vector<ECS::Entity> visibleEntities;
-	/*
-	for (const auto& cells : visibleCells)
-	{
-		for (const auto& entity : cells.entities)
-		{
-			visibleEntities.push_back(entity);
-		}
-	}
-	*/
-	//SortRenderType(gCoordinator, visibleCells);
-
 	// FRAMEBUFFER
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	//renderSystem->UpdateIndirectCmd(gCoordinator, visibleEntities);
-
-
-	// IMGUI 
-	static float posX = 0.f;
-	static float posY = 1700.f;
-	static float posZ = -0.f;
-	imguiCamera->Position = glm::vec3(posX, posY, posZ);
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -880,7 +417,6 @@ void Renderer::Render()
 	float currentFrame = static_cast<float>(glfwGetTime());
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
-
 	processInput(window);
 
 	// RENDER TO FBO
@@ -891,110 +427,26 @@ void Renderer::Render()
 	
 	showFPS(window);
 
-	// DEBUG AABB
-	/*
-	for (const auto& cell : grid->cells)
-	{
-		DebugAABB(projection, view, cell.min, cell.max);
-	}
-	*/
-	//DebugAABB(projection, view, glm::vec3(-250.f), glm::vec3(500.f));
-	//DebugAABB(projection, view, glm::vec3(0.f), glm::vec3(500.f));
-
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
-	auto shader = EngineResources::GetShaderManager().LoadShader("shaders/mdi.vert", "shaders/mdi.frag");
-	auto s = EngineResources::GetShaderManager().Get(shader);
+	auto computeS = EngineResources::GetShaderManager().Get(computeShader);
+	auto renderS = EngineResources::GetShaderManager().Get(renderShader);
 
-	auto computeShader = EngineResources::GetShaderManager().LoadShaderCompute("shaders/gpuFrustumCulling.comp");
-	auto cs = EngineResources::GetShaderManager().Get(computeShader);
+	// RENDER MDI
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+	renderSystem->RenderGPUCulling(gCoordinator, computeS, renderS);
 
-	//renderSystem->RenderMDI(*s, visibleEntities);
-	renderSystem->RenderGPUCulling(gCoordinator, *cs, s, visibleEntities); // no se está usando visibleEntities realmente
-
-	// LODS
-	//auto lodSystem = gCoordinator.GetSystem<LODSystem>();
-	//lodSystem->SetLOD(gCoordinator, mainCamera, visibleList);
-	
-	// RENDER
-	// Instanced
-	/*
-	if (visibleInstanced.size() > 0)
-	{
-		auto shader = EngineResources::GetShaderManager().Get(instancingShader);
-		shader->use();
-		shader->setMat4("projection", projection);
-		shader->setMat4("view", view);
-		RenderInstanced(visibleInstanced);
-	}
-	
-	// Normal
-	RenderNormal(visibleNormal);
-	*/
-
-	// INSTANCED
-	//RenderInstanced(visibleCells);
-
-	// BATCHING
-	//RenderBatching(visibleCells);
-	/*
-	ImGui::Begin("OutList");
-	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
-	ImGui::PushTextWrapPos(wrapWidth);
-	ImGui::Text("outlist:");
-	std::string str;
-	int c = 0;
-	for (int i = 0; i < visibleCells.size(); ++i)
-	{
-		++c;
-	}
-	str += std::to_string(c);
-	ImGui::Text("%s", str.c_str());
-	ImGui::PopTextWrapPos();
-	ImGui::End();
-	*/
-	/*
-	ImGui::Begin("visibleCells");
-	wrapWidth = ImGui::GetWindowContentRegionMax().x;
-	ImGui::PushTextWrapPos(wrapWidth);
-	ImGui::Text("num visibleCells:");
-	str = std::to_string(visibleCells.size());
-	ImGui::Text("%s", str.c_str());
-	ImGui::PopTextWrapPos();
-	ImGui::End();
-	*/
-
-	// RENDERIZAR TO IMGUI
-	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
-	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.f, 0.f, 0.f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	projection = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-	view = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	renderSystem->RenderGPUCulling(gCoordinator, *cs, s, visibleEntities);
+	// RENDER IMGUI
+	RenderImGUI();
+	RenderImGUICamera(imguiCamera, projection, view, computeS, renderS);
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	// draw on imgui
-	ImGui::Begin("TopDown");
-	ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::DragFloat("X", &posX, 0.5f);
-	ImGui::DragFloat("Y", &posY, 0.5f);
-	ImGui::DragFloat("Z", &posZ, 0.5f);
-	ImGui::End();
 
 	// FULLSCREEN QUAD DRAW
 	EngineResources::GetShaderManager().Get(screenShader)->use();
@@ -1009,82 +461,58 @@ void Renderer::Render()
 	glfwPollEvents();
 }
 
-void Renderer::RenderNormal(std::vector<ECS::Entity> entities)
+void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS)
 {
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->Render(gCoordinator, entities);
-}
-
-void Renderer::CallRenderSystem(std::vector<ECS::Entity> entities)
-{
-	UpdateModelMat(entities, gCoordinator);
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->RenderInstanced(gCoordinator, entities);
-}
-
-void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
-{
-	std::sort(entities.begin(), entities.end(),
-		[&](ECS::Entity a, ECS::Entity b)
-		{
-			const auto& ra = gCoordinator.GetComponent<Renderable>(a);
-			const auto& rb = gCoordinator.GetComponent<Renderable>(b);
-
-			if (ra.model.Index != rb.model.Index)
-				return ra.model.Index < rb.model.Index;
-
-			return ra.LodLevel < rb.LodLevel;
-		}
-	);
-
-	auto& firstRenderable = gCoordinator.GetComponent<Renderable>(entities[0]);
-	ResourceHandle lastModel = firstRenderable.model;
-	int lastLOD = firstRenderable.LodLevel; 
-	std::vector<ECS::Entity> modelGroup;
-
-	for (const auto& entity : entities)
+	if (isImgui)
 	{
-		auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
+		imguiCamera->Position = glm::vec3(imguiCamPosX, imguiCamPosY, imguiCamPosZ);
 
-		if (renderable.model != lastModel || renderable.LodLevel != lastLOD)
-		{
-			CallRenderSystem(modelGroup);
-			modelGroup.clear();
-			lastModel = renderable.model;
-			lastLOD = renderable.LodLevel;
-		}
+		glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
+		glEnable(GL_DEPTH_TEST);
+		glClearColor(0.f, 0.f, 0.f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		modelGroup.push_back(entity);
+		glm::mat4 imguiProj = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+		glm::mat4 imguiView = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
+
+		glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(imguiView));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(imguiProj));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+		renderSystem->RenderGPUCulling(gCoordinator, computeS, renderS);
+
+		// draw on imgui
+		ImGui::Begin("Render Debug");
+		ImGui::Checkbox("Debug Grid", &isDebugGrid);
+		ImGui::Checkbox("ImguiCamera", &isImgui);
+		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::DragFloat("X", &imguiCamPosX, 0.5f);
+		ImGui::DragFloat("Y", &imguiCamPosY, 0.5f);
+		ImGui::DragFloat("Z", &imguiCamPosZ, 0.5f);
+		ImGui::End();
+	}
+	else
+	{
+		ImGui::Begin("Render Debug");
+		ImGui::Checkbox("Debug Grid", &isDebugGrid);
+		ImGui::Checkbox("ImguiCamera", &isImgui);
+		ImGui::End();
 	}
 
-	CallRenderSystem(modelGroup);
-}
-
-void Renderer::RenderBatching(std::vector<GridCell>& cells)
-{
-	//std::vector<StaticBatch> visibleBatches;
-
-	visibleBatching.clear();
-
-	for (const auto& cell : cells)
+	if (isDebugGrid)
 	{
-		for (auto& batch : cell.lodBatches[0])
+		for (const auto& cell : grid->cells)
 		{
-			visibleBatching.push_back(batch);
+			DebugAABB(projection, view, cell.min, cell.max);
 		}
 	}
+}
 
-	std::sort(visibleBatching.begin(), visibleBatching.end(), [](StaticBatch a, StaticBatch b) {
-		return a.shader < b.shader;
-		});
-
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->RenderBatch(visibleBatching);;
-
-	/*
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->RenderBatch(batches);
-	*/
+void Renderer::RenderImGUI()
+{
+	//ImGui::Begin("Render Info");
 }
 
 void Renderer::End()

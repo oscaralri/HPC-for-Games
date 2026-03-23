@@ -55,10 +55,18 @@ private:
 	GLuint cameraUBO;
 	GLuint frustumUBO;
 
+	//ImGUI
+	bool isImgui;
+	bool isDebugGrid;
+	float imguiCamPosX;
+	float imguiCamPosY;
+	float imguiCamPosZ;
+	unsigned int imguiTextureBuffer, imguiRBO;
+
 	// shaders 
 	ResourceHandle screenShader;
-	ResourceHandle instancingShader;
-	ResourceHandle batchingShader;
+	ResourceHandle renderShader;
+	ResourceHandle computeShader;
 
 	unsigned int framebuffer;
 	unsigned int textureColorbuffer;
@@ -77,14 +85,6 @@ private:
 	float lastX;
 	float lastY;
 
-	// Imgui
-	unsigned int imguiTextureBuffer, imguiRBO;
-
-	std::vector<unsigned int> buffers;
-
-	std::vector<ECS::Entity> visibleInstanced;
-	std::vector<ECS::Entity> visibleNormal;
-	std::vector<StaticBatch> visibleBatching;
 
 	std::unique_ptr<Grid> grid;
 
@@ -99,23 +99,11 @@ private:
 	void ModelsInit();
 	void ShadersInit();
 
-	void RenderNormal(std::vector<ECS::Entity> entities);
-	void RenderInstanced(std::vector<ECS::Entity> entities);
-	void RenderBatching(std::vector<GridCell>& cells);
+	void RenderImGUI();
+	void RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS);
 
-	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
-	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
-	void CallRenderSystem(std::vector<ECS::Entity> entities);
-	
-	void GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
-	void GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
-	void GenerateInstancedEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
-	void GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
-	void GenerateBatchEntity(std::vector<std::string>& modelPaths, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
-	void GenerateMDIEntity(std::vector<std::string>& modelPaths, int lodIncrement);
-	void GenerateMDIEntityRandom(const std::vector<std::string>& modelPaths, MeshEntry& mesh, RandomGenerator& random, int lodIncrement);
-
-	void AddMeshToBuffer(const std::vector<std::string>& path, int lodIncrement, RandomGenerator& random);
+	void GenerateMDIEntity(ResourceHandle modelRH, MeshEntry& mesh, glm::vec3 position);
+	void GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, RandomGenerator& random);
 
 	// debug
 	void showFPS(GLFWwindow* window);

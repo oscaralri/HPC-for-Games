@@ -3,11 +3,13 @@
 #include <cstdint>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <unordered_map>
 
 #include "AABB.h"
 #include "Mesh.h"
 #include "System.h"
 #include "Coordinator.h"
+#include "ResourceStorage.h"
 
 struct DrawElementsIndirectCommand
 {
@@ -40,7 +42,8 @@ class MDI : public ECS::System
 public:
 	void GenerateMeshBuffers();
 	void GenerateDataBuffers();
-	MeshEntry AddMesh(const std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, AABB& aabb, uint32_t texLayer);
+	//MeshEntry AddMesh(const std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, AABB& aabb, uint32_t texLayer);
+	MeshEntry AddMesh(ResourceHandle modelRH);
 	std::vector<DrawElementsIndirectCommand> GenerateDrawCmds(ECS::Coordinator& coordinator);
 
 	GLuint& GetInstanceSSBO() { return instanceSSBO; }
@@ -51,6 +54,8 @@ public:
 	DrawElementsIndirectCommand* GetCommandsPtr() { return commandsPtr; }
 	InstanceData* GetInstanceDataPtr() { return instancePtr; }
 	AABB* GetAABBPtr() { return aabbPtr; }
+
+	//MeshEntry AddMeshNew(ResourceHandle modelRH);
 
 private:
 	GLuint globalVAO;
@@ -70,5 +75,7 @@ private:
 	DrawElementsIndirectCommand* commandsPtr;
 	InstanceData* instancePtr;
 	AABB* aabbPtr;
+
+	std::unordered_map<ResourceHandle, MeshEntry> meshEntries;
 };
 

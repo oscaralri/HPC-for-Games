@@ -39,6 +39,21 @@ struct ResourceHandle
 	}
 };
 
+// manera muy sencilla de hacer hash simplemente para poder utilizar ResourceHandle en unordered_map
+namespace std {
+	template <>
+	struct hash<ResourceHandle>
+	{
+		size_t operator()(const ResourceHandle& rh) const
+		{
+			size_t h1 = std::hash<int32_t>{}(rh.Index);
+			size_t h2 = std::hash<int32_t>{}(rh.Gen);
+
+			return h1 ^ (h2 << 1);
+		}
+	};
+}
+
 template<typename T> 
 class ResourceStorage
 {

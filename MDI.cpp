@@ -1,5 +1,7 @@
 #include "MDI.h"
 
+#include "EngineResources.h"
+
 // reservamos dos buffers con un gran tamano que se iran rellenando con los meshes
 void MDI::GenerateMeshBuffers()
 {
@@ -36,17 +38,6 @@ void MDI::GenerateMeshBuffers()
 
 void MDI::GenerateDataBuffers()
 {
-	/* FORMA TRADICIONAL
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
-	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, instanceDataList.size() * sizeof(InstanceData), instanceDataList.data());
-
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandsSSBO);
-	glBufferSubData(GL_DRAW_INDIRECT_BUFFER, 0, commands.size() * sizeof(DrawElementsIndirectCommand), commands.data());
-
-	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-	*/
-
 	GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 
 	glGenBuffers(1, &instanceSSBO); // datos de entidades 
@@ -67,33 +58,50 @@ void MDI::GenerateDataBuffers()
 	aabbPtr = (AABB*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ECS::MAX_ENTITIES * sizeof(AABB), flags);
 }
 
-// no se esta gestionando el max vertices ni max indices para que no se escriba en memoria incorrecta
-MeshEntry MDI::AddMesh(const std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, AABB& aabb, uint32_t texLayer)
+MeshEntry MDI::AddMesh(ResourceHandle modelRH)
 {
-	MeshEntry entry;
-	entry.baseVertex = currentVertexOffset;
-	entry.firstIndex = currentIndexOffset;
-	entry.indexCount = indices.size();
-	entry.textureLayer = texLayer;
-	entry.aabb = aabb;
+	auto it = meshEntries.find(modelRH);
 
-	glBindBuffer(GL_ARRAY_BUFFER, globalVBO);
-	glBufferSubData(GL_ARRAY_BUFFER, currentVertexOffset * sizeof(Vertex), vertices.size() * sizeof(Vertex), vertices.data());
+	if (it == meshEntries.end())
+	{
+		auto model = EngineResources::GetModelManager().Get(modelRH);
+		AABB aabb
+		{
+			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0), // se anade 0 para cumplir con vec4 pero no se utilizara ese valor
+			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
+		};
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, globalEBO);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, currentIndexOffset * sizeof(uint32_t), indices.size() * sizeof(uint32_t), indices.data());
+		std::vector<Vertex> vertices = model->getLODs()[0].meshes[0].vertices;
+		std::vector<unsigned int> indices = model->getLODs()[0].meshes[0].indices;
 
-	currentVertexOffset += (uint32_t)vertices.size();
-	currentIndexOffset += (uint32_t)indices.size();
+		MeshEntry entry;
+		entry.baseVertex = currentVertexOffset;
+		entry.firstIndex = currentIndexOffset;
+		entry.indexCount = indices.size();
+		entry.textureLayer = model->getLODs()[0].meshes[0].texIndex;
+		entry.aabb = aabb;
 
-	return entry;
+		glBindBuffer(GL_ARRAY_BUFFER, globalVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, currentVertexOffset * sizeof(Vertex), vertices.size() * sizeof(Vertex), vertices.data());
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, globalEBO);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, currentIndexOffset * sizeof(uint32_t), indices.size() * sizeof(uint32_t), indices.data());
+
+		meshEntries.insert({modelRH, entry});
+
+		currentVertexOffset += (uint32_t)vertices.size();
+		currentIndexOffset += (uint32_t)indices.size();
+
+		return entry;
+	}
+
+	return it->second;
 }
 
 std::vector<DrawElementsIndirectCommand> MDI::GenerateDrawCmds(ECS::Coordinator& coordinator)
 {
 	std::vector<DrawElementsIndirectCommand> commands;
 
-	int idx = 0;
 	for (int i = 0; i < mEntities.size(); i++)
 	{
 		auto& meshEntry = coordinator.GetComponent<MeshEntry>(mEntities[i]);
@@ -104,12 +112,8 @@ std::vector<DrawElementsIndirectCommand> MDI::GenerateDrawCmds(ECS::Coordinator&
 		cmd.firstIndex = meshEntry.firstIndex;
 		cmd.baseVertex = meshEntry.baseVertex;
 		cmd.baseInstance = mEntities[i]; // relaciona con gl_DrawID / el ECS::Entity que es lo que se devuelve es un unsigned int al fin y al cabo
-		
-		// no se añade lo del aabb porque el drawelementsindirectcommand tiene una estructura fija 
-		// se hara mas tarde en paralelo
 
 		commands.push_back(cmd);
-		idx++;
 	}
 
 	return commands;
