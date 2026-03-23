@@ -87,11 +87,13 @@ void main() {
     vec3 min = aabbs[idx].min.xyz;
     vec3 max = aabbs[idx].max.xyz;
 
-    //commands[idx].instanceCount = 1;
+    commands[idx].instanceCount = 0;
     
+    /*
     if (isVisible(min, max, data)) {
-        commands[idx].instanceCount = 1; // es visible = se dibuja
+        commands[data.entityID].instanceCount = 1; // es visible = se dibuja
     } else {
-        commands[idx].instanceCount = 0; // no dibuja
+        commands[data.entityID].instanceCount = 0; // no dibuja
     }
+    */
 }

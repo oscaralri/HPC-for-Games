@@ -40,6 +40,7 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 {
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
+
 	shader->use(); // A VECES SALTA ERROR AQUI
 	glBindVertexArray(mdiSystem->GetGlobalVAO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
@@ -57,16 +58,16 @@ void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader* compu
 	//UpdateIndirectCmd(coordinator, mEntities);
 	
 	// barrara para que cpu escriba en buffers
-	glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
+//	glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
 
 	auto mdiSystem = coordinator.GetSystem<MDI>();
 
 	computeShader->use();
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetAABBSSBO());            
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetAABBSSBO());
+	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
 	
-	glDispatchCompute((mEntities.size() + 7 / 8), 1, 1);
+	glDispatchCompute(mEntities.size(), 1, 1);
 	
 	//glDispatchCompute(1, 1, 1);
 

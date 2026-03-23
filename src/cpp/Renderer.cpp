@@ -228,7 +228,7 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-	// Uniform Buffer
+	// Uniform Buffer Object
 	glGenBuffers(1, &cameraUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
 	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
@@ -262,7 +262,10 @@ void Renderer::ModelsInit()
 	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
 	MeshEntry chairMesh{ mdiSystem->AddMesh(chairRH) };
 
-	GenerateMDIEntity(chairRH, chairMesh, glm::vec3(0.f, 0.f, 0.f));
+	for (int i = 0; i < 2; i++)
+	{
+		GenerateMDIEntity(chairRH, chairMesh, glm::vec3((i * 50), 0.f, 0.f));
+	}
 
 	mdiSystem->GenerateDrawCmds(gCoordinator);
 
