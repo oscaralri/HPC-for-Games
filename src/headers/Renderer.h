@@ -105,7 +105,7 @@ private:
 	void RenderImGUI();
 	void RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS);
 
-	void GenerateMDIEntity(ResourceHandle modelRH, MeshEntry& mesh, glm::vec3 position);
+	void GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes, glm::vec3 position);
 	void GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, RandomGenerator& random);
 
 	// debug

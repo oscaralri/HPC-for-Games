@@ -16,7 +16,7 @@ struct DrawElementsIndirectCommand {
     uint count;
     uint instanceCount; // este es el valor que nos es util para aplicar visibilidad
     uint firstIndex;
-    uint  baseVertex;
+    uint baseVertex;
     uint baseInstance;
 };
 
@@ -35,11 +35,19 @@ layout(std430, binding = 1) buffer AABBBuffer {
     AABBData aabbs[];
 };
 
+struct MeshEntry {
+    
+}
+
+struct EntityMeshes {
+    MeshEntry meshEntries;
+}
+
 struct InstanceData {
     mat4 modelMatrix;  
     uint entityID;      
     uint textureLayer;
-    uint pad0;
+    EntityMeshes entityMeshes;
     uint pad1;
 };
 
@@ -82,6 +90,18 @@ bool isVisible(vec3 min, vec3 max, InstanceData data) {
     return true;
 }
 
+int checkLOD(mat4 modelMatrix)
+{
+    vec4 transform = modelMatrix[3];
+
+    if(distance(transform, vec3(0.f, 0.f, 0.f) > 10)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 void main() {
     uint idx = gl_GlobalInvocationID.x;
     InstanceData data = instances[idx];
@@ -93,6 +113,13 @@ void main() {
 
     if (isVisible(min, max, data)) {
         commands[idx].instanceCount = 1; // es visible => se dibuja
+        
+        int lodLevel = checkLOD()
+        commands[idx].count = data.meshEntries[lodLevel].count;
+        commands[idx].firstIndex = data.meshEntries[lodLevel].firstIndex;
+        commands[idx].baseVertex = data.meshEntries[lodLevel].baseVertex;
+        commands[idx].baseInstance = data.baseInstance[lodLevel].baseInstance;
+
     } else {
         commands[idx].instanceCount = 0; // no dibuja
     }

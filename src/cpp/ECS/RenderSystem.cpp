@@ -11,29 +11,28 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 	DrawElementsIndirectCommand* gpuCommands = mdiSystem->GetCommandsPtr();
 	AABB* gpuAABB = mdiSystem->GetAABBPtr();
 
-	unsigned int index = 0;
-
 	for (auto const& entity : mEntities)
 	{
 		auto& transform = coordinator.GetComponent<Transform>(entity);
-		auto& meshEntry = coordinator.GetComponent<MeshEntry>(entity);
+		// CREO QUE DEBERIA SERVIR USAR LA DEL 0 PORQUE AL FINAL ES INFO QUE SIRVE PARA LOS DOS Y ES UN VALOR DEFAULT
+			// QUE SE GESTIONA DESPUES EN EL COMPUTE SHADER
+		auto& meshEntry = coordinator.GetComponent<EntityMeshes>(entity).meshEntries[0];
 
 		// instances
-		gpuInstances[index].modelMatrix = transform.GetModelMatrix();
-		gpuInstances[index].textureLayer = meshEntry.textureLayer;
-		gpuInstances[index].entityID = (uint32_t)entity;
+		gpuInstances[entity].modelMatrix = transform.GetModelMatrix();
+		gpuInstances[entity].textureLayer = meshEntry.textureLayer;
+		gpuInstances[entity].entityID = (uint32_t)entity;
+
+		// ESTO MIRARLO PORQUE CREO QUE PODRIA LLEGAR A QUITARLO DE AQUI 
+		// draw cmds
+		gpuCommands[entity].count = meshEntry.indexCount;
+		gpuCommands[entity].instanceCount = 1; // 1 para que sea visible , SERIA MEJOR INICIALIZAR A 0 PERO POR AHORA SE USA ASI PARA DEBUG
+		gpuCommands[entity].firstIndex = meshEntry.firstIndex;
+		gpuCommands[entity].baseVertex = meshEntry.baseVertex;
+		gpuCommands[entity].baseInstance = entity;
 
 		// aabbs
-		gpuAABB[index] = meshEntry.aabb;
-
-		// draw cmds
-		gpuCommands[index].count = meshEntry.indexCount;
-		gpuCommands[index].instanceCount = 1; // 1 para que sea visible , SERIA MEJOR INICIALIZAR A 0 PERO POR AHORA SE USA ASI PARA DEBUG
-		gpuCommands[index].firstIndex = meshEntry.firstIndex;
-		gpuCommands[index].baseVertex = meshEntry.baseVertex;
-		gpuCommands[index].baseInstance = index;
-
-		++index;
+		gpuAABB[entity] = meshEntry.aabb;
 	}
 }
 

@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <unordered_map>
+#include <array>
 
 #include "AABB.h"
 #include "Mesh.h"
@@ -29,6 +30,11 @@ struct MeshEntry
 	AABB aabb;
 };
 
+struct EntityMeshes
+{
+	std::array<MeshEntry, 2> meshEntries;
+};
+
 // entiendo que lo del alignas(16) es por como va a leer la info la gpu
 struct InstanceData {
 	glm::mat4 modelMatrix;   // 64 bytes 
@@ -44,8 +50,10 @@ class MDI : public ECS::System
 public:
 	void GenerateMeshBuffers();
 	void GenerateDataBuffers();
-	//MeshEntry AddMesh(const std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, AABB& aabb, uint32_t texLayer);
 	MeshEntry AddMesh(ResourceHandle modelRH);
+	
+	EntityMeshes AddLodsMesh(ResourceHandle modelRH);
+
 	std::vector<DrawElementsIndirectCommand> GenerateDrawCmds(ECS::Coordinator& coordinator);
 
 	GLuint& GetInstanceSSBO() { return instanceSSBO; }

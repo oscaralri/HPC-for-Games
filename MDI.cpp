@@ -98,13 +98,57 @@ MeshEntry MDI::AddMesh(ResourceHandle modelRH)
 	return it->second;
 }
 
+EntityMeshes MDI::AddLodsMesh(ResourceHandle modelRH)
+{
+	//  TODO: FALTA GESTIONAR SI YA ESTA CARGADO ESE MODEL
+
+	EntityMeshes entityMeshes;
+	auto model = EngineResources::GetModelManager().Get(modelRH);
+
+	for (int i = 0; i < model->getLODs().size(); i++)
+	{
+		AABB aabb
+		{
+			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0), // se anade 0 para cumplir con vec4 pero no se utilizara ese valor
+			glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
+		};
+
+		// se esta haciendo suponiendo que cada nivel de lod solo tiene un mesh por simplicidad
+		std::vector<Vertex> vertices;
+		std::vector<unsigned int> indices;
+		vertices = model->getLODs()[i].meshes[0].vertices;
+		indices = model->getLODs()[i].meshes[0].indices;
+
+		MeshEntry entry;
+		entry.baseVertex = currentVertexOffset;
+		entry.firstIndex = currentIndexOffset;
+		entry.indexCount = indices.size();
+		entry.textureLayer = model->getLODs()[i].meshes[0].texIndex;
+		entry.aabb = aabb;
+
+		glBindBuffer(GL_ARRAY_BUFFER, globalVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, currentVertexOffset * sizeof(Vertex), vertices.size() * sizeof(Vertex), vertices.data());
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, globalEBO);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, currentIndexOffset * sizeof(uint32_t), indices.size() * sizeof(uint32_t), indices.data());
+
+		entityMeshes.meshEntries[i] = entry;
+
+		currentVertexOffset += (uint32_t)vertices.size();
+		currentIndexOffset += (uint32_t)indices.size();
+	}
+
+	return entityMeshes;
+}
+
 std::vector<DrawElementsIndirectCommand> MDI::GenerateDrawCmds(ECS::Coordinator& coordinator)
 {
 	std::vector<DrawElementsIndirectCommand> commands;
 
-	for (int i = 0; i < mEntities.size(); i++)
+	// creo los comandos con el mesh 0 por defecto. Se gestiona el cambio segun lod mas tarde 
+	for (int i = 0; i <  mEntities.size(); i++)
 	{
-		auto& meshEntry = coordinator.GetComponent<MeshEntry>(mEntities[i]);
+		auto& meshEntry = coordinator.GetComponent<EntityMeshes>(mEntities[i]).meshEntries[0];
 
 		DrawElementsIndirectCommand cmd;
 		cmd.count = meshEntry.indexCount;

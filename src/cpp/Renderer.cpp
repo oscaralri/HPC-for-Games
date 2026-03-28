@@ -76,7 +76,7 @@ void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 ma
 	glDeleteVertexArrays(1, &VAO);
 }
 
-void Renderer::GenerateMDIEntity(ResourceHandle modelRH, MeshEntry& mesh, glm::vec3 position)
+void Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes , glm::vec3 position)
 {
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
@@ -93,7 +93,7 @@ void Renderer::GenerateMDIEntity(ResourceHandle modelRH, MeshEntry& mesh, glm::v
 	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
 	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
 
-	gCoordinator.AddComponent(entity, mesh);
+	gCoordinator.AddComponent(entity, entityMeshes);
 
 	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
 	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
@@ -250,7 +250,7 @@ void Renderer::ModelsInit()
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
 
 	// MDI 
-	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx" };
+	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx", "models/gargoyle/gargoyle.obj" };
 	std::vector<std::string> path2 = { "models/gargoyle/gargoyle.obj" };
 
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
@@ -259,11 +259,11 @@ void Renderer::ModelsInit()
 	
 	// chair
 	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
-	MeshEntry chairMesh{ mdiSystem->AddMesh(chairRH) };
+	auto chairMeshes = mdiSystem->AddLodsMesh(chairRH);
 
 	for (int i = 0; i < 10; i++)
 	{
-		GenerateMDIEntity(chairRH, chairMesh, glm::vec3((i * 50), 0.f, 0.f));
+		GenerateMDIEntity(chairRH, chairMeshes, glm::vec3((i * 50), 0.f, 0.f));
 	}
 
 	mdiSystem->GenerateDrawCmds(gCoordinator);

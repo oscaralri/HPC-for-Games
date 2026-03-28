@@ -29,11 +29,12 @@ void Application::ECSInit()
 {
 	gCoordinator.Init();
 
-	// RENDER SYSTEM
 	gCoordinator.RegisterComponent<Transform>();
 	gCoordinator.RegisterComponent<Renderable>();
-	gCoordinator.RegisterComponent<MeshEntry>();
+	gCoordinator.RegisterComponent<EntityMeshes>();
+	gCoordinator.RegisterComponent<AABB>();
 	
+	// RENDER SYSTEM
 	gCoordinator.RegisterSystem<RenderSystem>();
 	{
 		ECS::Signature signature;
@@ -43,46 +44,22 @@ void Application::ECSInit()
 		gCoordinator.SetSystemSignature<RenderSystem>(signature);
 	}
 
-	// CULLING SYSTEM
-	gCoordinator.RegisterComponent<AABB>();
+	// MDI SYSTEM
+	gCoordinator.RegisterSystem<MDI>();
+	{
+		ECS::Signature signature;
+		signature.set(gCoordinator.GetComponentType<EntityMeshes>());
+		
+		gCoordinator.SetSystemSignature<MDI>(signature);
+	}
 
 	gCoordinator.RegisterSystem<CullingSystem>();
 	{
 		ECS::Signature signature;
 		signature.set(gCoordinator.GetComponentType<Transform>());
-		signature.set(gCoordinator.GetComponentType<Renderable>());
+		//signature.set(gCoordinator.GetComponentType<Renderable>());
 		signature.set(gCoordinator.GetComponentType<AABB>());
 
 		gCoordinator.SetSystemSignature<CullingSystem>(signature);
-	}
-
-	// LOD SYSTEM
-	gCoordinator.RegisterSystem<LODSystem>();
-	{
-		ECS::Signature signature;
-		signature.set(gCoordinator.GetComponentType<Renderable>());
-		signature.set(gCoordinator.GetComponentType<Transform>());
-
-		gCoordinator.SetSystemSignature<LODSystem>(signature);
-	}
-	
-	// BATCH SYSTEM
-	gCoordinator.RegisterSystem<BatchSystem>();
-	{
-		ECS::Signature signature;
-		signature.set(gCoordinator.GetComponentType<Renderable>());
-		signature.set(gCoordinator.GetComponentType<Transform>());
-
-		gCoordinator.SetSystemSignature<BatchSystem>(signature);
-
-	}
-
-	// MDI SYSTEM
-	gCoordinator.RegisterSystem<MDI>();
-	{
-		ECS::Signature signature;
-		signature.set(gCoordinator.GetComponentType<MeshEntry>());
-		
-		gCoordinator.SetSystemSignature<MDI>(signature);
 	}
 }
