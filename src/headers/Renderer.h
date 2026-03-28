@@ -52,8 +52,11 @@ private:
 	float near;
 	float far;
 	std::shared_ptr<Camera> mainCamera;
+	std::shared_ptr<Camera> imguiCamera;
 	GLuint cameraUBO;
 	GLuint frustumUBO;
+
+	Scene* scene;
 
 	//ImGUI
 	bool isImgui;

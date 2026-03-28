@@ -5,6 +5,8 @@ struct Plane {
     float d;
 };
 
+// std140 es mas para uniform buffer objects y datos mas sencillos donde es facil predecir ya sea porque lo haces o porque si
+    // como se guardara en memoria
 layout(std140, binding = 5) uniform FrustumBuffer {
     vec4 cameraPos; // usamos vec4 por 16 bytes, como tal solo se usa xyz
     vec4 planes[6]; //plane: glm::vec3 n + float d
@@ -14,11 +16,12 @@ struct DrawElementsIndirectCommand {
     uint count;
     uint instanceCount; // este es el valor que nos es util para aplicar visibilidad
     uint firstIndex;
-    int  baseVertex;
+    uint  baseVertex;
     uint baseInstance;
 };
 
-layout(std140, binding = 2) buffer CommandBuffer {
+// para ssbo es mucho mas recomendable utilizar std430, de hecho esto con std140 no funciona
+layout(std430, binding = 2) buffer CommandBuffer {
     DrawElementsIndirectCommand commands[];
 };
 
@@ -28,7 +31,7 @@ struct AABBData
     vec4 max;
 };
 
-layout(std140, binding = 1) buffer AABBBuffer {
+layout(std430, binding = 1) buffer AABBBuffer {
     AABBData aabbs[];
 };
 
@@ -44,6 +47,7 @@ layout(std430, binding = 0) buffer InstanceBuffer {
     InstanceData instances[];
 };
 
+// podria testear si diferentes local_size afectan al rendimiento
 layout(local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
 
 bool isVisible(vec3 min, vec3 max, InstanceData data) {
@@ -82,18 +86,15 @@ void main() {
     uint idx = gl_GlobalInvocationID.x;
     InstanceData data = instances[idx];
 
-//    if (idx >= commands.length()) return;
+    if (idx >= commands.length()) return;
 
     vec3 min = aabbs[idx].min.xyz;
     vec3 max = aabbs[idx].max.xyz;
 
-    commands[idx].instanceCount = 0;
-    
-    /*
     if (isVisible(min, max, data)) {
-        commands[data.entityID].instanceCount = 1; // es visible = se dibuja
+        commands[idx].instanceCount = 1; // es visible => se dibuja
     } else {
-        commands[data.entityID].instanceCount = 0; // no dibuja
+        commands[idx].instanceCount = 0; // no dibuja
     }
-    */
+    
 }

@@ -74,7 +74,6 @@ void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 ma
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
-
 }
 
 void Renderer::GenerateMDIEntity(ResourceHandle modelRH, MeshEntry& mesh, glm::vec3 position)
@@ -262,7 +261,7 @@ void Renderer::ModelsInit()
 	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
 	MeshEntry chairMesh{ mdiSystem->AddMesh(chairRH) };
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		GenerateMDIEntity(chairRH, chairMesh, glm::vec3((i * 50), 0.f, 0.f));
 	}
@@ -370,6 +369,9 @@ void Renderer::Init()
 	imguiCamPosX = -28.f;
 	imguiCamPosY = 1400.f;
 	imguiCamPosZ = 500.f;
+	scene = Application::Get().GetActiveScene();
+	mainCamera = scene->GetCamera("MainCamera");
+	imguiCamera = scene->GetCamera("ImguiCamera");
 
 	WindowInit(SCR_WIDTH, SCR_HEIGHT); // glfw and glad
 	ShadersInit();
@@ -383,10 +385,6 @@ void Renderer::Init()
 void Renderer::Render()
 {
 	// DATA
-	auto scene = Application::Get().GetActiveScene();
-	mainCamera = scene->GetCamera("MainCamera");
-	auto imguiCamera = scene->GetCamera("ImguiCamera");
-
 	glm::mat4 projection = glm::perspective(glm::radians(mainCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 	glm::mat4 view = glm::lookAt(mainCamera->Position, mainCamera->Position + mainCamera->Front, mainCamera->Up);
 	mainCamera->projection = projection;
@@ -398,7 +396,7 @@ void Renderer::Render()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
-	Frustum frustum = cullingSystem->CreateFrustum(mainCamera->projection, mainCamera->view, mainCamera); // planes[6] / plane: glm::vec3 n + float d
+	Frustum frustum = cullingSystem->CreateFrustum(mainCamera->projection, mainCamera->view); // planes[6] / plane: glm::vec3 n + float d
 	glm::vec4 cameraPos4 = glm::vec4(mainCamera->Position, 1.0f);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, frustumUBO);
@@ -422,7 +420,7 @@ void Renderer::Render()
 	lastFrame = currentFrame;
 	processInput(window);
 
-	// RENDER TO FBO
+	// FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
@@ -434,14 +432,23 @@ void Renderer::Render()
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
 
+	// DEBUG GRID
+	if (isDebugGrid)
+	{
+		for (const auto& cell : grid->cells)
+		{
+			DebugAABB(projection, view, cell.min, cell.max);
+		}
+	}
+		
+	// RENDER MDI
 	auto computeS = EngineResources::GetShaderManager().Get(computeShader);
 	auto renderS = EngineResources::GetShaderManager().Get(renderShader);
 
-	// RENDER MDI
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->RenderGPUCulling(gCoordinator, computeS, renderS);
 
-	// RENDER IMGUI
+	// IMGUI
 	RenderImGUI();
 	RenderImGUICamera(imguiCamera, projection, view, computeS, renderS);
 
@@ -466,6 +473,9 @@ void Renderer::Render()
 
 void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS)
 {
+	glm::mat4 imguiProj = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+	glm::mat4 imguiView = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
+
 	if (isImgui)
 	{
 		imguiCamera->Position = glm::vec3(imguiCamPosX, imguiCamPosY, imguiCamPosZ);
@@ -475,8 +485,6 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 		glClearColor(0.f, 0.f, 0.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 imguiProj = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-		glm::mat4 imguiView = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
 
 		glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(imguiView));
@@ -508,7 +516,7 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 	{
 		for (const auto& cell : grid->cells)
 		{
-			DebugAABB(projection, view, cell.min, cell.max);
+			DebugAABB(imguiProj, imguiView, cell.min, cell.max);
 		}
 	}
 }

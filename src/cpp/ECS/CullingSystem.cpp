@@ -1,6 +1,6 @@
 #include "CullingSystem.h"
 
-Frustum CullingSystem::CreateFrustum(glm::mat4 projection, glm::mat4 view, const std::shared_ptr<Camera>& camera)
+Frustum CullingSystem::CreateFrustum(glm::mat4 projection, glm::mat4 view)
 {
 	glm::mat4 projView = glm::transpose(projection * view);
 	
@@ -84,7 +84,7 @@ bool AABBIntersection(Frustum frustum, AABB aabb, Transform transform)
 std::vector<GridCell> CullingSystem::FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell>& cells)
 {
 	std::vector<GridCell> cellsVisible;
-	frustum = CreateFrustum(camera->projection, camera->view, camera);
+	frustum = CreateFrustum(camera->projection, camera->view);
 	
 	for (auto const& cell : cells)
 	{

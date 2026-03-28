@@ -28,7 +28,7 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 
 		// draw cmds
 		gpuCommands[index].count = meshEntry.indexCount;
-		gpuCommands[index].instanceCount = 1; // 1 para que sea visible
+		gpuCommands[index].instanceCount = 1; // 1 para que sea visible , SERIA MEJOR INICIALIZAR A 0 PERO POR AHORA SE USA ASI PARA DEBUG
 		gpuCommands[index].firstIndex = meshEntry.firstIndex;
 		gpuCommands[index].baseVertex = meshEntry.baseVertex;
 		gpuCommands[index].baseInstance = index;
@@ -41,7 +41,7 @@ void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 {
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 
-	shader->use(); // A VECES SALTA ERROR AQUI
+	shader->use(); 
 	glBindVertexArray(mdiSystem->GetGlobalVAO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
 
@@ -55,22 +55,15 @@ void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 
 void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader* computeShader, Shader* renderShader)
 {
-	//UpdateIndirectCmd(coordinator, mEntities);
-	
-	// barrara para que cpu escriba en buffers
-//	glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-
 	auto mdiSystem = coordinator.GetSystem<MDI>();
-
+	
 	computeShader->use();
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetAABBSSBO());
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
 	
-	glDispatchCompute(mEntities.size(), 1, 1);
+	glDispatchCompute((mEntities.size() + 8 - 1), 1, 1); // tamanyo elementos , + grupo en shader , - 1 por size
 	
-	//glDispatchCompute(1, 1, 1);
-
 	// barrera para que compute shader acabe
 	glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 

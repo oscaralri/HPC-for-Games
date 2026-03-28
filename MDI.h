@@ -30,12 +30,14 @@ struct MeshEntry
 };
 
 // entiendo que lo del alignas(16) es por como va a leer la info la gpu
-struct alignas(16) InstanceData {
+struct InstanceData {
 	glm::mat4 modelMatrix;   // 64 bytes 
 	uint32_t entityID;       // 4 bytes
 	uint32_t textureLayer;   // 4 bytes  
-	uint32_t padding[2];     // 8 bytes		
+	uint32_t pad0;
+	uint32_t pad1; // 8 bytes		
 };
+
 
 class MDI : public ECS::System
 {
@@ -54,8 +56,6 @@ public:
 	DrawElementsIndirectCommand* GetCommandsPtr() { return commandsPtr; }
 	InstanceData* GetInstanceDataPtr() { return instancePtr; }
 	AABB* GetAABBPtr() { return aabbPtr; }
-
-	//MeshEntry AddMeshNew(ResourceHandle modelRH);
 
 private:
 	GLuint globalVAO;

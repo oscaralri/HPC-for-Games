@@ -36,7 +36,7 @@ class CullingSystem : public ECS::System
 {
 public:
 	std::vector<GridCell> FrustumCulling(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<GridCell>& cells);
-	Frustum CreateFrustum(glm::mat4 projection, glm::mat4 view, const std::shared_ptr<Camera>& camera);
+	Frustum CreateFrustum(glm::mat4 projection, glm::mat4 view);
 	Frustum& GetFrustum() { return frustum; }
 
 private:
