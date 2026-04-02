@@ -24,8 +24,13 @@ layout(std430, binding = 0) buffer InstanceBuffer {
     InstanceData instances[];
 };
 
+layout(std430, binding = 6) buffer VisibleIndicesBuffer {
+    uint visibleIndices[]; 
+};
+
 void main() {
-    InstanceData data = instances[gl_DrawID];
+    uint idx = visibleIndices[gl_DrawID];
+    InstanceData data = instances[idx];
 
     vTexCoords = vec3(aTexCoords, float(data.textureLayer));
     gl_Position = projection * view * data.modelMatrix * vec4(inPos, 1.0);

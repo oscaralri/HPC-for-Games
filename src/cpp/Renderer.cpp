@@ -250,7 +250,7 @@ void Renderer::ModelsInit()
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
 
 	// MDI 
-	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx", "models/gargoyle/gargoyle.obj" };
+	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx",};
 	std::vector<std::string> path2 = { "models/gargoyle/gargoyle.obj" };
 
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
@@ -261,9 +261,9 @@ void Renderer::ModelsInit()
 	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
 	auto chairMeshes = mdiSystem->AddLodsMesh(chairRH);
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 20; i++)
 	{
-		GenerateMDIEntity(chairRH, chairMeshes, glm::vec3((i * 50), 0.f, 0.f));
+		GenerateMDIEntity(chairRH, chairMeshes, glm::vec3(0.f, 0.f, -((i * 50))));
 	}
 
 	mdiSystem->GenerateDrawCmds(gCoordinator);
@@ -368,7 +368,7 @@ void Renderer::Init()
 	isDebugGrid = false;
 	imguiCamPosX = -28.f;
 	imguiCamPosY = 1400.f;
-	imguiCamPosZ = 500.f;
+	imguiCamPosZ = -400.f;
 	scene = Application::Get().GetActiveScene();
 	mainCamera = scene->GetCamera("MainCamera");
 	imguiCamera = scene->GetCamera("ImguiCamera");

@@ -40,22 +40,35 @@ void MDI::GenerateDataBuffers()
 {
 	GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 
-	glGenBuffers(1, &instanceSSBO); // datos de entidades 
-	glGenBuffers(1, &commandsSSBO); // ordenes de dibujo (indices, instancia...)
-	glGenBuffers(1, &aabbSSBO);
-
+	glGenBuffers(1, &instanceSSBO); // datos de entidades
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, instanceSSBO);
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER, ECS::MAX_ENTITIES * sizeof(InstanceData), nullptr, flags);
 	instancePtr = (InstanceData*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ECS::MAX_ENTITIES * sizeof(InstanceData), flags);
 
+	glGenBuffers(1, &commandsSSBO); // ordenes de dibujo (indices, instancia...)
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandsSSBO);
 	glBufferStorage(GL_DRAW_INDIRECT_BUFFER, ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), nullptr, flags);
 	commandsPtr = (DrawElementsIndirectCommand*)glMapBufferRange(GL_DRAW_INDIRECT_BUFFER, 0, 
 		ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), flags);
 
+	glGenBuffers(1, &aabbSSBO);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, aabbSSBO);
 	glBufferStorage(GL_SHADER_STORAGE_BUFFER, ECS::MAX_ENTITIES * sizeof(AABB), nullptr, flags);
 	aabbPtr = (AABB*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, ECS::MAX_ENTITIES * sizeof(AABB), flags);
+
+	glGenBuffers(1, &drawCountSSBO);
+	glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, drawCountSSBO);
+	glBufferData(GL_ATOMIC_COUNTER_BUFFER, sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
+
+	glGenBuffers(1, &filteredCmdsBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, filteredCmdsBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, ECS::MAX_ENTITIES * sizeof(DrawElementsIndirectCommand), nullptr, GL_DYNAMIC_DRAW);
+
+	glGenBuffers(1, &visibleIndicesSSBO);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, visibleIndicesSSBO);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint) * ECS::MAX_ENTITIES, NULL, GL_DYNAMIC_DRAW);
+
+
 }
 
 MeshEntry MDI::AddMesh(ResourceHandle modelRH)

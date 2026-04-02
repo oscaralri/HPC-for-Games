@@ -12,6 +12,32 @@ layout(std140, binding = 5) uniform FrustumBuffer {
     vec4 planes[6]; //plane: glm::vec3 n + float d
 };
 
+struct InstanceData {
+    mat4 modelMatrix;  
+    uint entityID;      
+    uint textureLayer;
+    uint pad0;
+    uint pad1;
+};
+
+layout(std430, binding = 0) buffer InstanceBuffer {
+    InstanceData instances[];
+};
+
+layout(std430, binding = 6) buffer VisibleIndicesBuffer {
+    uint visibleIndices[]; 
+};
+
+struct AABBData
+{
+    vec4 min; // se usa xyz, w = 0, w solo sirve para rellenar el vec4
+    vec4 max;
+};
+
+layout(std430, binding = 1) buffer AABBBuffer {
+    AABBData aabbs[];
+};
+
 struct DrawElementsIndirectCommand {
     uint count;
     uint instanceCount; // este es el valor que nos es util para aplicar visibilidad
@@ -25,35 +51,11 @@ layout(std430, binding = 2) buffer CommandBuffer {
     DrawElementsIndirectCommand commands[];
 };
 
-struct AABBData
-{
-    vec4 min; // se usa xyz, w = 0, w solo sirve para rellenar el vec4
-    vec4 max;
+layout(std430, binding = 3) buffer FilterdCmdBuffer {
+    DrawElementsIndirectCommand filteredCommands[];
 };
 
-layout(std430, binding = 1) buffer AABBBuffer {
-    AABBData aabbs[];
-};
-
-struct MeshEntry {
-    
-}
-
-struct EntityMeshes {
-    MeshEntry meshEntries;
-}
-
-struct InstanceData {
-    mat4 modelMatrix;  
-    uint entityID;      
-    uint textureLayer;
-    EntityMeshes entityMeshes;
-    uint pad1;
-};
-
-layout(std430, binding = 0) buffer InstanceBuffer {
-    InstanceData instances[];
-};
+layout (binding = 4, offset = 0) uniform atomic_uint counter;
 
 // podria testear si diferentes local_size afectan al rendimiento
 layout(local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
@@ -90,17 +92,6 @@ bool isVisible(vec3 min, vec3 max, InstanceData data) {
     return true;
 }
 
-int checkLOD(mat4 modelMatrix)
-{
-    vec4 transform = modelMatrix[3];
-
-    if(distance(transform, vec3(0.f, 0.f, 0.f) > 10)
-    {
-        return 1;
-    }
-
-    return 0;
-}
 
 void main() {
     uint idx = gl_GlobalInvocationID.x;
@@ -112,16 +103,11 @@ void main() {
     vec3 max = aabbs[idx].max.xyz;
 
     if (isVisible(min, max, data)) {
-        commands[idx].instanceCount = 1; // es visible => se dibuja
-        
-        int lodLevel = checkLOD()
-        commands[idx].count = data.meshEntries[lodLevel].count;
-        commands[idx].firstIndex = data.meshEntries[lodLevel].firstIndex;
-        commands[idx].baseVertex = data.meshEntries[lodLevel].baseVertex;
-        commands[idx].baseInstance = data.baseInstance[lodLevel].baseInstance;
+        uint findex = atomicCounterIncrement(counter);
 
-    } else {
-        commands[idx].instanceCount = 0; // no dibuja
-    }
-    
+        visibleIndices[findex] = idx; // quizas tambien instance.entityID
+
+        filteredCommands[findex] = commands[idx];  
+     }
+     
 }

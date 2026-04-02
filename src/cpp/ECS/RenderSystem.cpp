@@ -40,14 +40,17 @@ void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 {
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 
-	shader->use(); 
+	shader->use();	
 	glBindVertexArray(mdiSystem->GetGlobalVAO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, mdiSystem->GetVisibleIndicesSSBO());
 
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdiSystem->GetCommandsSSBO());
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdiSystem->GetFilteredCmdsSSBO());
 
-	glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, (GLsizei)entities.size(), 0);
+	glBindBuffer(GL_PARAMETER_BUFFER, mdiSystem->GetDrawCountSSBO());
 	
+	glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, 0, 100 /*ECS::MAX_ENTITIES*/, 0);
+
 	glBindVertexArray(0);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }
@@ -56,15 +59,23 @@ void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader* compu
 {
 	auto mdiSystem = coordinator.GetSystem<MDI>();
 	
+	int zero = 0;
+	glClearNamedBufferData(mdiSystem->GetDrawCountSSBO(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
+	
+	//glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
+
 	computeShader->use();
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetAABBSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
-	
-	glDispatchCompute((mEntities.size() + 8 - 1), 1, 1); // tamanyo elementos , + grupo en shader , - 1 por size
-	
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, mdiSystem->GetFilteredCmdsSSBO());
+	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 4, mdiSystem->GetDrawCountSSBO());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, mdiSystem->GetVisibleIndicesSSBO());
+
+	glDispatchCompute(/*(mEntities.size() + 8 - 1)*/(mEntities.size() + 7) / 8, 1, 1); // tamanyo elementos , + grupo en shader , - 1 por size
+
 	// barrera para que compute shader acabe
-	glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+	glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 
 	RenderMDI(renderShader, mEntities);
 }

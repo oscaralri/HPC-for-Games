@@ -59,6 +59,10 @@ public:
 	GLuint& GetInstanceSSBO() { return instanceSSBO; }
 	GLuint& GetCommandsSSBO() { return commandsSSBO; }
 	GLuint& GetAABBSSBO() { return aabbSSBO; }
+	GLuint& GetDrawCountSSBO() { return drawCountSSBO; }
+	GLuint& GetFilteredCmdsSSBO() { return filteredCmdsBuffer; }
+	GLuint& GetVisibleIndicesSSBO() { return visibleIndicesSSBO; }
+
 	GLuint& GetGlobalVAO() { return globalVAO; }
 
 	DrawElementsIndirectCommand* GetCommandsPtr() { return commandsPtr; }
@@ -79,6 +83,9 @@ private:
 	GLuint instanceSSBO;
 	GLuint commandsSSBO;
 	GLuint aabbSSBO;
+	GLuint filteredCmdsBuffer;
+	GLuint drawCountSSBO;
+	GLuint visibleIndicesSSBO;
 
 	DrawElementsIndirectCommand* commandsPtr;
 	InstanceData* instancePtr;
