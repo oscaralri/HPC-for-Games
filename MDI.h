@@ -19,6 +19,18 @@ struct DrawElementsIndirectCommand
 	uint32_t firstIndex; // donde empiezan los indices de esa malla en el ebo global 
 	uint32_t baseVertex; // desplazamiento en el vertex buffer 
 	uint32_t baseInstance; // id de instancia base, se añade al gl_instanceID en el shader
+
+	bool operator==(const DrawElementsIndirectCommand& other) const {
+		return count == other.count &&
+			instanceCount == other.instanceCount &&
+			firstIndex == other.firstIndex &&
+			baseVertex == other.baseVertex &&
+			baseInstance == other.baseInstance;
+	}
+
+	bool operator!=(const DrawElementsIndirectCommand& other) const {
+		return !(*this == other);
+	}
 };
 
 struct MeshEntry
@@ -32,7 +44,7 @@ struct MeshEntry
 
 struct EntityMeshes
 {
-	std::array<MeshEntry, 2> meshEntries;
+	std::vector<MeshEntry> meshEntries;
 };
 
 // entiendo que lo del alignas(16) es por como va a leer la info la gpu
@@ -40,8 +52,7 @@ struct InstanceData {
 	glm::mat4 modelMatrix;   // 64 bytes 
 	uint32_t entityID;       // 4 bytes
 	uint32_t textureLayer;   // 4 bytes  
-	uint32_t pad0;
-	uint32_t pad1; // 8 bytes		
+	uint32_t cmdIDs[2]; // 8 bytes		
 };
 
 
@@ -55,6 +66,7 @@ public:
 	EntityMeshes AddLodsMesh(ResourceHandle modelRH);
 
 	std::vector<DrawElementsIndirectCommand> GenerateDrawCmds(ECS::Coordinator& coordinator);
+	uint32_t GenerateDrawCmd(MeshEntry meshEntry);
 
 	GLuint& GetInstanceSSBO() { return instanceSSBO; }
 	GLuint& GetCommandsSSBO() { return commandsSSBO; }
@@ -92,5 +104,7 @@ private:
 	AABB* aabbPtr;
 
 	std::unordered_map<ResourceHandle, MeshEntry> meshEntries;
+
+	std::vector<DrawElementsIndirectCommand> commands;
 };
 

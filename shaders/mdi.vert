@@ -24,7 +24,7 @@ layout(std430, binding = 0) buffer InstanceBuffer {
     InstanceData instances[];
 };
 
-layout(std430, binding = 6) buffer VisibleIndicesBuffer {
+layout(std430, binding = 1) buffer VisibleIndicesBuffer {
     uint visibleIndices[]; 
 };
 

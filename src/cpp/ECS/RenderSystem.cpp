@@ -11,28 +11,49 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 	DrawElementsIndirectCommand* gpuCommands = mdiSystem->GetCommandsPtr();
 	AABB* gpuAABB = mdiSystem->GetAABBPtr();
 
+	int counter = 0;
+
 	for (auto const& entity : mEntities)
 	{
 		auto& transform = coordinator.GetComponent<Transform>(entity);
 		// CREO QUE DEBERIA SERVIR USAR LA DEL 0 PORQUE AL FINAL ES INFO QUE SIRVE PARA LOS DOS Y ES UN VALOR DEFAULT
 			// QUE SE GESTIONA DESPUES EN EL COMPUTE SHADER
-		auto& meshEntry = coordinator.GetComponent<EntityMeshes>(entity).meshEntries[0];
+		auto& meshEntry = coordinator.GetComponent<EntityMeshes>(entity).meshEntries;
 
 		// instances
 		gpuInstances[entity].modelMatrix = transform.GetModelMatrix();
-		gpuInstances[entity].textureLayer = meshEntry.textureLayer;
+		gpuInstances[entity].textureLayer = meshEntry[0].textureLayer;
 		gpuInstances[entity].entityID = (uint32_t)entity;
 
-		// ESTO MIRARLO PORQUE CREO QUE PODRIA LLEGAR A QUITARLO DE AQUI 
-		// draw cmds
-		gpuCommands[entity].count = meshEntry.indexCount;
-		gpuCommands[entity].instanceCount = 1; // 1 para que sea visible , SERIA MEJOR INICIALIZAR A 0 PERO POR AHORA SE USA ASI PARA DEBUG
-		gpuCommands[entity].firstIndex = meshEntry.firstIndex;
-		gpuCommands[entity].baseVertex = meshEntry.baseVertex;
-		gpuCommands[entity].baseInstance = entity;
+		// ESTO MIRARLO PORQUE CREO QUE PODRIA LLEGAR A QUITARLO DE AQUI CUANDO LODS FUNCIONE
+		// draw 
+		for (int j = 0; j < meshEntry.size(); j++)
+		{
+			gpuInstances[entity].cmdIDs[j] = mdiSystem->GenerateDrawCmd(meshEntry[j]);
+		}
 
+		/*
+		for (int j = 0; j < meshEntry.size(); j++)
+		{
+			gpuCommands[counter].count = meshEntry[j].indexCount;
+			gpuCommands[counter].instanceCount = 1; // 1: visible, 0: no 
+			gpuCommands[counter].firstIndex = meshEntry[j].firstIndex;
+			gpuCommands[counter].baseVertex = meshEntry[j].baseVertex;
+			gpuCommands[counter].baseInstance = entity; // relaciona con gl_DrawID / el ECS::Entity que es lo que se devuelve es un unsigned int al fin y al cabo
+			++counter;
+		}
+		*/
+		/*
+		gpuCommands[entity].count = meshEntry[0].indexCount;
+		gpuCommands[entity].instanceCount = 1; // 1 para que sea visible , SERIA MEJOR INICIALIZAR A 0 PERO POR AHORA SE USA ASI PARA DEBUG
+		gpuCommands[entity].firstIndex = meshEntry[0].firstIndex;
+		gpuCommands[entity].baseVertex = meshEntry[0].baseVertex;
+		gpuCommands[entity].baseInstance = entity;
+		*/
+
+		
 		// aabbs
-		gpuAABB[entity] = meshEntry.aabb;
+		gpuAABB[entity] = meshEntry[0].aabb;
 	}
 }
 
@@ -43,7 +64,7 @@ void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 	shader->use();	
 	glBindVertexArray(mdiSystem->GetGlobalVAO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, mdiSystem->GetVisibleIndicesSSBO());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetVisibleIndicesSSBO());
 
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdiSystem->GetFilteredCmdsSSBO());
 
@@ -70,9 +91,9 @@ void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader* compu
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mdiSystem->GetCommandsSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, mdiSystem->GetFilteredCmdsSSBO());
 	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 4, mdiSystem->GetDrawCountSSBO());
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, mdiSystem->GetVisibleIndicesSSBO());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, mdiSystem->GetVisibleIndicesSSBO());
 
-	glDispatchCompute(/*(mEntities.size() + 8 - 1)*/(mEntities.size() + 7) / 8, 1, 1); // tamanyo elementos , + grupo en shader , - 1 por size
+	glDispatchCompute((mEntities.size() + 7) / 8, 1, 1); // tamanyo elementos + grupo en shader , - 1 por size
 
 	// barrera para que compute shader acabe
 	glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);

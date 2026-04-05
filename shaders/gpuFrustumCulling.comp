@@ -16,15 +16,14 @@ struct InstanceData {
     mat4 modelMatrix;  
     uint entityID;      
     uint textureLayer;
-    uint pad0;
-    uint pad1;
+    uint cmdIDs[2];
 };
 
 layout(std430, binding = 0) buffer InstanceBuffer {
     InstanceData instances[];
 };
 
-layout(std430, binding = 6) buffer VisibleIndicesBuffer {
+layout(std430, binding = 5) buffer VisibleIndicesBuffer {
     uint visibleIndices[]; 
 };
 
@@ -40,7 +39,7 @@ layout(std430, binding = 1) buffer AABBBuffer {
 
 struct DrawElementsIndirectCommand {
     uint count;
-    uint instanceCount; // este es el valor que nos es util para aplicar visibilidad
+    uint instanceCount;
     uint firstIndex;
     uint baseVertex;
     uint baseInstance;
@@ -59,6 +58,16 @@ layout (binding = 4, offset = 0) uniform atomic_uint counter;
 
 // podria testear si diferentes local_size afectan al rendimiento
 layout(local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
+
+uint CheckLOD(vec4 cameraPos, vec4 objectPos)
+{
+    if(distance(cameraPos, objectPos) > 250)
+    {
+        return 1;
+    }
+
+    return 0;
+}
 
 bool isVisible(vec3 min, vec3 max, InstanceData data) {
     vec3 corners[8];
@@ -102,12 +111,17 @@ void main() {
     vec3 min = aabbs[idx].min.xyz;
     vec3 max = aabbs[idx].max.xyz;
 
+
     if (isVisible(min, max, data)) {
+        uint lodLevel = CheckLOD(cameraPos, data.modelMatrix[3]);
+
         uint findex = atomicCounterIncrement(counter);
 
         visibleIndices[findex] = idx; // quizas tambien instance.entityID
 
-        filteredCommands[findex] = commands[idx];  
+        uint ID = data.cmdIDs[lodLevel];
+
+        filteredCommands[findex] = commands[ID];  
      }
      
 }

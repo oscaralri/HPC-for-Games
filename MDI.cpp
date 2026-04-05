@@ -145,7 +145,7 @@ EntityMeshes MDI::AddLodsMesh(ResourceHandle modelRH)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, globalEBO);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, currentIndexOffset * sizeof(uint32_t), indices.size() * sizeof(uint32_t), indices.data());
 
-		entityMeshes.meshEntries[i] = entry;
+		entityMeshes.meshEntries.push_back(entry);
 
 		currentVertexOffset += (uint32_t)vertices.size();
 		currentIndexOffset += (uint32_t)indices.size();
@@ -158,20 +158,44 @@ std::vector<DrawElementsIndirectCommand> MDI::GenerateDrawCmds(ECS::Coordinator&
 {
 	std::vector<DrawElementsIndirectCommand> commands;
 
-	// creo los comandos con el mesh 0 por defecto. Se gestiona el cambio segun lod mas tarde 
+	// crear 2 comandos por entidad, 1 para cada lod 
 	for (int i = 0; i <  mEntities.size(); i++)
 	{
-		auto& meshEntry = coordinator.GetComponent<EntityMeshes>(mEntities[i]).meshEntries[0];
+		auto& meshEntry = coordinator.GetComponent<EntityMeshes>(mEntities[i]).meshEntries;
+		for (int j = 0; j < meshEntry.size(); j++)
+		{
+			DrawElementsIndirectCommand cmd;
+			cmd.count = meshEntry[j].indexCount;
+			cmd.instanceCount = 1; // 1: visible, 0: no 
+			cmd.firstIndex = meshEntry[j].firstIndex;
+			cmd.baseVertex = meshEntry[j].baseVertex;
+			cmd.baseInstance = mEntities[i]; // relaciona con gl_DrawID / el ECS::Entity que es lo que se devuelve es un unsigned int al fin y al cabo
 
-		DrawElementsIndirectCommand cmd;
-		cmd.count = meshEntry.indexCount;
-		cmd.instanceCount = 1; // 1: visible, 0: no 
-		cmd.firstIndex = meshEntry.firstIndex;
-		cmd.baseVertex = meshEntry.baseVertex;
-		cmd.baseInstance = mEntities[i]; // relaciona con gl_DrawID / el ECS::Entity que es lo que se devuelve es un unsigned int al fin y al cabo
-
-		commands.push_back(cmd);
+			commands.push_back(cmd);
+		}
 	}
 
 	return commands;
+}
+
+uint32_t MDI::GenerateDrawCmd(MeshEntry meshEntry)
+{
+	DrawElementsIndirectCommand cmd;
+	cmd.count = meshEntry.indexCount;
+	cmd.instanceCount = 1;
+	cmd.firstIndex = meshEntry.firstIndex;
+	cmd.baseVertex = meshEntry.baseVertex;
+	cmd.baseInstance = 0;
+
+	for (int i = 0; i < commands.size(); i++)
+	{
+		if (cmd == commands[i]) return i;
+	}
+
+	commands.push_back(cmd);
+
+	auto gpuCommands = GetCommandsPtr();
+	gpuCommands[commands.size() - 1] = cmd;
+
+	return commands.size() - 1;
 }
