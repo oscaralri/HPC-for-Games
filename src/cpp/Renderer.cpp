@@ -260,10 +260,17 @@ void Renderer::ModelsInit()
 	// chair
 	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
 	auto chairMeshes = mdiSystem->AddLodsMesh(chairRH);
-
-	for (int i = 0; i < 20; i++)
+	
+	for (int i = 0; i < 10; i++)
 	{
 		GenerateMDIEntity(chairRH, chairMeshes, glm::vec3(0.f, 0.f, -((i * 50))));
+	}
+
+	ResourceHandle gargoyleRH = EngineResources::GetModelManager().LoadModelLOD(path2, 25);
+	auto gargoyleMeshes = mdiSystem->AddLodsMesh(gargoyleRH);
+	for (int i = 0; i < 10; i++)
+	{
+		GenerateMDIEntity(gargoyleRH, gargoyleMeshes, glm::vec3(0.f, 0.f, ((i * 50))));
 	}
 
 //	mdiSystem->GenerateDrawCmds(gCoordinator);

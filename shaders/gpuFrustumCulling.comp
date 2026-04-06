@@ -1,5 +1,7 @@
 #version 460 
 
+const uint MDI_UNUSED_LOD = 0xFFFFFFFFu; // para leer si lod no esta en uso
+
 struct Plane {
     vec3 n;
     float d;
@@ -113,7 +115,12 @@ void main() {
 
 
     if (isVisible(min, max, data)) {
-        uint lodLevel = CheckLOD(cameraPos, data.modelMatrix[3]);
+        uint lodLevel = 0;
+        if(data.cmdIDs[1] != MDI_UNUSED_LOD)
+        {
+            lodLevel = CheckLOD(cameraPos, data.modelMatrix[3]);
+        }
+        
 
         uint findex = atomicCounterIncrement(counter);
 

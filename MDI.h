@@ -52,7 +52,7 @@ struct InstanceData {
 	glm::mat4 modelMatrix;   // 64 bytes 
 	uint32_t entityID;       // 4 bytes
 	uint32_t textureLayer;   // 4 bytes  
-	uint32_t cmdIDs[2]; // 8 bytes		
+	uint32_t cmdIDs[2]; // 8 bytes, inicializado a valor max para poder saber en shader si no se usa
 };
 
 

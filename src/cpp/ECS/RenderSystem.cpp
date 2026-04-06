@@ -24,33 +24,14 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 		gpuInstances[entity].modelMatrix = transform.GetModelMatrix();
 		gpuInstances[entity].textureLayer = meshEntry[0].textureLayer;
 		gpuInstances[entity].entityID = (uint32_t)entity;
+		gpuInstances[entity].cmdIDs[0] = UINT32_MAX;
+		gpuInstances[entity].cmdIDs[1] = UINT32_MAX;
 
-		// ESTO MIRARLO PORQUE CREO QUE PODRIA LLEGAR A QUITARLO DE AQUI CUANDO LODS FUNCIONE
 		// draw 
 		for (int j = 0; j < meshEntry.size(); j++)
 		{
 			gpuInstances[entity].cmdIDs[j] = mdiSystem->GenerateDrawCmd(meshEntry[j]);
 		}
-
-		/*
-		for (int j = 0; j < meshEntry.size(); j++)
-		{
-			gpuCommands[counter].count = meshEntry[j].indexCount;
-			gpuCommands[counter].instanceCount = 1; // 1: visible, 0: no 
-			gpuCommands[counter].firstIndex = meshEntry[j].firstIndex;
-			gpuCommands[counter].baseVertex = meshEntry[j].baseVertex;
-			gpuCommands[counter].baseInstance = entity; // relaciona con gl_DrawID / el ECS::Entity que es lo que se devuelve es un unsigned int al fin y al cabo
-			++counter;
-		}
-		*/
-		/*
-		gpuCommands[entity].count = meshEntry[0].indexCount;
-		gpuCommands[entity].instanceCount = 1; // 1 para que sea visible , SERIA MEJOR INICIALIZAR A 0 PERO POR AHORA SE USA ASI PARA DEBUG
-		gpuCommands[entity].firstIndex = meshEntry[0].firstIndex;
-		gpuCommands[entity].baseVertex = meshEntry[0].baseVertex;
-		gpuCommands[entity].baseInstance = entity;
-		*/
-
 		
 		// aabbs
 		gpuAABB[entity] = meshEntry[0].aabb;
