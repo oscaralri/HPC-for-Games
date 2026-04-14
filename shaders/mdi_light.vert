@@ -19,9 +19,16 @@ layout(std140, binding = 3) uniform CameraBuffer {
     mat4 projection;
 };
 
-layout (location = 4) in float aTexIndex; 
+layout(std140, binding = 5) uniform FrustumBuffer {
+    vec4 cameraPos; // usamos vec4 por 16 bytes, como tal solo se usa xyz
+    vec4 planes[6]; //plane: glm::vec3 n + float d
+};
 
 out vec3 vTexCoords;
+out vec3 vSpecCoords;
+out vec3 viewPos;
+out vec3 FragPos;
+out vec3 Normal;
 
 layout(std430, binding = 0) buffer InstanceBuffer {
     InstanceData instances[];
@@ -35,6 +42,10 @@ void main() {
     uint idx = visibleIndices[gl_DrawID];
     InstanceData data = instances[idx];
 
+    FragPos = vec3(data.modelMatrix * vec4(inPos, 1.0));;
     vTexCoords = vec3(aTexCoords, float(data.textureLayer));
+    vSpecCoords = vec3(aTexCoords, float(data.specLayer));
+    Normal = mat3(data.modelMatrix) * aNormal;
+    viewPos = cameraPos.xyz;
     gl_Position = projection * view * data.modelMatrix * vec4(inPos, 1.0);
 }

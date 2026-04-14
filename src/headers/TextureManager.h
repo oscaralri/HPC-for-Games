@@ -13,6 +13,12 @@
 
 #include "ResourceStorage.h"
 
+enum TextureType
+{
+	Diffuse,
+	Specular
+};
+
 using json = nlohmann::json;
 /*
 struct TextureHandle
@@ -32,9 +38,14 @@ struct Texture
 class TextureManager
 {
 public:
-	void LoadTextures(const std::string& jsonPath);
+	void LoadTextures(const std::string& jsonPath, TextureType type);
 	float GetTextureIndex(const char* path);
-	GLuint GetGlobalArrayID() { return globalArrayID; }
+	GLuint GetTextureArrayID(TextureType type) 
+	{
+		auto it = textureArrayIDs.find(type);
+		if (it != textureArrayIDs.end()) { return it->second; }
+		return 0;
+	}
 
 	//ResourceHandle LoadTexture(const char* path, const std::string& directory, std::string typeName);
 	//void GenerateTextureBuffer();
@@ -44,6 +55,6 @@ public:
 private:
 	ResourceStorage<Texture> textureStorage;
 	std::unordered_map<std::string, float> LoadedPaths;
-	GLuint globalArrayID;
+	std::unordered_map<TextureType, GLuint> textureArrayIDs;
 };
 

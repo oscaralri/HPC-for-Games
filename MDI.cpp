@@ -137,6 +137,7 @@ EntityMeshes MDI::AddLodsMesh(ResourceHandle modelRH)
 		entry.firstIndex = currentIndexOffset;
 		entry.indexCount = indices.size();
 		entry.textureLayer = model->getLODs()[i].meshes[0].texIndex;
+		entry.specLayer = model->getLODs()[i].meshes[0].specularIndex;
 		entry.aabb = aabb;
 
 		glBindBuffer(GL_ARRAY_BUFFER, globalVBO);

@@ -15,6 +15,7 @@ struct Vertex {
 	glm::vec3 Bitangent;
 
 	float TexIndex;
+	float SpecIndex;
 };
 
 class Mesh
@@ -26,11 +27,12 @@ public:
 	std::vector<Vertex> vertices; 
 	std::vector<unsigned int> indices;
 	float texIndex;
+	float specularIndex;
 
 	std::vector<ResourceHandle> textureHandles;
 
-	Mesh(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, float _texIndex) 
-		: vertices(_vertices), indices(_indices), texIndex(_texIndex)
+	Mesh(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, float _texIndex, float _specIndex) 
+		: vertices(_vertices), indices(_indices), texIndex(_texIndex), specularIndex(_specIndex)
 	{
 		setupMesh();
 	}

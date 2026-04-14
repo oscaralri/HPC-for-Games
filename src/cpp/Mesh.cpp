@@ -29,6 +29,10 @@ void Mesh::setupMesh()
 	// vertex texIndex 
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexIndex));
+	// vertex specularIndex 
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, SpecIndex));
+
 
 	glBindVertexArray(0);
 }

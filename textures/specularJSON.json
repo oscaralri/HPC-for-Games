@@ -1,0 +1,9 @@
+{
+  "texture_array": {
+    "width": 256,
+    "height": 256,
+    "files": [
+	 "textures/gargoyle/gargoyle_256_red.png"
+    ]
+  }
+}

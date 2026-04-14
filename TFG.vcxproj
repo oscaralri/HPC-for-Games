@@ -250,6 +250,8 @@
     <None Include="shaders\materialLight.vert" />
     <None Include="shaders\mdi.frag" />
     <None Include="shaders\mdi.vert" />
+    <None Include="shaders\mdi_light.frag" />
+    <None Include="shaders\mdi_light.vert" />
     <None Include="shaders\modelLoading.frag" />
     <None Include="shaders\modelLoading.vert" />
     <None Include="shaders\modelLoading_v2.frag" />

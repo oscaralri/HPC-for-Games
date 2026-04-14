@@ -11,18 +11,15 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 	DrawElementsIndirectCommand* gpuCommands = mdiSystem->GetCommandsPtr();
 	AABB* gpuAABB = mdiSystem->GetAABBPtr();
 
-	int counter = 0;
-
 	for (auto const& entity : mEntities)
 	{
 		auto& transform = coordinator.GetComponent<Transform>(entity);
-		// CREO QUE DEBERIA SERVIR USAR LA DEL 0 PORQUE AL FINAL ES INFO QUE SIRVE PARA LOS DOS Y ES UN VALOR DEFAULT
-			// QUE SE GESTIONA DESPUES EN EL COMPUTE SHADER
 		auto& meshEntry = coordinator.GetComponent<EntityMeshes>(entity).meshEntries;
 
 		// instances
 		gpuInstances[entity].modelMatrix = transform.GetModelMatrix();
 		gpuInstances[entity].textureLayer = meshEntry[0].textureLayer;
+		gpuInstances[entity].specLayer = meshEntry[0].specLayer;
 		gpuInstances[entity].entityID = (uint32_t)entity;
 		gpuInstances[entity].cmdIDs[0] = UINT32_MAX;
 		gpuInstances[entity].cmdIDs[1] = UINT32_MAX;
@@ -46,13 +43,23 @@ void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 	glBindVertexArray(mdiSystem->GetGlobalVAO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetVisibleIndicesSSBO());
+	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, EngineResources::GetTextureManager().GetTextureArrayID(Diffuse));
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, EngineResources::GetTextureManager().GetTextureArrayID(Specular));
 
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdiSystem->GetFilteredCmdsSSBO());
 
 	glBindBuffer(GL_PARAMETER_BUFFER, mdiSystem->GetDrawCountSSBO());
 	
-	glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, 0, 100 /*ECS::MAX_ENTITIES*/, 0);
+	glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, 0, ECS::MAX_ENTITIES, 0);
 
+	// reset to default
+	glActiveTexture(GL_TEXTURE1); 
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+	glActiveTexture(GL_TEXTURE0); 
+	glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 	glBindVertexArray(0);
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }

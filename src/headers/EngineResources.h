@@ -26,12 +26,6 @@ public:
         return shaderManager;
     }
 
-    static MDI& GetMDI()
-    {
-        static MDI mdi;
-        return mdi;
-    }
-
 private:
     EngineResources() = default;
 };

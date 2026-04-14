@@ -3,8 +3,8 @@
     "width": 256,
     "height": 256,
     "files": [	
-	 "models/chair/chair_wood_Base_color.jpg",
-	 "asd/ash",
+	 "textures/diffuseMap.png",
+	 "models/plane/asphalt_256.png",
 	 "textures/gargoyle/gargoyle_256.png"
     ]
   }

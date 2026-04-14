@@ -39,6 +39,7 @@ struct MeshEntry
 	uint32_t firstIndex;    // ebo offset
 	uint32_t indexCount;    // n indices
 	uint32_t textureLayer;
+	uint32_t specLayer;
 	AABB aabb;
 };
 
@@ -47,12 +48,15 @@ struct EntityMeshes
 	std::vector<MeshEntry> meshEntries;
 };
 
-// entiendo que lo del alignas(16) es por como va a leer la info la gpu
 struct InstanceData {
 	glm::mat4 modelMatrix;   // 64 bytes 
 	uint32_t entityID;       // 4 bytes
 	uint32_t textureLayer;   // 4 bytes  
-	uint32_t cmdIDs[2]; // 8 bytes, inicializado a valor max para poder saber en shader si no se usa
+	uint32_t specLayer;
+	uint32_t padding0;       // 4 bytes 
+	uint32_t cmdIDs[2];      // 8 bytes  
+	uint32_t padding1;       // 4 bytes  
+	uint32_t padding2;		 // 8 bytes
 };
 
 

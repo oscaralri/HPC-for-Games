@@ -5,7 +5,7 @@
 float LoadTexture(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
 	// esto creo que deberia funcionar pero como tal no tiene sentido el for
-	float texIndex;
+	float texIndex = -1;
 	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 	{
 		aiString str;
@@ -14,7 +14,6 @@ float LoadTexture(aiMaterial* mat, aiTextureType type, std::string typeName)
 	}
 	return texIndex;
 }
-
 
 void Model::FindAABBMinMax(const std::vector<Mesh> meshes, std::array<glm::vec3, 2>& aabb)
 {
@@ -157,28 +156,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	
 	float texIndex = LoadTexture(material, aiTextureType_DIFFUSE, "texture_diffuse");
-	std::cout << "\n" << "TexIndex: " << (int)texIndex;
+	std::cout << "\n" << "DiffuseIdx: " << (int)texIndex;
 
-	return Mesh(vertices, indices, texIndex);
+	float specularIndex = LoadTexture(material, aiTextureType_SPECULAR, "texture_specular");
+	std::cout << " Specular Idx: " << (int)specularIndex << std::endl;
+
+	return Mesh(vertices, indices, texIndex, specularIndex);
 }
-
-/*
-std::vector<ResourceHandle> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
-{
-	std::vector<ResourceHandle> textureHandles;
-
-	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
-	{
-		aiString str;
-		mat->GetTexture(type, i, &str);
-
-		// realmente si este resource handle apuntase a lo mismo de antes pero guardado en otro sitio estaria bien?
-
-		ResourceHandle textureHandle;
-		textureHandle = EngineResources::GetTextureManager().LoadTexture(str.C_Str(), this->directory, typeName);
-		textureHandles.push_back(textureHandle);
-	}
-
-	return textureHandles;
-};
-*/

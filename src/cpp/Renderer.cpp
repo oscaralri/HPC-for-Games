@@ -76,13 +76,13 @@ void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 ma
 	glDeleteVertexArrays(1, &VAO);
 }
 
-void Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes , glm::vec3 position)
+void Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes , glm::vec3 position, glm::vec3 scale)
 {
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
 		position,
 		glm::vec3(0.f),
-		glm::vec3(0.5f)
+		scale
 		});
 
 	gCoordinator.AddComponent(entity, AABB{
@@ -139,13 +139,14 @@ void SkyboxInit()
 
 void TexturesInit()
 {
-	EngineResources::GetTextureManager().LoadTextures("textures/texturesJSON.json");
+	EngineResources::GetTextureManager().LoadTextures("textures/diffuseJSON.json", Diffuse);
+	EngineResources::GetTextureManager().LoadTextures("textures/specularJSON.json", Specular);
 }
 
 void Renderer::ShadersInit()
 {
 	screenShader = EngineResources::GetShaderManager().LoadShader("shaders/framebuffer_screen.vert", "shaders/framebuffer_screen.frag");
-	renderShader = EngineResources::GetShaderManager().LoadShader("shaders/mdi.vert", "shaders/mdi.frag");
+	renderShader = EngineResources::GetShaderManager().LoadShader("shaders/mdi_light.vert", "shaders/mdi_light.frag");
 	computeShader = EngineResources::GetShaderManager().LoadShaderCompute("shaders/gpuFrustumCulling.comp");
 }
 
@@ -252,28 +253,44 @@ void Renderer::ModelsInit()
 	// MDI 
 	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx", "models/gargoyle/gargoyle.obj"};
 	std::vector<std::string> path2 = { "models/gargoyle/gargoyle.obj" };
+	std::vector<std::string> path3 = { "models/rock/rock.obj" };
+	std::vector<std::string> path4 = { "models/plane/plane.obj" };
+	std::vector<std::string> path5 = { "models/plane/plane.glb" };
 
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 	mdiSystem->GenerateDataBuffers();
 	mdiSystem->GenerateMeshBuffers();
 	
 	// chair
+	/*
 	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
 	auto chairMeshes = mdiSystem->AddLodsMesh(chairRH);
 	
+	
 	for (int i = 0; i < 10; i++)
 	{
-		GenerateMDIEntity(chairRH, chairMeshes, glm::vec3(0.f, 0.f, -((i * 50))));
+		GenerateMDIEntity(chairRH, chairMeshes, glm::vec3(0.f, 0.f, -(((i  + 1) * 50))), glm::vec3(0.5f));
 	}
-
+	*/
+	
 	ResourceHandle gargoyleRH = EngineResources::GetModelManager().LoadModelLOD(path2, 25);
 	auto gargoyleMeshes = mdiSystem->AddLodsMesh(gargoyleRH);
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 1; i++)
 	{
-		GenerateMDIEntity(gargoyleRH, gargoyleMeshes, glm::vec3(0.f, 0.f, ((i * 50))));
+		GenerateMDIEntity(gargoyleRH, gargoyleMeshes, glm::vec3(0.f, 0.f, ((i * 50))), glm::vec3(1.f));
 	}
-
-//	mdiSystem->GenerateDrawCmds(gCoordinator);
+	
+	//obj
+	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(path4, 25);
+	auto planeMeshes = mdiSystem->AddLodsMesh(planeRH);
+	for (int i = 0; i < 1; i++)
+	{
+		GenerateMDIEntity(planeRH, planeMeshes, glm::vec3(0.f, 0.f, 0.f), glm::vec3(250.f));
+	}
+	
+	ResourceHandle lightRH = EngineResources::GetModelManager().LoadModelLOD(path3, 25);
+	auto lightMeshes = mdiSystem->AddLodsMesh(lightRH);
+	GenerateMDIEntity(lightRH, lightMeshes, glm::vec3(-300.f, 100.f, 0.f), glm::vec3(50.f));
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->UpdateIndirectCmd(gCoordinator);
