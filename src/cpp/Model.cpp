@@ -156,10 +156,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	
 	float texIndex = LoadTexture(material, aiTextureType_DIFFUSE, "texture_diffuse");
-	std::cout << "\n" << "DiffuseIdx: " << (int)texIndex;
+	//std::cout << "\n" << "DiffuseIdx: " << (int)texIndex;
 
 	float specularIndex = LoadTexture(material, aiTextureType_SPECULAR, "texture_specular");
-	std::cout << " Specular Idx: " << (int)specularIndex << std::endl;
+	//std::cout << " Specular Idx: " << (int)specularIndex << std::endl;
 
 	return Mesh(vertices, indices, texIndex, specularIndex);
 }

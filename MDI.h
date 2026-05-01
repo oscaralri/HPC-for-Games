@@ -38,7 +38,7 @@ struct MeshEntry
 	uint32_t baseVertex;   // vbo offset 
 	uint32_t firstIndex;    // ebo offset
 	uint32_t indexCount;    // n indices
-	uint32_t textureLayer;
+	uint32_t diffuseLayer;
 	uint32_t specLayer;
 	AABB aabb;
 };
@@ -51,9 +51,8 @@ struct EntityMeshes
 struct InstanceData {
 	glm::mat4 modelMatrix;   // 64 bytes 
 	uint32_t entityID;       // 4 bytes
-	uint32_t textureLayer;   // 4 bytes  
-	uint32_t specLayer;
-	uint32_t padding0;       // 4 bytes 
+	uint32_t diffuseLayer[2];   // 8 bytes  
+	uint32_t specLayer;     
 	uint32_t cmdIDs[2];      // 8 bytes  
 	uint32_t padding1;       // 4 bytes  
 	uint32_t padding2;		 // 8 bytes

@@ -5,7 +5,7 @@ Kd 1.00000000000000 1.00000000000000 1.00000000000000
 
 newmtl material_0
 Kd 0.80000001192093 0.80000001192093 0.80000001192093
-map_Kd gargoyle_256.png
+map_Kd color_test3.png
 illum 7
 
-map_Ks gargoyle_256_red.png
+map_Kd gargoyle_2048.png

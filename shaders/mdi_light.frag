@@ -1,16 +1,21 @@
 #version 460
 
-struct Light {
-    vec3 position;
+const uint UNUSED_SPEC = 0xFFFFFFFFu;
+
+struct DirectionalLight {
+    vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 };
 
-Light light = Light(
-    vec3(-300.0, 100.0, 0.0), 
+const vec3 LIGHT_POS = vec3(-300.0, 100.0, 0.0);
+const vec3 TARGET    = vec3(0.0, 0.0, 0.0);
+
+DirectionalLight dirLight = DirectionalLight(
+    normalize(LIGHT_POS - TARGET), 
     vec3(0.5),           
-    vec3(1),            
+    vec3(1.0),            
     vec3(0.5)             
 );
 
@@ -27,23 +32,31 @@ layout(binding = 1) uniform sampler2DArray uSpecularArray;
 
 void main()
 {
+    vec3 texDiffuse = texture(uDiffuseArray, vTexCoords).rgb;
     vec3 texSpecular = texture(uSpecularArray, vSpecCoords).rgb;
 
     // ambient
-    vec3 ambient = light.ambient * texture(uDiffuseArray, vTexCoords).rgb;
+    vec3 ambient = dirLight.ambient * texDiffuse;
   	
     // diffuse 
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
+    vec3 lightDir = normalize(dirLight.direction);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = light.diffuse * diff * texture(uDiffuseArray, vTexCoords).rgb;  
+    vec3 diffuse = dirLight.diffuse * diff * texDiffuse;
 
     // specular
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 2.0);
-    vec3 specular = light.specular * spec * texSpecular;  
-
+    vec3 specular = vec3(0.0);
+    if(uint(vSpecCoords.z) != UNUSED_SPEC)
+    {
+        vec3 texSpecular = texture(uSpecularArray, vSpecCoords).rgb;
+        
+        vec3 viewDir = normalize(viewPos - FragPos);
+        vec3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(norm, halfDir), 0.0), 32.0);
+        
+        specular = dirLight.specular * spec * texSpecular;
+    }
+    
 
     vec3 result = ambient + diffuse + specular;
     FragColor = vec4(result, 1.0);

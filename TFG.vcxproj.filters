@@ -412,5 +412,11 @@
     <None Include="shaders\gpuFrustumCulling.comp">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="shaders\mdi_light.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\mdi_light.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

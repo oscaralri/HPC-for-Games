@@ -1,11 +1,30 @@
 {
   "texture_array": {
-    "width": 256,
-    "height": 256,
+    "width": 2048,
+    "height": 2048,
     "files": [	
-	 "textures/diffuseMap.png",
-	 "models/plane/asphalt_256.png",
-	 "textures/gargoyle/gargoyle_256.png"
-    ]
+	"models/buildings/building1/building1color.png",
+  "models/buildings/building1Low/building1colorLow.png",
+  "models/buildings/building2/building2color.png",
+  "models/buildings/building2Low/building2colorLow.png",
+  "models/buildings/building3/building3color.png",
+  "models/buildings/building3Low/building3colorLow.png",
+  "models/buildings/building4/building4color.png",
+  "models/buildings/building4Low/building4colorLow.png",
+  "models/buildings/building5/building5color.png",
+  "models/buildings/building6/building6color.png",
+  "models/buildings/building6Low/building6colorLow.png",
+
+  "models/cars/car1/car1color.png",
+  "models/cars/car1Low/car1colorLow.png",
+  "models/cars/car2/car2color.png",
+  "models/cars/car2Low/car2colorLow.png",
+  "models/cars/car3/car3color.png",
+  "models/cars/car3Low/car3colorLow.png",
+  "models/cars/car4/car4color.png",
+  "models/cars/car4Low/car4colorLow.png",
+  "models/cars/car5/car5color.png",
+  "models/cars/car5Low/car5colorLow.png"
+  ]
   }
 }

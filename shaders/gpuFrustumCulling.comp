@@ -1,6 +1,6 @@
 #version 460 
 
-const uint MDI_UNUSED_LOD = 0xFFFFFFFFu; // para leer si lod no esta en uso
+const uint MDI_UNUSED_LOD = 0xFFFFFFFF; // para leer si lod no esta en uso
 
 struct Plane {
     vec3 n;
@@ -17,9 +17,8 @@ layout(std140, binding = 5) uniform FrustumBuffer {
 struct InstanceData {
     mat4 modelMatrix;
     uint entityID;
-    uint textureLayer;
-    uint specLayer;
-    uint padding0;    
+    uint diffuseLayer[2];
+    uint specLayer;   
     uint cmdIDs[2];
     uint padding1;    
     uint padding2;    
@@ -63,11 +62,11 @@ layout(std430, binding = 3) buffer FilterdCmdBuffer {
 layout (binding = 4, offset = 0) uniform atomic_uint counter;
 
 // podria testear si diferentes local_size afectan al rendimiento
-layout(local_size_x = 8, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in; // tener cuidado que en pruebas de 1 se ejecutan mas si localsize es mas grande
 
 uint CheckLOD(vec4 cameraPos, vec4 objectPos)
 {
-    if(distance(cameraPos, objectPos) > 250)
+    if(distance(cameraPos, objectPos) > 1000)
     {
         return 1;
     }
@@ -120,18 +119,18 @@ void main() {
 
     if (isVisible(min, max, data)) {
         uint lodLevel = 0;
+
         if(data.cmdIDs[1] != MDI_UNUSED_LOD)
         {
             lodLevel = CheckLOD(cameraPos, data.modelMatrix[3]);
         }
-        
+        uint ID = data.cmdIDs[lodLevel];
+        commands[ID].baseInstance = lodLevel;
 
         uint findex = atomicCounterIncrement(counter);
 
-        visibleIndices[findex] = idx; // quizas tambien instance.entityID
-
-        uint ID = data.cmdIDs[lodLevel];
-
+        visibleIndices[findex] = idx; 
+        
         filteredCommands[findex] = commands[ID];  
      }
      

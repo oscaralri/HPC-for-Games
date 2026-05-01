@@ -18,16 +18,20 @@ void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
 
 		// instances
 		gpuInstances[entity].modelMatrix = transform.GetModelMatrix();
-		gpuInstances[entity].textureLayer = meshEntry[0].textureLayer;
 		gpuInstances[entity].specLayer = meshEntry[0].specLayer;
 		gpuInstances[entity].entityID = (uint32_t)entity;
+		
+		// default values (se rellenan con valores default para evitar problemas de paralelismo)
 		gpuInstances[entity].cmdIDs[0] = UINT32_MAX;
 		gpuInstances[entity].cmdIDs[1] = UINT32_MAX;
+		gpuInstances[entity].diffuseLayer[0] = meshEntry[0].diffuseLayer;
+		gpuInstances[entity].diffuseLayer[1] = meshEntry[0].diffuseLayer;
 
 		// draw 
 		for (int j = 0; j < meshEntry.size(); j++)
 		{
 			gpuInstances[entity].cmdIDs[j] = mdiSystem->GenerateDrawCmd(meshEntry[j]);
+			gpuInstances[entity].diffuseLayer[j] = meshEntry[j].diffuseLayer;
 		}
 		
 		// aabbs

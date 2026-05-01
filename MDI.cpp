@@ -91,7 +91,7 @@ MeshEntry MDI::AddMesh(ResourceHandle modelRH)
 		entry.baseVertex = currentVertexOffset;
 		entry.firstIndex = currentIndexOffset;
 		entry.indexCount = indices.size();
-		entry.textureLayer = model->getLODs()[0].meshes[0].texIndex;
+		entry.diffuseLayer = model->getLODs()[0].meshes[0].texIndex;
 		entry.aabb = aabb;
 
 		glBindBuffer(GL_ARRAY_BUFFER, globalVBO);
@@ -136,7 +136,7 @@ EntityMeshes MDI::AddLodsMesh(ResourceHandle modelRH)
 		entry.baseVertex = currentVertexOffset;
 		entry.firstIndex = currentIndexOffset;
 		entry.indexCount = indices.size();
-		entry.textureLayer = model->getLODs()[i].meshes[0].texIndex;
+		entry.diffuseLayer = model->getLODs()[i].meshes[0].texIndex;
 		entry.specLayer = model->getLODs()[i].meshes[0].specularIndex;
 		entry.aabb = aabb;
 

@@ -94,10 +94,6 @@ void Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMes
 	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
 
 	gCoordinator.AddComponent(entity, entityMeshes);
-
-	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
-	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
-	grid->Insert(entity, worldMin, worldMax);
 }
 
 void Renderer::GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, RandomGenerator& random)
@@ -125,12 +121,12 @@ void Renderer::GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, 
 void SkyboxInit()
 {
 	std::vector<std::string> skyboxFaces = {
-		"textures/skybox/right.jpg",
-		"textures/skybox/left.jpg",
-		"textures/skybox/top.jpg",
-		"textures/skybox/bottom.jpg",
-		"textures/skybox/front.jpg",
-		"textures/skybox/back.jpg"
+		"textures/skybox/daylight/Daylight_Right.png",
+		"textures/skybox/daylight/Daylight_Left.png",
+		"textures/skybox/daylight/Daylight_Top.png",
+		"textures/skybox/daylight/Daylight_Bottom.png",
+		"textures/skybox/daylight/Daylight_Front.png",
+		"textures/skybox/daylight/Daylight_Back.png"
 	};
 	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces, "shaders/skybox.vert", "shaders/skybox.frag");
 	auto scene = Application::Get().GetActiveScene();
@@ -243,54 +239,58 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(1000.f); // origin + maxValue 
-	glm::vec3 minValues = glm::vec3(-250.f, -250.f, -250.f); // origin
+	glm::vec3 maxValues = glm::vec3(500000, 0.f, 500000); // origin + maxValue 
+	glm::vec3 minValues = glm::vec3(-250000, 0.f, -250000); // origin
 	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(500.f));
 	
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
 
 	// MDI 
-	std::vector<std::string> path = { "models/chair/Pipo_chair_fix.fbx", "models/gargoyle/gargoyle.obj"};
-	std::vector<std::string> path2 = { "models/gargoyle/gargoyle.obj" };
-	std::vector<std::string> path3 = { "models/rock/rock.obj" };
-	std::vector<std::string> path4 = { "models/plane/plane.obj" };
-	std::vector<std::string> path5 = { "models/plane/plane.glb" };
-
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 	mdiSystem->GenerateDataBuffers();
 	mdiSystem->GenerateMeshBuffers();
 	
-	// chair
-	/*
-	ResourceHandle chairRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
-	auto chairMeshes = mdiSystem->AddLodsMesh(chairRH);
-	
-	
-	for (int i = 0; i < 10; i++)
+	// BUILDINGS
+	std::vector<std::vector<std::string>> buildingPaths =
 	{
-		GenerateMDIEntity(chairRH, chairMeshes, glm::vec3(0.f, 0.f, -(((i  + 1) * 50))), glm::vec3(0.5f));
-	}
-	*/
-	
-	ResourceHandle gargoyleRH = EngineResources::GetModelManager().LoadModelLOD(path2, 25);
-	auto gargoyleMeshes = mdiSystem->AddLodsMesh(gargoyleRH);
-	for (int i = 0; i < 1; i++)
+		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building2/building2.obj", "models/buildings/building2Low/building2Low.obj"},
+		{"models/buildings/building3/building3.obj", "models/buildings/building3Low/building3Low.obj"},
+		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
+		{"models/buildings/building5/building5.obj"},
+		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"}
+	};
+
+	for (auto& path : buildingPaths)
 	{
-		GenerateMDIEntity(gargoyleRH, gargoyleMeshes, glm::vec3(0.f, 0.f, ((i * 50))), glm::vec3(1.f));
-	}
-	
-	//obj
-	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(path4, 25);
-	auto planeMeshes = mdiSystem->AddLodsMesh(planeRH);
-	for (int i = 0; i < 1; i++)
-	{
-		GenerateMDIEntity(planeRH, planeMeshes, glm::vec3(0.f, 0.f, 0.f), glm::vec3(250.f));
+		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
+		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
+		for (int i = 0; i < 200; i++)
+		{
+			GenerateMDIEntity(bdingRH, bdingMesh, glm::vec3(0.f), glm::vec3(5.f));
+		}
 	}
 	
-	ResourceHandle lightRH = EngineResources::GetModelManager().LoadModelLOD(path3, 25);
-	auto lightMeshes = mdiSystem->AddLodsMesh(lightRH);
-	GenerateMDIEntity(lightRH, lightMeshes, glm::vec3(-300.f, 100.f, 0.f), glm::vec3(50.f));
+	// CARS
+	std::vector<std::vector<std::string>> carsPaths =
+	{
+		{"models/cars/car1/car1.obj", "models/cars/car1Low/car1Low.obj"},
+		{"models/cars/car2/car2.obj", "models/cars/car2Low/car2Low.obj"},
+		{"models/cars/car3/car3.obj", "models/cars/car3Low/car3Low.obj"},
+		{"models/cars/car4/car4.obj", "models/cars/car4Low/car4Low.obj"},
+		{"models/cars/car5/car5.obj", "models/cars/car5Low/car5Low.obj"}
+	};
+
+	for (auto& path : carsPaths)
+	{
+		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
+		auto carMesh = mdiSystem->AddLodsMesh(carRH);
+		for (int i = 0; i < 10; i++)
+		{
+			GenerateMDIEntity(carRH, carMesh, glm::vec3(0.f), glm::vec3(150.f));
+		}
+	}
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->UpdateIndirectCmd(gCoordinator);
@@ -377,7 +377,7 @@ void Renderer::Init()
 	SCR_WIDTH = 1024; // porta: 1024 x 576, PC: 1366x768 
 	SCR_HEIGHT = 576;
 	near = 0.1f;
-	far = 2000.f;
+	far = 100000.f;
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
 	nbFrames = 0;
@@ -388,7 +388,7 @@ void Renderer::Init()
 	firstMouse = true;
 	lastX = SCR_WIDTH / 2.0f;
 	lastY = SCR_HEIGHT / 2.0f;
-	isImgui = true;
+	isImgui = false;
 	isDebugGrid = false;
 	imguiCamPosX = -28.f;
 	imguiCamPosY = 1400.f;
