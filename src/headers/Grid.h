@@ -70,7 +70,7 @@ struct Grid
         // debug
         std::cout << "Grid AABB Min: " << gridMin.x << ", " << gridMin.y << ", " << gridMin.z << "\n";
         std::cout << "Grid AABB Max: " << gridMax.x << ", " << gridMax.y << ", " << gridMax.z << "\n";
-        std::cout << "Total Cells: " << totalCells;
+        std::cout << "Total Cells: " << totalCells << std::endl;
     }
 
     int GetIndex(int x, int y, int z) const

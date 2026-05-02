@@ -81,7 +81,7 @@ void Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMes
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
 		position,
-		glm::vec3(0.f),
+		glm::vec3(0.f, 0.f, 0.f),
 		scale
 		});
 
@@ -121,14 +121,42 @@ void Renderer::GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, 
 void SkyboxInit()
 {
 	std::vector<std::string> skyboxFaces = {
-		"textures/skybox/daylight/Daylight_Right.png",
-		"textures/skybox/daylight/Daylight_Left.png",
-		"textures/skybox/daylight/Daylight_Top.png",
-		"textures/skybox/daylight/Daylight_Bottom.png",
-		"textures/skybox/daylight/Daylight_Front.png",
-		"textures/skybox/daylight/Daylight_Back.png"
+		"textures/skybox/right.jpg",
+		"textures/skybox/left.jpg",
+		"textures/skybox/top.jpg",
+		"textures/skybox/bottom.jpg",
+		"textures/skybox/front.jpg",
+		"textures/skybox/back.jpg"
 	};
-	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces, "shaders/skybox.vert", "shaders/skybox.frag");
+
+	std::vector<std::string> skyboxFaces7 = {
+		"textures/skybox/seven/Cubemap_Sky_07_posx_2048.png",
+		"textures/skybox/seven/Cubemap_Sky_07_negx_2048.png",
+		"textures/skybox/seven/Cubemap_Sky_07_posy_2048.png",
+		"textures/skybox/seven/Cubemap_Sky_07_negy_2048.png",
+		"textures/skybox/seven/Cubemap_Sky_07_posz_2048.png",
+		"textures/skybox/seven/Cubemap_Sky_07_negz_2048.png"
+	};
+
+	std::vector<std::string> skyboxFaces3 = {
+		"textures/skybox/three/Cubemap_Sky_03_posx_2048.png",
+		"textures/skybox/three/Cubemap_Sky_03_negx_2048.png",
+		"textures/skybox/three/Cubemap_Sky_03_posy_2048.png",
+		"textures/skybox/three/Cubemap_Sky_03_negy_2048.png",
+		"textures/skybox/three/Cubemap_Sky_03_posz_2048.png",
+		"textures/skybox/three/Cubemap_Sky_03_negz_2048.png"
+	};
+
+	std::vector<std::string> skyboxFaces6 = {
+		"textures/skybox/six/Cubemap_Sky_06_posx_2048.png",
+		"textures/skybox/six/Cubemap_Sky_06_negx_2048.png",
+		"textures/skybox/six/Cubemap_Sky_06_posy_2048.png",
+		"textures/skybox/six/Cubemap_Sky_06_negy_2048.png",
+		"textures/skybox/six/Cubemap_Sky_06_posz_2048.png",
+		"textures/skybox/six/Cubemap_Sky_06_negz_2048.png"
+	};
+
+	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces6, "shaders/skybox.vert", "shaders/skybox.frag");
 	auto scene = Application::Get().GetActiveScene();
 	scene->SetSkybox(newSkybox);
 }
@@ -239,9 +267,9 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(500000, 0.f, 500000); // origin + maxValue 
-	glm::vec3 minValues = glm::vec3(-250000, 0.f, -250000); // origin
-	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(500.f));
+	glm::vec3 maxValues = glm::vec3(36000.f, 0.f, 36000.f); // origin + maxValue 
+	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
+	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(100.f));
 	
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
@@ -266,9 +294,29 @@ void Renderer::ModelsInit()
 	{
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
-		for (int i = 0; i < 200; i++)
+		for (int i = 0; i < 20; i++)
 		{
-			GenerateMDIEntity(bdingRH, bdingMesh, glm::vec3(0.f), glm::vec3(5.f));
+			GenerateMDIEntity(bdingRH, bdingMesh, random.GetPosition(), glm::vec3(15.f));
+		}
+	}
+
+	// PLANE
+	std::vector<std::string> planePath = { "models/plane/plane.obj" };
+	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(planePath, 500);
+	auto planeMesh = mdiSystem->AddLodsMesh(planeRH);
+
+	float division = 24.f;
+	float stepX = (maxValues.x - minValues.x) / division;
+	float stepZ = (maxValues.z - minValues.z) / division;
+	float scale = (maxValues.x) / division;
+	
+	for (float x = minValues.x; x < maxValues.x; x += stepX)
+	{
+		for (float z = minValues.z; z < maxValues.z; z += stepZ)
+		{
+			glm::vec3 position = glm::vec3(x /* + (stepX)*/, 0.0f, z /*+ (stepZ)*/);
+			std::cout << position.x << " " << position.y << " " << position.z << " " << std::endl;
+			GenerateMDIEntity(planeRH, planeMesh, position, glm::vec3(maxValues.x / (division * 2.f)));
 		}
 	}
 	
@@ -286,7 +334,7 @@ void Renderer::ModelsInit()
 	{
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto carMesh = mdiSystem->AddLodsMesh(carRH);
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 0; i++)
 		{
 			GenerateMDIEntity(carRH, carMesh, glm::vec3(0.f), glm::vec3(150.f));
 		}
@@ -390,6 +438,7 @@ void Renderer::Init()
 	lastY = SCR_HEIGHT / 2.0f;
 	isImgui = false;
 	isDebugGrid = false;
+	isCameraPos = true;
 	imguiCamPosX = -28.f;
 	imguiCamPosY = 1400.f;
 	imguiCamPosZ = -400.f;
@@ -422,7 +471,7 @@ void Renderer::Render()
 	auto cullingSystem = gCoordinator.GetSystem<CullingSystem>();
 	Frustum frustum = cullingSystem->CreateFrustum(mainCamera->projection, mainCamera->view); // planes[6] / plane: glm::vec3 n + float d
 	glm::vec4 cameraPos4 = glm::vec4(mainCamera->Position, 1.0f);
-
+		
 	glBindBuffer(GL_UNIFORM_BUFFER, frustumUBO);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec4), glm::value_ptr(cameraPos4));
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec4), sizeof(Plane) * 6, &frustum.planes[0]);
@@ -509,7 +558,6 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 		glClearColor(0.f, 0.f, 0.f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
 		glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(imguiView));
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(imguiProj));
@@ -522,6 +570,7 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 		ImGui::Begin("Render Debug");
 		ImGui::Checkbox("Debug Grid", &isDebugGrid);
 		ImGui::Checkbox("ImguiCamera", &isImgui);
+		ImGui::Checkbox("Camera Pos", &isCameraPos);
 		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
 		ImGui::DragFloat("X", &imguiCamPosX, 0.5f);
 		ImGui::DragFloat("Y", &imguiCamPosY, 0.5f);
@@ -533,6 +582,7 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 		ImGui::Begin("Render Debug");
 		ImGui::Checkbox("Debug Grid", &isDebugGrid);
 		ImGui::Checkbox("ImguiCamera", &isImgui);
+		ImGui::Checkbox("Camera Pos", &isCameraPos);
 		ImGui::End();
 	}
 
@@ -542,6 +592,13 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 		{
 			DebugAABB(imguiProj, imguiView, cell.min, cell.max);
 		}
+	}
+
+	if (isCameraPos)
+	{
+		ImGui::Begin("Camera Pos");
+		ImGui::DragFloat3("CameraPos", &mainCamera->Position.x, 0.1f);
+		ImGui::End();
 	}
 }
 

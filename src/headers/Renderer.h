@@ -61,6 +61,7 @@ private:
 	//ImGUI
 	bool isImgui;
 	bool isDebugGrid;
+	bool isCameraPos;
 	float imguiCamPosX;
 	float imguiCamPosY;
 	float imguiCamPosZ;

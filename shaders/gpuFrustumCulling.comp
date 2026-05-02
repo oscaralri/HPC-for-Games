@@ -62,7 +62,7 @@ layout(std430, binding = 3) buffer FilterdCmdBuffer {
 layout (binding = 4, offset = 0) uniform atomic_uint counter;
 
 // podria testear si diferentes local_size afectan al rendimiento
-layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in; // tener cuidado que en pruebas de 1 se ejecutan mas si localsize es mas grande
+layout(local_size_x = 8, local_size_y = 1, local_size_z = 1) in; // tener cuidado que en pruebas de 1 se ejecutan mas si localsize es mas grande
 
 uint CheckLOD(vec4 cameraPos, vec4 objectPos)
 {
