@@ -156,7 +156,7 @@ void SkyboxInit()
 		"textures/skybox/six/Cubemap_Sky_06_negz_2048.png"
 	};
 
-	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces6, "shaders/skybox.vert", "shaders/skybox.frag");
+	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces7, "shaders/skybox.vert", "shaders/skybox.frag");
 	auto scene = Application::Get().GetActiveScene();
 	scene->SetSkybox(newSkybox);
 }
@@ -267,12 +267,12 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(36000.f, 0.f, 36000.f); // origin + maxValue 
+	glm::vec3 maxValues = glm::vec3(500000, 0.f, 500000.f); // origin + maxValue 
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
-	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(100.f));
+	//grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(100.f)); // no se utiliza
 	
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
-	RandomGenerator random(ECS::MAX_ENTITIES, 123, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
+	RandomGenerator random(ECS::MAX_ENTITIES, 120, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
 
 	// MDI 
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
@@ -294,32 +294,12 @@ void Renderer::ModelsInit()
 	{
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
-		for (int i = 0; i < 20; i++)
+		for (int i = 0; i < 15000; i++)
 		{
-			GenerateMDIEntity(bdingRH, bdingMesh, random.GetPosition(), glm::vec3(15.f));
+			GenerateMDIEntity(bdingRH, bdingMesh, random.GetPosition(), glm::vec3(25.f));
 		}
 	}
 
-	// PLANE
-	std::vector<std::string> planePath = { "models/plane/plane.obj" };
-	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(planePath, 500);
-	auto planeMesh = mdiSystem->AddLodsMesh(planeRH);
-
-	float division = 24.f;
-	float stepX = (maxValues.x - minValues.x) / division;
-	float stepZ = (maxValues.z - minValues.z) / division;
-	float scale = (maxValues.x) / division;
-	
-	for (float x = minValues.x; x < maxValues.x; x += stepX)
-	{
-		for (float z = minValues.z; z < maxValues.z; z += stepZ)
-		{
-			glm::vec3 position = glm::vec3(x /* + (stepX)*/, 0.0f, z /*+ (stepZ)*/);
-			std::cout << position.x << " " << position.y << " " << position.z << " " << std::endl;
-			GenerateMDIEntity(planeRH, planeMesh, position, glm::vec3(maxValues.x / (division * 2.f)));
-		}
-	}
-	
 	// CARS
 	std::vector<std::vector<std::string>> carsPaths =
 	{
@@ -334,11 +314,33 @@ void Renderer::ModelsInit()
 	{
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto carMesh = mdiSystem->AddLodsMesh(carRH);
-		for (int i = 0; i < 0; i++)
+		for (int i = 0; i < 10000; i++)
 		{
-			GenerateMDIEntity(carRH, carMesh, glm::vec3(0.f), glm::vec3(150.f));
+			GenerateMDIEntity(carRH, carMesh, random.GetPosition(), glm::vec3(100.f));
 		}
 	}
+
+	// PLANE
+	std::vector<std::string> planePath = { "models/plane/plane.obj" };
+	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(planePath, 500);
+	auto planeMesh = mdiSystem->AddLodsMesh(planeRH);
+
+	float division = 4.f;
+	float stepX = (maxValues.x - minValues.x) / division;
+	float stepZ = (maxValues.z - minValues.z) / division;
+	float scale = (maxValues.x) / division;
+	
+	for (float x = minValues.x; x < maxValues.x; x += stepX)
+	{
+		for (float z = minValues.z; z < maxValues.z; z += stepZ)
+		{
+			glm::vec3 position = glm::vec3(x /* + (stepX)*/, 0.0f, z /*+ (stepZ)*/);
+			//std::cout << position.x << " " << position.y << " " << position.z << " " << std::endl;
+			GenerateMDIEntity(planeRH, planeMesh, position, glm::vec3(maxValues.x / (division * 2.f)));
+		}
+	}
+	
+
 
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->UpdateIndirectCmd(gCoordinator);
@@ -422,9 +424,9 @@ void Renderer::showFPS(GLFWwindow* window) {
 
 void Renderer::Init()
 {
-	SCR_WIDTH = 1024; // porta: 1024 x 576, PC: 1366x768 
-	SCR_HEIGHT = 576;
-	near = 0.1f;
+	SCR_WIDTH = 1600; // porta: 1024 x 576, PC: 1366x768 
+	SCR_HEIGHT = 900;
+	near = 1.0f;
 	far = 100000.f;
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;

@@ -3,6 +3,18 @@
     "width": 2048,
     "height": 2048,
     "files": [
+    "models/buildings/building1/building1specular.png",
+    "models/buildings/building2/building2specular.png",
+    "models/buildings/building3/building3specular.png",
+    "models/buildings/building4/building4specular.png",
+    "models/buildings/building5/building5specular.png",
+    "models/buildings/building6/building6specular.png",
+
+    "models/cars/car1/car1specular.png",
+    "models/cars/car2/car2specular.png",
+    "models/cars/car3/car3specular.png",
+    "models/cars/car4/car4specular.png",
+    "models/cars/car5/car5specular.png"
     ]
   }
 }

@@ -9,7 +9,7 @@ struct DirectionalLight {
     vec3 specular;
 };
 
-const vec3 LIGHT_POS = vec3(-300.0, 100.0, 0.0);
+const vec3 LIGHT_POS = vec3(1000.0, 1000.0, 1000.0);
 const vec3 TARGET    = vec3(0.0, 0.0, 0.0);
 
 DirectionalLight dirLight = DirectionalLight(
