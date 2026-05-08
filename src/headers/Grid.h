@@ -23,7 +23,7 @@ struct GridCell
     glm::vec3 max;
     std::vector<ECS::Entity> entities;
     std::vector<StaticBatch> lodBatches[2];
-    int lodDistance = 1000;
+    int lodDistance = 5000;
 };
 
 struct Grid
@@ -45,7 +45,7 @@ struct Grid
         cellsY = worldSize.y / cellSize.y;
         cellsZ = worldSize.z / cellSize.z;
 
-        int totalCells = cellsX * cellsY * cellsZ;
+        float totalCells = (float)cellsX * cellsY * cellsZ;
         cells.resize(totalCells);
 
         for (int z = 0; z < cellsZ; ++z)

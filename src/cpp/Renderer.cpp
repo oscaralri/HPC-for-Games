@@ -214,30 +214,71 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	grid = std::make_unique<Grid>(glm::vec3(-250.f, -250.f, -1000.f), glm::vec3(1000.f), glm::vec3(500.f));
-	
-	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, 0, 0, -300, 0);
+	glm::vec3 maxValues = glm::vec3(50000.f, 1000.f, 50000.f); // origin + maxValue 
+	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
+	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(1000.f)); 
+
+	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
+	RandomGenerator random(ECS::MAX_ENTITIES, 120, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
 
 	// BATCHING
-	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/batching.vert", "shaders/batching.frag");
-	// gargoyle
+	batchingShader = EngineResources::GetShaderManager().LoadShader("shaders/a_buffers.vert", "shaders/a_buffers.frag");
+	// BUILDINGS
+	std::vector<std::vector<std::string>> buildingPaths =
 	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		auto shader = EngineResources::GetShaderManager().LoadShader("shaders/a_buffers.vert", "shaders/a_buffers.frag");
-		auto modelRH = EngineResources::GetModelManager().LoadModelLOD(path, 25);
+		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building2/building2.obj", "models/buildings/building2Low/building2Low.obj"},
+		{"models/buildings/building3/building3.obj", "models/buildings/building3Low/building3Low.obj"},
+		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
+		{"models/buildings/building5/building5.obj"},
+		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"}
+	};
 
-		for (int i = 0; i < 25; i++)
+	for (auto& path : buildingPaths)
+	{
+		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
+		for (int i = 0; i < 3; i++)
 		{
-			GenerateBatchEntity(modelRH, shader, glm::vec3((i + 10.f) * 1.5f, (i) * -1.5f, -250.f), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.5f), 25);
+			GenerateBatchEntity(bdingRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(100.f), 20);
 		}
-		/*
-		std::vector<std::string> path2 = { "models/chair/Pipo_chair_fix.fbx", "models/gargoyle/gargoyleLOW.obj" };
-		auto modelRH2 = EngineResources::GetModelManager().LoadModelLOD(path2, 25);
-		for (int i = 0; i < 200; i++)
+	}
+
+	// CARS
+	std::vector<std::vector<std::string>> carsPaths =
+	{
+		{"models/cars/car1/car1.obj", "models/cars/car1Low/car1Low.obj"},
+		{"models/cars/car2/car2.obj", "models/cars/car2Low/car2Low.obj"},
+		{"models/cars/car3/car3.obj", "models/cars/car3Low/car3Low.obj"},
+		{"models/cars/car4/car4.obj", "models/cars/car4Low/car4Low.obj"},
+		{"models/cars/car5/car5.obj", "models/cars/car5Low/car5Low.obj"}
+	};
+
+	for (auto& path : carsPaths)
+	{
+		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
+		for (int i = 0; i < 3; i++)
 		{
-			GenerateBatchEntity(modelRH2, shader, glm::vec3(i * 1.5f, (i) * 1.5f, -250.f), glm::vec3(0.f), glm::vec3(0.5f), 25);
+			GenerateBatchEntity(carRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(100.f), 20);
 		}
-		*/
+	}
+
+	// PLANE
+	std::vector<std::string> planePath = { "models/plane/plane.obj" };
+	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(planePath, 500);
+
+	float division = 4.f;
+	float stepX = (maxValues.x - minValues.x) / division;
+	float stepZ = (maxValues.z - minValues.z) / division;
+	float scale = (maxValues.x) / division;
+
+	for (float x = minValues.x; x < maxValues.x; x += stepX)
+	{
+		for (float z = minValues.z; z < maxValues.z; z += stepZ)
+		{
+			glm::vec3 position = glm::vec3(x /* + (stepX)*/, 0.0f, z /*+ (stepZ)*/);
+			//std::cout << position.x << " " << position.y << " " << position.z << " " << std::endl;
+			GenerateBatchEntity(planeRH, batchingShader, glm::vec3(maxValues.x / (division * 2.f)), glm::vec3(0.f), glm::vec3(100.f), 20);
+		}
 	}
 
 	// ENTITIES TO GRID
@@ -328,8 +369,8 @@ void Renderer::Init()
 {
 	SCR_WIDTH = 1024; // porta: 1024 x 576, PC: 1366x768 
 	SCR_HEIGHT = 576;
-	near = 0.1f;
-	far = 2000.f;
+	near = 1.f;
+	far = 50000.f;
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
 	nbFrames = 0;
