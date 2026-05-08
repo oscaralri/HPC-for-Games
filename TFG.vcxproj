@@ -141,10 +141,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BatchSystem.cpp" />
-    <ClCompile Include="MDI.cpp" />
+    <ClCompile Include="src\cpp\BatchSystem.cpp" />
     <ClCompile Include="src\cpp\GridInitializer.cpp" />
     <ClCompile Include="src\cpp\LODSystem.cpp" />
+    <ClCompile Include="src\cpp\MDI.cpp" />
     <ClCompile Include="src\cpp\RandomGenerator.cpp" />
     <ClCompile Include="src\cpp\Application.cpp" />
     <ClCompile Include="src\cpp\BaseScene.cpp" />
@@ -181,11 +181,11 @@
     <ClCompile Include="src\cpp\ECS\SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BatchSystem.h" />
     <ClInclude Include="json.hpp" />
-    <ClInclude Include="MDI.h" />
+    <ClInclude Include="src\headers\BatchSystem.h" />
     <ClInclude Include="src\headers\GridInitializer.h" />
     <ClInclude Include="src\headers\LODSystem.h" />
+    <ClInclude Include="src\headers\MDI.h" />
     <ClInclude Include="src\headers\RandomGenerator.h" />
     <ClInclude Include="src\headers\Application.h" />
     <ClInclude Include="src\headers\BaseScene.h" />

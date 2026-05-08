@@ -132,10 +132,10 @@
     <ClCompile Include="src\cpp\RandomGenerator.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="BatchSystem.cpp">
+    <ClCompile Include="src\cpp\MDI.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="MDI.cpp">
+    <ClCompile Include="src\cpp\BatchSystem.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
   </ItemGroup>
@@ -263,13 +263,13 @@
     <ClInclude Include="src\headers\RandomGenerator.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="BatchSystem.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="json.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="MDI.h">
+    <ClInclude Include="src\headers\BatchSystem.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="src\headers\MDI.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

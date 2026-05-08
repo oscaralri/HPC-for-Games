@@ -334,8 +334,8 @@ void Renderer::ModelsInit()
 	{
 		for (float z = minValues.z; z < maxValues.z; z += stepZ)
 		{
-			glm::vec3 position = glm::vec3(x /* + (stepX)*/, 0.0f, z /*+ (stepZ)*/);
-			//std::cout << position.x << " " << position.y << " " << position.z << " " << std::endl;
+			glm::vec3 position = glm::vec3(x, 0.0f, z );
+			//std::cout << position.x << " " << position.y << " " << p/*+ (stepZ)*/osition.z << " " << std::endl;
 			GenerateMDIEntity(planeRH, planeMesh, position, glm::vec3(maxValues.x / (division * 2.f)));
 		}
 	}
