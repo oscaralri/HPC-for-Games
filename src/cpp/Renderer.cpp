@@ -76,12 +76,12 @@ void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 ma
 	glDeleteVertexArrays(1, &VAO);
 }
 
-void Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes , glm::vec3 position, glm::vec3 scale)
+ECS::Entity Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes , glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
 		position,
-		glm::vec3(0.f, 0.f, 0.f),
+		rotation,
 		scale
 		});
 
@@ -94,28 +94,23 @@ void Renderer::GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMes
 	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
 
 	gCoordinator.AddComponent(entity, entityMeshes);
+
+	return entity;
 }
 
-void Renderer::GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, RandomGenerator& random)
+void AddMovementEntity(ECS::Entity entity, glm::vec3 velocity)
 {
-	auto entity = gCoordinator.CreateEntity();
-	gCoordinator.AddComponent(entity, Transform{
-		random.GetPosition(),
-		glm::vec3(0.f),
-		glm::vec3(0.5f)
-		});
-	gCoordinator.AddComponent(entity, AABB{
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0], 0),
-		glm::vec4(EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1], 0)
-		});
-	AABB& aabb = gCoordinator.GetComponent<AABB>(entity);
-	Transform& transform = gCoordinator.GetComponent<Transform>(entity);
+	auto& transform = gCoordinator.GetComponent<Transform>(entity);
 
-	gCoordinator.AddComponent(entity, mesh);
+	Movement movement
+	{
+		// init , max, velocity
+		transform.position,
+		glm::vec3(transform.position.x + 1000, transform.position.y, transform.position.z),
+		velocity
+	};
 
-	glm::vec3 worldMin = transform.position + glm::vec3(aabb.min.x, aabb.min.y, aabb.min.z) * transform.scale;
-	glm::vec3 worldMax = transform.position + glm::vec3(aabb.max.x, aabb.max.y, aabb.max.z) * transform.scale;
-	grid->Insert(entity, worldMin, worldMax);
+	gCoordinator.AddComponent(entity, movement);
 }
 
 void SkyboxInit()
@@ -294,9 +289,10 @@ void Renderer::ModelsInit()
 	{
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
-		for (int i = 0; i < 15000; i++)
+		
+		for (int i = 0; i < 100; i++)
 		{
-			GenerateMDIEntity(bdingRH, bdingMesh, random.GetPosition(), glm::vec3(25.f));
+			GenerateMDIEntity(bdingRH, bdingMesh, random.GetPosition(), glm::vec3(0.f), glm::vec3(25.f));
 		}
 	}
 
@@ -314,9 +310,11 @@ void Renderer::ModelsInit()
 	{
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto carMesh = mdiSystem->AddLodsMesh(carRH);
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 100; i++)
 		{
-			GenerateMDIEntity(carRH, carMesh, random.GetPosition(), glm::vec3(100.f));
+			auto entity = GenerateMDIEntity(carRH, carMesh, random.GetPosition(), glm::vec3(), glm::vec3(100.f));
+			AddMovementEntity(entity, glm::vec3(10.f, 0.f, 0.f));
+			Movement debugMovement = gCoordinator.GetComponent<Movement>(entity);
 		}
 	}
 
@@ -336,7 +334,7 @@ void Renderer::ModelsInit()
 		{
 			glm::vec3 position = glm::vec3(x, 0.0f, z );
 			//std::cout << position.x << " " << position.y << " " << p/*+ (stepZ)*/osition.z << " " << std::endl;
-			GenerateMDIEntity(planeRH, planeMesh, position, glm::vec3(maxValues.x / (division * 2.f)));
+			GenerateMDIEntity(planeRH, planeMesh, position, glm::vec3(0.f), glm::vec3(maxValues.x / (division * 2.f)));
 		}
 	}
 	
@@ -428,22 +426,29 @@ void Renderer::Init()
 	SCR_HEIGHT = 900;
 	near = 1.0f;
 	far = 100000.f;
+
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
 	nbFrames = 0;
 	lastTime = 0.;
 	fps = 0.;
+	updateInterval = 0.1f;
+
 	moveEnabled = true;
 	firstMouse = true;
 	firstMouse = true;
+
 	lastX = SCR_WIDTH / 2.0f;
 	lastY = SCR_HEIGHT / 2.0f;
+
 	isImgui = false;
 	isDebugGrid = false;
 	isCameraPos = true;
+
 	imguiCamPosX = -28.f;
 	imguiCamPosY = 1400.f;
 	imguiCamPosZ = -400.f;
+
 	scene = Application::Get().GetActiveScene();
 	mainCamera = scene->GetCamera("MainCamera");
 	imguiCamera = scene->GetCamera("ImguiCamera");
@@ -494,6 +499,14 @@ void Renderer::Render()
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 	processInput(window);
+
+	totalTime += deltaTime;
+	if (totalTime >= updateInterval)
+	{
+		auto movementSystem = gCoordinator.GetSystem<MovementSystem>();
+		movementSystem->UpdatePositions(gCoordinator);
+		totalTime -= updateInterval;
+	}
 
 	// FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);

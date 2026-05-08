@@ -84,6 +84,9 @@ private:
 	double lastTime;
 	double fps;
 
+	float totalTime;
+	float updateInterval;
+
 	bool moveEnabled;
 	bool firstMouse;
 	float lastX;
@@ -106,8 +109,7 @@ private:
 	void RenderImGUI();
 	void RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS);
 
-	void GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes, glm::vec3 position, glm::vec3 scale);
-	void GenerateMDIEntityRandom(ResourceHandle modelRH, MeshEntry& mesh, RandomGenerator& random);
+	ECS::Entity GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 
 	// debug
 	void showFPS(GLFWwindow* window);

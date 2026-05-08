@@ -8,11 +8,13 @@
 #include "Coordinator.h"
 #include "Transform.h"
 #include "Renderable.h"
+#include "Movement.h"
 
 #include "RenderSystem.h"
 #include "LODSystem.h"
 #include "CullingSystem.h"
 #include "BatchSystem.h"
+#include "MovementSystem.h"
 
 extern ECS::Coordinator gCoordinator;
 

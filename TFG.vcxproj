@@ -145,6 +145,7 @@
     <ClCompile Include="src\cpp\GridInitializer.cpp" />
     <ClCompile Include="src\cpp\LODSystem.cpp" />
     <ClCompile Include="src\cpp\MDI.cpp" />
+    <ClCompile Include="src\cpp\MovementSystem.cpp" />
     <ClCompile Include="src\cpp\RandomGenerator.cpp" />
     <ClCompile Include="src\cpp\Application.cpp" />
     <ClCompile Include="src\cpp\BaseScene.cpp" />
@@ -186,6 +187,8 @@
     <ClInclude Include="src\headers\GridInitializer.h" />
     <ClInclude Include="src\headers\LODSystem.h" />
     <ClInclude Include="src\headers\MDI.h" />
+    <ClInclude Include="src\headers\Movement.h" />
+    <ClInclude Include="src\headers\MovementSystem.h" />
     <ClInclude Include="src\headers\RandomGenerator.h" />
     <ClInclude Include="src\headers\Application.h" />
     <ClInclude Include="src\headers\BaseScene.h" />
