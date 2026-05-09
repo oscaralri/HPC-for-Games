@@ -270,13 +270,25 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::ModelsInit()
 {
+	std::vector<ExclusionZone> roads =
+	{
+		{0.f, 20000.f, 2000.f, 4000.f},
+		{0.f, 20000.f, 8000.f, 10000.f},
+		{0.f, 20000.f, 16000.f, 18000.f},
+	};
+
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(10000.f, 0.f, 10000.f); // origin + maxValue // old: 500k
+	glm::vec3 maxValues = glm::vec3(20000.f, 0.f, 20000.f); // origin + maxValue // old: 500k
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
 	//grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(100.f)); // no se utiliza
 	
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
-	RandomGenerator random(ECS::MAX_ENTITIES, 120, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
+	RandomGenerator randomBdings(RandBuilding, ECS::MAX_ENTITIES, 1, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z, roads);
+	RandomGenerator randomCars(RandCar, 10000, 222, 9000.f, 11000.f, 0.f, 0.f, 0.f, 20000.f);
+
+	//std::cout << randomBdings.GetPositions().size() << std::endl;
+	//std::cout << randomCars.GetPositions().size() << std::endl;
+
 
 	// MDI 
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
@@ -299,9 +311,11 @@ void Renderer::ModelsInit()
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
 		
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 20; i++)
 		{
-			GenerateMDIEntity(bdingRH, bdingMesh, random.GetPosition(), glm::vec3(0.f), glm::vec3(25.f));
+			glm::vec3 debugPos = randomBdings.GetPositionBding();
+			GenerateMDIEntity(bdingRH, bdingMesh, debugPos, glm::vec3(0.f), glm::vec3(25.f));
+			std::cout << debugPos.x << " " << debugPos.y << " " << debugPos.z << std::endl;
 		}
 	}
 
@@ -318,37 +332,35 @@ void Renderer::ModelsInit()
 	float speed = 10.f;
 	std::vector<glm::vec3> velocities =
 	{
-		glm::vec3(0.f, 0.f, speed), // +z
-		glm::vec3(0.f, 0.f, -speed), // -z
-
 		glm::vec3(speed, 0.f, 0.f), // +x
-		glm::vec3(-speed, 0.f, 0.f) // -x
+		glm::vec3(-speed, 0.f, 0.f), // -x
+
+		glm::vec3(0.f, 0.f, speed), // +z
+		glm::vec3(0.f, 0.f, -speed) // -z
 	};
 
 	std::vector<glm::vec3> rotations =
 	{
-		glm::vec3(0.f, -90.f, 0.f), // +z
-		glm::vec3(0.f, 90.f, 0.f), // -z
-
 		glm::vec3(0.f, 0.f, 0.f), // +x
-		glm::vec3(0.f, 180.f, 0.f) // -x
+		glm::vec3(0.f, 180.f, 0.f), // -x
+
+		glm::vec3(0.f, -90.f, 0.f), // +z
+		glm::vec3(0.f, 90.f, 0.f) // -z
 	};
 	
-	int rotIdx = 0;
+	int idx = 0;
 	int velIdx = 0;
-
 	for (auto& path : carsPaths)
 	{
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto carMesh = mdiSystem->AddLodsMesh(carRH);
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 30; i++)
 		{
-			auto entity = GenerateMDIEntity(carRH, carMesh, random.GetPosition(), rotations[rotIdx], glm::vec3(100.f));
-			AddMovementEntity(entity, velocities[rotIdx]);
-			if (++rotIdx > 3) rotIdx = 0;
+			auto entity = GenerateMDIEntity(carRH, carMesh, randomBdings.GetPositionCars(), rotations[idx], glm::vec3(100.f));
+			AddMovementEntity(entity, velocities[velIdx]);
+			if (++idx > 1) idx = 0;
+			if (++velIdx > 1) velIdx = 0;
 		}
-
-		
 	}
 
 	// PLANE
@@ -370,8 +382,6 @@ void Renderer::ModelsInit()
 		}
 	}
 	
-
-
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->UpdateIndirectCmd(gCoordinator);
 }
@@ -475,7 +485,7 @@ void Renderer::Init()
 
 	isImgui = false;
 	isDebugGrid = false;
-	isCameraPos = false;
+	isCameraPos = true;
 
 	imguiCamPosX = -28.f;
 	imguiCamPosY = 1400.f;
