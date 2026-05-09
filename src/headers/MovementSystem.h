@@ -16,7 +16,16 @@ public:
 			auto& transform = coordinator.GetComponent<Transform>(entity);
 
 			glm::vec3 auxPosition = transform.position + movement.velocity;
-			if (auxPosition.x > movement.maxPosition.x || auxPosition.y > movement.maxPosition.y || auxPosition.z > movement.maxPosition.z)
+			
+			bool outOfBounds = false;
+
+			if (movement.velocity.x > 0 && transform.position.x > movement.maxPosition.x) outOfBounds = true;
+			else if (movement.velocity.x < 0 && transform.position.x < movement.maxPosition.x) outOfBounds = true;
+
+			if (movement.velocity.z > 0 && transform.position.z > movement.maxPosition.z) outOfBounds = true;
+			else if (movement.velocity.z < 0 && transform.position.z < movement.maxPosition.z) outOfBounds = true;
+			
+			if (outOfBounds)
 			{
 				transform.position = movement.initPosition;
 			}
