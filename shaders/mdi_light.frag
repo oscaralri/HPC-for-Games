@@ -19,9 +19,9 @@ DirectionalLight dirLight = DirectionalLight(
     vec3(0.5)             
 );
 
-const vec3 FOG_COLOR = vec3(0.5, 0.6, 0.7); // Color del horizonte/clear color
-const float FOG_DENSITY = 0.000012;            // Ajusta esto según el tamaño de tu escena
-const float FOG_GRADIENT = 2.0;             // Cuán rápido se espesa la niebla
+const vec3 FOG_COLOR = vec3(0.5, 0.6, 0.7); 
+const float FOG_DENSITY = 0.000012;            
+const float FOG_GRADIENT = 2.0;          
 
 in vec3 vTexCoords;
 in vec3 vSpecCoords;
