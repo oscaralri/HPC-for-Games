@@ -106,7 +106,7 @@ void AddMovementEntity(ECS::Entity entity, glm::vec3 velocity)
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	int min = 500;
-	int max = 1000;
+	int max = 1500;
 	std::uniform_int_distribution<> distr(min, max);
 
 	int limit = distr(gen);
@@ -270,25 +270,30 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::ModelsInit()
 {
-	std::vector<ExclusionZone> roads =
+	// ROADS
+	float startPos = 6000.f;
+	float margin = 2000.f;
+	float width = 2000.f;
+	float initRoad = 0.f; 
+	float endRoad = 200000.f;
+	std::vector<ExclusionZone> roadsX;
+	std::vector<ExclusionZone> roadsZ;
+
+	for (int i = 0; i < 4; i++)
 	{
-		{0.f, 20000.f, 2000.f, 4000.f},
-		{0.f, 20000.f, 8000.f, 10000.f},
-		{0.f, 20000.f, 16000.f, 18000.f},
-	};
+		float pos = (i * startPos) + margin;
+		roadsX.push_back({ initRoad, endRoad, pos, pos + width});
+	}
 
-	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(20000.f, 0.f, 20000.f); // origin + maxValue // old: 500k
+	for (int i = 0; i < 2; i++)
+	{
+		float pos = (i * startPos) + margin;
+		roadsZ.push_back({ pos, pos + width, initRoad, endRoad });
+	}
+
+	glm::vec3 maxValues = glm::vec3(200000.f, 0.f, 200000.f); // origin + maxValue // old: 500k
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
-	//grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(100.f)); // no se utiliza
-	
-	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
-	RandomGenerator randomBdings(RandBuilding, ECS::MAX_ENTITIES, 1, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z, roads);
-	RandomGenerator randomCars(RandCar, 10000, 222, 9000.f, 11000.f, 0.f, 0.f, 0.f, 20000.f);
-
-	//std::cout << randomBdings.GetPositions().size() << std::endl;
-	//std::cout << randomCars.GetPositions().size() << std::endl;
-
+	RandomGenerator randomBdings(ECS::MAX_ENTITIES, 1, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z, roadsX, roadsZ);
 
 	// MDI 
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
@@ -311,11 +316,9 @@ void Renderer::ModelsInit()
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
 		
-		for (int i = 0; i < 20; i++)
+		for (int i = 0; i < 1000; i++)
 		{
-			glm::vec3 debugPos = randomBdings.GetPositionBding();
-			GenerateMDIEntity(bdingRH, bdingMesh, debugPos, glm::vec3(0.f), glm::vec3(25.f));
-			std::cout << debugPos.x << " " << debugPos.y << " " << debugPos.z << std::endl;
+			GenerateMDIEntity(bdingRH, bdingMesh, randomBdings.GetPositionBding(), glm::vec3(0.f), glm::vec3(25.f));
 		}
 	}
 
@@ -348,17 +351,28 @@ void Renderer::ModelsInit()
 		glm::vec3(0.f, 90.f, 0.f) // -z
 	};
 	
-	int idx = 0;
-	int velIdx = 0;
 	for (auto& path : carsPaths)
 	{
+		int idx = 0;
+		int velIdx = 0;
+
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto carMesh = mdiSystem->AddLodsMesh(carRH);
-		for (int i = 0; i < 30; i++)
+
+		for (int i = 0; i < 500; i++)
 		{
-			auto entity = GenerateMDIEntity(carRH, carMesh, randomBdings.GetPositionCars(), rotations[idx], glm::vec3(100.f));
-			AddMovementEntity(entity, velocities[velIdx]);
+			auto entity = GenerateMDIEntity(carRH, carMesh, randomBdings.GetPositionCarsX(), rotations[idx], glm::vec3(100.f));
+			AddMovementEntity(entity, velocities[idx]);
 			if (++idx > 1) idx = 0;
+			if (++velIdx > 1) velIdx = 0;
+		}
+
+		idx = 2;
+		for (int j = 0; j < 500; j++)
+		{
+			auto entity = GenerateMDIEntity(carRH, carMesh, randomBdings.GetPositionCarsZ(), rotations[idx], glm::vec3(100.f));
+			AddMovementEntity(entity, velocities[idx]);
+			if (++idx > 3) idx = 2;
 			if (++velIdx > 1) velIdx = 0;
 		}
 	}
@@ -464,8 +478,8 @@ void Renderer::showFPS(GLFWwindow* window) {
 
 void Renderer::Init()
 {
-	SCR_WIDTH = 1024; // porta: 1024 x 576, PC: 1366x768 
-	SCR_HEIGHT = 576;
+	SCR_WIDTH = 1600; // porta: 1024 x 576, PC: 1366x768 
+	SCR_HEIGHT = 900;
 	near = 1.0f;
 	far = 100000.f;
 
