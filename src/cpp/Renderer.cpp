@@ -216,7 +216,7 @@ void Renderer::ModelsInit()
 	// Grid(origin, worldSize, cellSize)
 	glm::vec3 maxValues = glm::vec3(50000.f, 1000.f, 50000.f); // origin + maxValue 
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
-	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(1000.f)); 
+	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(5000.f, 1000.f, 5000.f)); 
 
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
 	RandomGenerator random(ECS::MAX_ENTITIES, 120, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
@@ -370,7 +370,7 @@ void Renderer::Init()
 	SCR_WIDTH = 1024; // porta: 1024 x 576, PC: 1366x768 
 	SCR_HEIGHT = 576;
 	near = 1.f;
-	far = 50000.f;
+	far = 100000.f;
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
 	nbFrames = 0;
