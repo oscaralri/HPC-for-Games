@@ -19,9 +19,9 @@ DirectionalLight dirLight = DirectionalLight(
     vec3(0.5)             
 );
 
-const vec3 FOG_COLOR = vec3(0.5, 0.6, 0.7); 
-const float FOG_DENSITY = 0.000012;            
-const float FOG_GRADIENT = 2.0;          
+const vec3 FOG_COLOR = vec3(1, 0.71, 0.77); 
+const float FOG_DENSITY = 0.00001;            
+const float FOG_GRADIENT = 8.0;          
 
 in vec3 vTexCoords;
 in vec3 vSpecCoords;

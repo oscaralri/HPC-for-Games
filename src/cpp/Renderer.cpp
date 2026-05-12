@@ -270,35 +270,44 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::ModelsInit()
 {
+	auto mdiSystem = gCoordinator.GetSystem<MDI>();
+
+	// MDI 
+	mdiSystem->GenerateDataBuffers();
+	mdiSystem->GenerateMeshBuffers();
+
+
+
 	// ROADS
 	float startPos = 6000.f;
 	float margin = 2000.f;
 	float width = 2000.f;
-	float initRoad = 0.f; 
+	float initRoad = 0.f;
 	float endRoad = 200000.f;
 	std::vector<ExclusionZone> roadsX;
 	std::vector<ExclusionZone> roadsZ;
 
+	std::vector<std::string> roadPath = { "models/plane/road.obj" };
+	ResourceHandle roadRH = EngineResources::GetModelManager().LoadModelLOD(roadPath, 500);
+	auto roadMesh = mdiSystem->AddLodsMesh(roadRH);
 	for (int i = 0; i < 4; i++)
 	{
 		float pos = (i * startPos) + margin;
-		roadsX.push_back({ initRoad, endRoad, pos, pos + width});
+		roadsX.push_back({ initRoad, endRoad, pos, pos + width }); // 0-200000 , 2000-4000
+		GenerateMDIEntity(roadRH, roadMesh, glm::vec3(initRoad, 20.f, pos), glm::vec3(0.f), glm::vec3(endRoad - initRoad, 1.f, width/2));
 	}
 
 	for (int i = 0; i < 2; i++)
 	{
 		float pos = (i * startPos) + margin;
 		roadsZ.push_back({ pos, pos + width, initRoad, endRoad });
+		GenerateMDIEntity(roadRH, roadMesh, glm::vec3(pos, 20.f, initRoad), glm::vec3(0.f), glm::vec3(width / 2, 1.f, endRoad - initRoad));
 	}
 
 	glm::vec3 maxValues = glm::vec3(200000.f, 0.f, 200000.f); // origin + maxValue // old: 500k
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
 	RandomGenerator randomBdings(ECS::MAX_ENTITIES, 1, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z, roadsX, roadsZ);
 
-	// MDI 
-	auto mdiSystem = gCoordinator.GetSystem<MDI>();
-	mdiSystem->GenerateDataBuffers();
-	mdiSystem->GenerateMeshBuffers();
 	
 	// BUILDINGS
 	std::vector<std::vector<std::string>> buildingPaths =
@@ -316,7 +325,7 @@ void Renderer::ModelsInit()
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
 		
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < 5000; i++)
 		{
 			GenerateMDIEntity(bdingRH, bdingMesh, randomBdings.GetPositionBding(), glm::vec3(0.f), glm::vec3(25.f));
 		}
@@ -391,7 +400,7 @@ void Renderer::ModelsInit()
 	{
 		for (float z = minValues.z; z < maxValues.z; z += stepZ)
 		{
-			glm::vec3 position = glm::vec3(x, 0.0f, z );
+			glm::vec3 position = glm::vec3(x, -50.0f, z );
 			GenerateMDIEntity(planeRH, planeMesh, position, glm::vec3(0.f), glm::vec3(maxValues.x / (division * 2.f)));
 		}
 	}
@@ -480,7 +489,7 @@ void Renderer::Init()
 {
 	SCR_WIDTH = 1600; // porta: 1024 x 576, PC: 1366x768 
 	SCR_HEIGHT = 900;
-	near = 1.0f;
+	near = 10.5f;
 	far = 100000.f;
 
 	deltaTime = 0.0f;
