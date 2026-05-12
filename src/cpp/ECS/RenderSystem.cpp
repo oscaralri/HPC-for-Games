@@ -4,7 +4,7 @@
 #include "Application.h"
 #include "MDI.h"
 
-void RenderSystem::UpdateIndirectCmd(ECS::Coordinator& coordinator) {
+void RenderSystem::UpdateGPUData(ECS::Coordinator& coordinator) {
 	auto mdiSystem = coordinator.GetSystem<MDI>();
 
 	InstanceData* gpuInstances = mdiSystem->GetInstanceDataPtr();
@@ -53,10 +53,11 @@ void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, EngineResources::GetTextureManager().GetTextureArrayID(Specular));
 
+	// bindea counter y filtered
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdiSystem->GetFilteredCmdsSSBO());
-
 	glBindBuffer(GL_PARAMETER_BUFFER, mdiSystem->GetDrawCountSSBO());
 	
+	// draw
 	glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, 0, ECS::MAX_ENTITIES, 0);
 
 	// reset to default

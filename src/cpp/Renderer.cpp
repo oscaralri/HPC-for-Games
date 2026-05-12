@@ -276,8 +276,6 @@ void Renderer::ModelsInit()
 	mdiSystem->GenerateDataBuffers();
 	mdiSystem->GenerateMeshBuffers();
 
-
-
 	// ROADS
 	float startPos = 6000.f;
 	float margin = 2000.f;
@@ -406,7 +404,7 @@ void Renderer::ModelsInit()
 	}
 	
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->UpdateIndirectCmd(gCoordinator);
+	renderSystem->UpdateGPUData(gCoordinator);
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)

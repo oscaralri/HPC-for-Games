@@ -113,8 +113,6 @@ MeshEntry MDI::AddMesh(ResourceHandle modelRH)
 
 EntityMeshes MDI::AddLodsMesh(ResourceHandle modelRH)
 {
-	//  TODO: FALTA GESTIONAR SI YA ESTA CARGADO ESE MODEL
-
 	EntityMeshes entityMeshes;
 	auto model = EngineResources::GetModelManager().Get(modelRH);
 

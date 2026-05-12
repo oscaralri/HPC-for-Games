@@ -31,7 +31,6 @@ in vec3 viewPos;
 
 out vec4 FragColor;
 
-
 layout(binding = 0) uniform sampler2DArray uDiffuseArray; 
 layout(binding = 1) uniform sampler2DArray uSpecularArray;
 
