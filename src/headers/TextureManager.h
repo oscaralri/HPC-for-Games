@@ -110,7 +110,5 @@ private:
 
 	ResourceStorage<Texture> textureStorage;
 	std::unordered_map<std::string, ResourceHandle> LoadedPaths;
-
-
 };
 

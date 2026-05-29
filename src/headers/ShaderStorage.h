@@ -28,7 +28,7 @@ public:
 	}
 
 private:
-	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders; // puntero = program id
+	std::unordered_map<std::string, std::shared_ptr<Shader>> shaders;
 
 	ShaderStorage() = default;
 	ShaderStorage(const ShaderStorage&) = delete;

@@ -35,7 +35,5 @@ private:
 	Application() = default;                                
 	Application(const Application&) = delete;               
 	Application& operator=(const Application&) = delete;   
-
-
 };
 

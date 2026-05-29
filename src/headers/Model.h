@@ -6,7 +6,6 @@
 #include <assimp/postprocess.h>
 #include <Mesh.h>
 
-
 struct LODLevel 
 {
 	std::vector<Mesh> meshes;

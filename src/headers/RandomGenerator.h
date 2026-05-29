@@ -7,14 +7,7 @@
 class RandomGenerator
 {
 public:
-    RandomGenerator(
-        int size,
-        unsigned int seed,
-        float minX, float maxX,
-        float minY, float maxY,
-        float minZ, float maxZ
-    )
-        : counter(0)
+    RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ) : counter(0)
     {
         Generate(size, seed, minX, maxX, minY, maxY, minZ, maxZ);
     }
@@ -24,7 +17,7 @@ public:
     const glm::vec3& GetPosition()
     {
         if (counter >= positions.size())
-            counter = 0; // evitar errores basico
+            counter = 0; // avoid size problems
 
         return positions[counter++];
     }
@@ -33,13 +26,7 @@ private:
     std::vector<glm::vec3> positions;
     size_t counter;
 
-    void Generate(
-        int size,
-        unsigned int seed,
-        float minX, float maxX,
-        float minY, float maxY,
-        float minZ, float maxZ
-    )
+    void Generate(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
     {
         positions.reserve(size);
 
@@ -50,11 +37,7 @@ private:
 
         for (int i = 0; i < size; ++i)
         {
-            positions.emplace_back(
-                distX(generator),
-                distY(generator),
-                distZ(generator)
-            );
+            positions.emplace_back(distX(generator), distY(generator), distZ(generator));
         }
     }
 };

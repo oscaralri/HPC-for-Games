@@ -47,7 +47,7 @@ Skybox::Skybox(const std::vector<std::string>& faces, const char* vertexPath, co
  1.0f, -1.0f,  1.0f
 	};;;
 	cubemapTexture = this->loadCubemap(faces);
-	shader = EngineResources::GetShaderManager().LoadShader("shaders/skybox.vert", "shaders/skybox.frag");
+	shader = EngineResources::GetShaderManager().LoadShader(vertexPath, fragmentPath);
 	auto s = EngineResources::GetShaderManager().Get(shader);
 
 	glGenVertexArrays(1, &VAO);

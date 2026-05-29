@@ -2,7 +2,6 @@
 
 #include "EngineResources.h"
 
-
 void Model::FindAABBMinMax(const std::vector<Mesh> meshes, std::array<glm::vec3, 2>& aabb)
 {
 	glm::vec3 maxValues = glm::vec3(std::numeric_limits<float>::lowest());
@@ -170,11 +169,6 @@ std::vector<ResourceHandle> Model::loadMaterialTextures(aiMaterial* mat, aiTextu
 		ResourceHandle textureHandle;
 		textureHandle = EngineResources::GetTextureManager().LoadTexture(str.C_Str(), this->directory, typeName);
 		textureHandles.push_back(textureHandle);
-
-		// la idea es que esto que se ha hecho tiene que conseguir lo mismo
-			// definir una textura con su id, type y path
-			// luego se guarda en el textureStorage
-			// en el model se guarda la referencia con un handle
 	}
 
 	return textureHandles;

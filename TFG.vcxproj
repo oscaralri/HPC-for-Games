@@ -134,8 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\cpp\GridInitializer.cpp" />
-    <ClCompile Include="src\cpp\LODSystem.cpp" />
+    <ClCompile Include="src\cpp\ECS\LODSystem.cpp" />
     <ClCompile Include="src\cpp\RandomGenerator.cpp" />
     <ClCompile Include="src\cpp\Application.cpp" />
     <ClCompile Include="src\cpp\BaseScene.cpp" />
@@ -172,8 +171,7 @@
     <ClCompile Include="src\cpp\ECS\SystemManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\headers\GridInitializer.h" />
-    <ClInclude Include="src\headers\LODSystem.h" />
+    <ClInclude Include="src\headers\ECS\LODSystem.h" />
     <ClInclude Include="src\headers\RandomGenerator.h" />
     <ClInclude Include="src\headers\Application.h" />
     <ClInclude Include="src\headers\BaseScene.h" />

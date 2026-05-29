@@ -41,36 +41,26 @@ public:
 	void End();
 
 private:
-	//test 
-	std::vector<LODLevel> lods;
-	//std::shared_ptr<Model> gargoyle;
-	ResourceHandle gargoyle;
-	ResourceHandle screenShader;
-	ResourceHandle instancingShader;
-
-	//
 	Renderer() = default;
 	Renderer(const Renderer&) = delete;
 	Renderer& operator=(const Renderer&) = delete;
 
-	GLFWwindow* window;
-
+	// init
 	int SCR_WIDTH;
 	int SCR_HEIGHT;
 	float near;
 	float far;
 	std::shared_ptr<Camera> mainCamera;
 	unsigned int cameraUBO;
-
-	// frustum culling
-	std::vector<glm::mat4> models;
-	std::vector<AABB> aabb;
-	std::vector<unsigned int> outList;
-
 	unsigned int framebuffer;
 	unsigned int textureColorbuffer;
 	unsigned int quadVAO, quadVBO;
 	unsigned int imguiFBO;
+	GLFWwindow* window;
+
+	// shaders
+	ResourceHandle screenShader;
+	ResourceHandle instancingShader;
 
 	// time
 	float deltaTime;
@@ -79,6 +69,7 @@ private:
 	double lastTime;
 	double fps;
 
+	// mouse
 	bool moveEnabled;
 	bool firstMouse;
 	float lastX;
@@ -87,16 +78,12 @@ private:
 	// Imgui
 	unsigned int imguiTextureBuffer, imguiRBO;
 
-	unsigned int buffer;
-	unsigned int buffer2;
-
+	// render
+	std::vector<LODLevel> lods;
 	std::vector<unsigned int> buffers;
-
 	std::vector<ECS::Entity> visibleInstanced;
 	std::vector<ECS::Entity> visibleNormal;
-
 	std::unordered_map<std::shared_ptr<Model>, std::vector<ECS::Entity>> groupModels;
-
 	std::unique_ptr<Grid> grid;
 
 	// methods
@@ -105,22 +92,21 @@ private:
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	void processInput(GLFWwindow* window);
+	
 	int WindowInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void FBOInit(int SCR_WIDTH, int SCR_HEIGHT);
 	void ModelsInit();
+	void ShadersInit();
+	
 	void RenderNormal(std::vector<ECS::Entity> entities);
 	void RenderInstanced(std::vector<ECS::Entity> entities);
-	void ShadersInit();
+
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
-	void CallRenderSystem(std::vector<ECS::Entity> entities);
 	
 	void GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
 	void GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
-	void GenerateInstancedEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
-	void GenerateNormalEntityRandom(std::vector<std::string>& modelPaths, RandomGenerator& random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
 
-	// debug
 	void showFPS(GLFWwindow* window);
 };
 

@@ -16,8 +16,7 @@ int CheckLOD(glm::vec3 position, std::vector<LODLevel>& LODs, const std::shared_
 	return i - 1;
 }
 
-void LODSystem::SetLOD(ECS::Coordinator& coordinator, 
-	const std::shared_ptr<Camera>& camera, std::vector<ECS::Entity>& visibleList)
+void LODSystem::SetLOD(ECS::Coordinator& coordinator, const std::shared_ptr<Camera>& camera, std::vector<ECS::Entity>& visibleList)
 {
 	for (const auto& entity : visibleList)
 	{

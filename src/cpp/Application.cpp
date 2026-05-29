@@ -1,8 +1,6 @@
 #include "Application.h"
 
-
 ECS::Coordinator gCoordinator;
-
 
 void Application::Init()
 { 
@@ -64,6 +62,4 @@ void Application::ECSInit()
 
 		gCoordinator.SetSystemSignature<LODSystem>(signature);
 	}
-
-	
 }

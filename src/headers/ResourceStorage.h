@@ -92,7 +92,7 @@ private:
 		return e.Alive && e.Gen == handle.Gen;
 	}
 
-	std::vector<ResourceEntry> Entries; // pool centralizado de los recursos
-	std::vector<int32_t> FreeList; // pila de indices libres porque se han eliminado lo que habia dentro
+	std::vector<ResourceEntry> Entries; // pool of all entries 
+	std::vector<int32_t> FreeList; // stack of free indexes because their element was deleted
 };
 

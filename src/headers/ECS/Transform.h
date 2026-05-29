@@ -5,6 +5,6 @@
 struct Transform
 {
 	glm::vec3 position;
-	glm::vec3 rotation; // rotacion asi implica euler (rotacion para cada eje)
+	glm::vec3 rotation; // euler rotation
 	glm::vec3 scale;
 };

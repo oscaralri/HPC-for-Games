@@ -19,7 +19,5 @@ public:
 			return it->second;
 		return nullptr;
 	}
-
-private:
 };
 

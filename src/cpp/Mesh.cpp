@@ -4,11 +4,10 @@
 
 void Mesh::setupMesh()
 {
-	glGenVertexArrays(1, &VAO); // configurar vao: config de como estan organizados datos de vertices
-	glGenBuffers(1, &VBO); // configurar vbo: datos de vertices (pos, normales...)
-	glGenBuffers(1, &EBO); // ebo: indices que indican cómo conectar vertices para formar triangulos
+	glGenVertexArrays(1, &VAO); // vao: config of how is vertex data organized
+	glGenBuffers(1, &VBO); // vbo: vertex data 
+	glGenBuffers(1, &EBO); // ebo: indexes to connect vertexs to form triangles 
 
-	// activar vao y vbo para trabajar con ellos
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); 
 
