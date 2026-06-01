@@ -4,7 +4,7 @@
 
 enum class RenderType
 {
-	Normal,
+	Simple,
 	Instanced
 };
 

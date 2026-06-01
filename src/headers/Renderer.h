@@ -77,12 +77,18 @@ private:
 
 	// Imgui
 	unsigned int imguiTextureBuffer, imguiRBO;
+	bool isImgui;
+	bool isDebugGrid;
+	bool isCameraPos;
+	float imguiCamPosX;
+	float imguiCamPosY;
+	float imguiCamPosZ;
 
 	// render
 	std::vector<LODLevel> lods;
 	std::vector<unsigned int> buffers;
 	std::vector<ECS::Entity> visibleInstanced;
-	std::vector<ECS::Entity> visibleNormal;
+	std::vector<ECS::Entity> visibleSimple;
 	std::unordered_map<std::shared_ptr<Model>, std::vector<ECS::Entity>> groupModels;
 	std::unique_ptr<Grid> grid;
 
@@ -98,14 +104,16 @@ private:
 	void ModelsInit();
 	void ShadersInit();
 	
-	void RenderNormal(std::vector<ECS::Entity> entities);
+	void RenderSimple(std::vector<ECS::Entity> entities);
 	void RenderInstanced(std::vector<ECS::Entity> entities);
 
 	void UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator);
 	void SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities);
 	
 	void GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities);
-	void GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
+	void GenerateSimpleEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement);
+
+	void RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view);
 
 	void showFPS(GLFWwindow* window);
 };

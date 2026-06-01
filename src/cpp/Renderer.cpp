@@ -2,6 +2,7 @@
 
 #include "EngineResources.h"
 
+void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 max);
 
 void SkyboxInit()
 {
@@ -17,6 +18,7 @@ void SkyboxInit()
 	auto scene = Application::Get().GetActiveScene();
 	scene->SetSkybox(newSkybox);
 }
+
 
 void Renderer::ShadersInit()
 {
@@ -110,42 +112,42 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::ModelsInit()
 {
+	glm::vec3 min = glm::vec3(0.f);
+	glm::vec3 max = glm::vec3(5000, 10, 5000); 
 	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(500.f));
-	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, 0, 0, -300, 0);
+	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, -250, 250, -300, 0);
 
 	// INSTANCING
 	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
-	// gargoyle
+	// buildings
+	std::vector<std::vector<std::string>> bdingsPath =
 	{
-		int numGargoyle = 10;
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		GenerateInstancedEntity(path, random.GetPosition(), glm::vec3(0.f, 180.f, 0.f), glm::vec3(0.075f), 300, numGargoyle);
-	}
-	// rock
+		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building2/building2.obj", "models/buildings/building2Low/building2Low.obj"},
+		{"models/buildings/building3/building3.obj", "models/buildings/building3Low/building3Low.obj"},
+		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
+		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"}
+	};
+	int numEntities = 10;
+	for (auto& path : bdingsPath)
 	{
-		int numRocks = 5;
-		std::vector<std::string> path = { "models/rock/rock.obj" };
-		GenerateInstancedEntity(path, random.GetPosition(), glm::vec3(50.f, 0.f, 0.f), glm::vec3(2.f), 100, numRocks);
+		GenerateInstancedEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(1.f), 300, numEntities);
 	}
-
-
+	
 	// NORMAL
-	auto modelLoading = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag");
-	// gargoyle
+	auto basicShader = EngineResources::GetShaderManager().LoadShader("shaders/simpleShading.vert", "shaders/simpleShading.frag");
+	// cars
+	std::vector<std::vector<std::string>> carsPath =
 	{
-		std::vector<std::string> path = { "models/gargoyle/gargoyle.obj", "models/gargoyle/gargoyleLOW.obj" };
-		for (size_t i = 0; i < 50; i++)
-		{
-			GenerateNormalEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(0.09f), 300);
-		}
-	}
-	// rock
+		{"models/cars/car1/car1.obj", "models/cars/car1Low/car1Low.obj"},
+		{"models/cars/car2/car2.obj", "models/cars/car2Low/car2Low.obj"},
+		{"models/cars/car3/car3.obj", "models/cars/car3Low/car3Low.obj"},
+		{"models/cars/car4/car4.obj", "models/cars/car4Low/car4Low.obj"},
+		{"models/cars/car5/car5.obj", "models/cars/car5Low/car5Low.obj"}
+	};
+	for (auto& path : carsPath)
 	{
-		std::vector<std::string> path = { "models/rock/rock.obj" };
-		for (size_t i = 0; i < 25; i++)
-		{
-			GenerateNormalEntity(path, random.GetPosition(), glm::vec3(55.f), glm::vec3(1.f), 50);
-		}
+		GenerateSimpleEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(1.f), 300);
 	}
 }
 
@@ -208,9 +210,9 @@ int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
 	glFrontFace(GL_CW);
 }
 
-void Renderer::GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
+void Renderer::GenerateSimpleEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
 {
-	auto shaderRH = EngineResources::GetShaderManager().LoadShader("shaders/modelLoading_v2.vert", "shaders/modelLoading_v2.frag"); // if the shader is already loaded, it returns the handle
+	auto shaderRH = EngineResources::GetShaderManager().LoadShader("shaders/simpleShading.vert", "shaders/simpleShading.frag"); // if the shader is already loaded, it returns the handle
 
 	auto model = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
@@ -221,7 +223,7 @@ void Renderer::GenerateNormalEntity(std::vector<std::string>& modelPaths, glm::v
 		rotation,  
 		scale 
 		});
-	gCoordinator.AddComponent(entity, Renderable{ modelRH, shaderRH, RenderType::Normal });
+	gCoordinator.AddComponent(entity, Renderable{ modelRH, shaderRH, RenderType::Simple });
 	gCoordinator.AddComponent(entity, AABB{
 		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[0],
 		EngineResources::GetModelManager().Get(modelRH)->getMinMax()[1] 
@@ -244,12 +246,14 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, numEntities * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
 
+	glm::mat4* modelMatrices = new glm::mat4[numEntities];
 	for (size_t i = 0; i < numEntities; i++)
 	{
 		auto entity = gCoordinator.CreateEntity();
+		auto newPosition = glm::vec3((i * 20) + position.x, position.y, position.z);
 		gCoordinator.AddComponent(entity, Renderable{ modelRH, instancingShader, RenderType::Instanced });
 		gCoordinator.AddComponent(entity, Transform{
-			glm::vec3((i * 5) + position.x, position.y, position.z), // position
+			newPosition, // position
 			rotation, // rotation
 			scale // scale
 		});
@@ -262,11 +266,7 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 		glm::vec3 worldMin = transform.position + aabb.min * transform.scale;
 		glm::vec3 worldMax = transform.position + aabb.max * transform.scale;
 		grid->Insert(entity, worldMin, worldMax);
-	}
-	
-	glm::mat4* modelMatrices = new glm::mat4[numEntities];
-	for (unsigned int i = 0; i < numEntities; i++)
-	{
+
 		glm::mat4 modelMat = glm::mat4(1.f);
 		modelMat = glm::translate(modelMat, position);
 		modelMat = glm::scale(modelMat, scale);
@@ -306,14 +306,14 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 void Renderer::SortRenderType(ECS::Coordinator& coordinator, std::vector<ECS::Entity> entities)
 {
 	visibleInstanced.clear();
-	visibleNormal.clear();
+	visibleSimple.clear();
 
 	for (const auto& entity : entities)
 	{
 		auto& renderable = coordinator.GetComponent<Renderable>(entity);
 
 		if (renderable.renderType == RenderType::Instanced) visibleInstanced.push_back(entity);
-		if (renderable.renderType == RenderType::Normal) visibleNormal.push_back(entity);
+		if (renderable.renderType == RenderType::Simple) visibleSimple.push_back(entity);
 	}
 }
 
@@ -345,17 +345,28 @@ void Renderer::Init()
 {
 	SCR_WIDTH = 1366;
 	SCR_HEIGHT = 768;
-	near = 0.1f;
-	far = 1000.f;
+	near = 0.5f;
+	far = 10000.f;
+	
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
 	nbFrames = 0;
 	lastTime = 0.;
 	fps = 0.;
+	
 	moveEnabled = true;
 	firstMouse = true;
+	
 	lastX = SCR_WIDTH / 2.0f;
 	lastY = SCR_HEIGHT / 2.0f;
+
+	isImgui = true;
+	isDebugGrid = true;
+	isCameraPos = true;
+
+	imguiCamPosX = 0.f;
+	imguiCamPosY = 100.f;
+	imguiCamPosZ = 0.f;
 
 	buffers = std::vector<unsigned int>(ECS::MAX_ENTITIES);
 
@@ -363,8 +374,8 @@ void Renderer::Init()
 	ShadersInit();
 	ModelsInit();
 	FBOInit(SCR_WIDTH, SCR_HEIGHT);
-	ImGuiInit(window);
-	SkyboxInit();			
+	ImGuiInit(window);		
+	SkyboxInit();
 }
 
 void Renderer::Render()
@@ -397,11 +408,6 @@ void Renderer::Render()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// IMGUI 
-	static float posX = -16.000;
-	static float posY = 75.f;
-	static float posZ = -10.f;
-	imguiCamera->Position = glm::vec3(posX, posY, posZ);
-
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
@@ -440,8 +446,16 @@ void Renderer::Render()
 		RenderInstanced(visibleInstanced);
 	}
 	
-	// Normal
-	RenderNormal(visibleNormal);
+	// Simple
+	RenderSimple(visibleSimple);
+
+	if (isDebugGrid)
+	{
+		for (const auto& cell : grid->cells)
+		{
+			DebugAABB(projection, view, cell.min, cell.max);
+		}
+	}
 
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
@@ -457,34 +471,13 @@ void Renderer::Render()
 	ImGui::PopTextWrapPos();
 	ImGui::End();	
 
-	// RENDER TO IMGUI
-	glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
-	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.f, 0.f, 0.f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	projection = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
-	view = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(view));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(projection));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
+	RenderImGUICamera(imguiCamera, projection, view);
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	// draw on imgui
-	ImGui::Begin("TopDown");
-	ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::DragFloat("X", &posX, 0.5f);
-	ImGui::DragFloat("Y", &posY, 0.5f);
-	ImGui::DragFloat("Z", &posZ, 0.5f);
-	ImGui::End();
 
 	// FULLSCREEN QUAD DRAW
 	EngineResources::GetShaderManager().Get(screenShader)->use();
@@ -499,7 +492,76 @@ void Renderer::Render()
 	glfwPollEvents();
 }
 
-void Renderer::RenderNormal(std::vector<ECS::Entity> entities)
+void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view)
+{
+	glm::mat4 imguiProj = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
+	glm::mat4 imguiView = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
+
+	if (isImgui)
+	{
+		imguiCamera->Position = glm::vec3(imguiCamPosX, imguiCamPosY, imguiCamPosZ);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, imguiFBO);
+		glEnable(GL_DEPTH_TEST);
+		glClearColor(0.f, 0.f, 0.f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glBindBuffer(GL_UNIFORM_BUFFER, cameraUBO);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(imguiView));
+		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(imguiProj));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
+		if (visibleInstanced.size() > 0)
+		{
+			auto shader = EngineResources::GetShaderManager().Get(instancingShader);
+			shader->use();
+			shader->setMat4("projection", projection);
+			shader->setMat4("view", view);
+			RenderInstanced(visibleInstanced);
+		}
+
+		// Simple
+		RenderSimple(visibleSimple);  
+
+		// draw on imgui
+		ImGui::Begin("Render Debug");
+		ImGui::Checkbox("Debug Grid", &isDebugGrid);
+		ImGui::Checkbox("ImguiCamera", &isImgui);
+		ImGui::Checkbox("Camera Pos", &isCameraPos);
+		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::DragFloat("X", &imguiCamPosX, 0.5f);
+		ImGui::DragFloat("Y", &imguiCamPosY, 0.5f);
+		ImGui::DragFloat("Z", &imguiCamPosZ, 0.5f);
+		ImGui::End();
+	}
+	else
+	{
+		ImGui::Begin("Render Debug");
+		ImGui::Checkbox("Debug Grid", &isDebugGrid);
+		ImGui::Checkbox("ImguiCamera", &isImgui);
+		ImGui::Checkbox("Camera Pos", &isCameraPos);
+		ImGui::End();
+	}
+
+	if (isDebugGrid)
+	{
+		for (const auto& cell : grid->cells)
+		{
+			DebugAABB(imguiProj, imguiView, cell.min, cell.max);
+		}
+	}
+
+	if (isCameraPos)
+	{
+		ImGui::Begin("Camera Pos");
+		ImGui::DragFloat3("CameraPos", &mainCamera->Position.x, 0.1f);
+		ImGui::End();
+	}
+}
+
+
+void Renderer::RenderSimple(std::vector<ECS::Entity> entities)
 {
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->Render(gCoordinator, entities);
@@ -533,8 +595,8 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 
 		if (renderable.model != lastModel || renderable.LodLevel != lastLOD)
 		{
-			UpdateModelMat(entities, gCoordinator);
-			renderSystem->RenderInstanced(gCoordinator, entities);
+			UpdateModelMat(modelGroup, gCoordinator);
+			renderSystem->RenderInstanced(gCoordinator, modelGroup);
 			modelGroup.clear();
 			lastModel = renderable.model;
 			lastLOD = renderable.LodLevel;
@@ -543,8 +605,8 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 		modelGroup.push_back(entity);
 	}
 
-	UpdateModelMat(entities, gCoordinator);
-	renderSystem->RenderInstanced(gCoordinator, entities);
+	UpdateModelMat(modelGroup, gCoordinator);
+	renderSystem->RenderInstanced(gCoordinator, modelGroup);
 }
 
 void Renderer::End()
@@ -630,12 +692,8 @@ void Renderer::processInput(GLFWwindow* window)
 }
 
 // Debug
-void DebugAABB(glm::mat4 projection, glm::mat4 view)
+void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 max)
 {
-	// AABB LOCAL
-	glm::vec3 min = glm::vec3(-500.f);
-	glm::vec3 max = glm::vec3(500.f);
-
 	glm::vec3 corners[8] =
 	{
 		{min.x, min.y, min.z},
@@ -707,6 +765,7 @@ void DebugAABB(glm::mat4 projection, glm::mat4 view)
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
 }
+
 
 void Renderer::showFPS(GLFWwindow* window) {
 	double currentTime = glfwGetTime();

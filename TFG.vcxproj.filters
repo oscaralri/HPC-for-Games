@@ -253,24 +253,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\v1.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\v1.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\v2.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\v2.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\v3.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\v3.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="shaders\basicLighting.vert">
       <Filter>Shaders</Filter>
     </None>
@@ -307,12 +289,6 @@
     <None Include="shaders\multipleLights.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\modelLoading.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\modelLoading.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="shaders\skybox.vert">
       <Filter>Shaders</Filter>
     </None>
@@ -325,12 +301,6 @@
     <None Include="shaders\skyReflect.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\glslTests.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\glslTests.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="shaders\normals.geom">
       <Filter>Shaders</Filter>
     </None>
@@ -340,28 +310,22 @@
     <None Include="shaders\normals.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\instancing.vert">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="shaders\instancing.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="shaders\framebuffer_screen.vert">
       <Filter>Shaders</Filter>
     </None>
     <None Include="shaders\framebuffer_screen.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\instancingV2.frag">
+    <None Include="shaders\instancing.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\instancingV2.vert">
+    <None Include="shaders\instancing.vert">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\modelLoading_v2.frag">
+    <None Include="shaders\simpleShading.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\modelLoading_v2.vert">
+    <None Include="shaders\simpleShading.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

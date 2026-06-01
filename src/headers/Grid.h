@@ -29,11 +29,11 @@ struct Grid
     Grid(const glm::vec3& origin_, const glm::vec3& worldSize, const glm::vec3& cellSize_) 
         : origin(origin_), cellSize(cellSize_)
     {
-        cellsX = worldSize.x / cellSize.x; 
+        cellsX = worldSize.x / cellSize.x;
         cellsY = worldSize.y / cellSize.y;
         cellsZ = worldSize.z / cellSize.z;
 
-        int totalCells = cellsX * cellsY * cellsZ;
+        float totalCells = (float)cellsX * cellsY * cellsZ;
         cells.resize(totalCells);
 
         for (int z = 0; z < cellsZ; ++z)
@@ -55,6 +55,11 @@ struct Grid
 
         glm::vec3 gridMin = origin;
         glm::vec3 gridMax = origin + glm::vec3(cellsX, cellsY, cellsZ) * cellSize;
+
+        // debug
+        std::cout << "Grid AABB Min: " << gridMin.x << ", " << gridMin.y << ", " << gridMin.z << "\n";
+        std::cout << "Grid AABB Max: " << gridMax.x << ", " << gridMax.y << ", " << gridMax.z << "\n";
+        std::cout << "Total Cells: " << totalCells << std::endl;
     }
 
     int GetIndex(int x, int y, int z) const

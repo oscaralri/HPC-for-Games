@@ -74,6 +74,10 @@
     <IncludePath>.\libraries\Include;$(ProjectDir)src/headers;$(ProjectDir)src/headers/ECS;$(ProjectDir);$(IncludePath)</IncludePath>
     <LibraryPath>.\libraries\Libs;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>.\libraries\Include;$(ProjectDir)src/headers;$(ProjectDir)src/headers/ECS;$(ProjectDir);$(IncludePath)</IncludePath>
+    <LibraryPath>.\libraries\Libs;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -114,7 +118,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mt.lib;gdi32.lib;user32.lib;shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -125,12 +129,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mt.lib;gdi32.lib;user32.lib;shell32.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -217,20 +223,12 @@
     <None Include="shaders\basicLighting.vert" />
     <None Include="shaders\framebuffer_screen.frag" />
     <None Include="shaders\framebuffer_screen.vert" />
-    <None Include="shaders\glslTests.frag" />
-    <None Include="shaders\glslTests.vert" />
     <None Include="shaders\instancing.frag" />
     <None Include="shaders\instancing.vert" />
-    <None Include="shaders\instancingV2.frag" />
-    <None Include="shaders\instancingV2.vert" />
     <None Include="shaders\lightingMaps.frag" />
     <None Include="shaders\lightingMaps.vert" />
     <None Include="shaders\materialLight.frag" />
     <None Include="shaders\materialLight.vert" />
-    <None Include="shaders\modelLoading.frag" />
-    <None Include="shaders\modelLoading.vert" />
-    <None Include="shaders\modelLoading_v2.frag" />
-    <None Include="shaders\modelLoading_v2.vert" />
     <None Include="shaders\multipleLights.frag" />
     <None Include="shaders\multipleLights.vert" />
     <None Include="shaders\normals.frag" />
@@ -238,18 +236,14 @@
     <None Include="shaders\normals.vert" />
     <None Include="shaders\plainColor.frag" />
     <None Include="shaders\plainColor.vert" />
+    <None Include="shaders\simpleShading.frag" />
+    <None Include="shaders\simpleShading.vert" />
     <None Include="shaders\skybox.frag" />
     <None Include="shaders\skybox.vert" />
     <None Include="shaders\skyReflect.frag" />
     <None Include="shaders\skyReflect.vert" />
     <None Include="shaders\texWithPlainColor.frag" />
     <None Include="shaders\texWithPlainColor.vert" />
-    <None Include="shaders\v1.frag" />
-    <None Include="shaders\v1.vert" />
-    <None Include="shaders\v2.frag" />
-    <None Include="shaders\v2.vert" />
-    <None Include="shaders\v3.frag" />
-    <None Include="shaders\v3.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
