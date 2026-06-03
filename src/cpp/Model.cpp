@@ -157,7 +157,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	
 	float texIndex = LoadTexture(material, aiTextureType_DIFFUSE, "texture_diffuse");
-	std::cout << "\n" << (int)texIndex;
+	//std::cout << "\n" << (int)texIndex;
 
 	return Mesh(vertices, indices, texIndex);
 }

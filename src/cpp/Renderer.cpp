@@ -214,9 +214,9 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(50000.f, 1000.f, 50000.f); // origin + maxValue 
+	glm::vec3 maxValues = glm::vec3(1000.f, 1000.f, 1000.f); // origin + maxValue 
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
-	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(5000.f, 1000.f, 5000.f)); 
+	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(maxValues.x, 1000.f, maxValues.z)); 
 
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
 	RandomGenerator random(ECS::MAX_ENTITIES, 120, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
@@ -226,20 +226,36 @@ void Renderer::ModelsInit()
 	// BUILDINGS
 	std::vector<std::vector<std::string>> buildingPaths =
 	{
+		/*
 		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
 		{"models/buildings/building2/building2.obj", "models/buildings/building2Low/building2Low.obj"},
 		{"models/buildings/building3/building3.obj", "models/buildings/building3Low/building3Low.obj"},
 		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
-		{"models/buildings/building5/building5.obj"},
 		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"}
+		*/
+		/*
+		{"models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building2Low/building2Low.obj"},
+		{"models/buildings/building3Low/building3Low.obj"},
+		{"models/buildings/building4Low/building4Low.obj"},
+		{"models/buildings/building6Low/building6Low.obj"}
+		*/
+
+
+		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building2/building2.obj", "models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
+		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"}
+
 	};
 
 	for (auto& path : buildingPaths)
 	{
-		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
-		for (int i = 0; i < 3; i++)
+		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 5);
+		for (int i = 0; i < 1; i++)
 		{
-			GenerateBatchEntity(bdingRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(100.f), 20);
+			GenerateBatchEntity(bdingRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(10.f), 200);
 		}
 	}
 
@@ -256,28 +272,9 @@ void Renderer::ModelsInit()
 	for (auto& path : carsPaths)
 	{
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < 0; i++)
 		{
-			GenerateBatchEntity(carRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(100.f), 20);
-		}
-	}
-
-	// PLANE
-	std::vector<std::string> planePath = { "models/plane/plane.obj" };
-	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(planePath, 500);
-
-	float division = 4.f;
-	float stepX = (maxValues.x - minValues.x) / division;
-	float stepZ = (maxValues.z - minValues.z) / division;
-	float scale = (maxValues.x) / division;
-
-	for (float x = minValues.x; x < maxValues.x; x += stepX)
-	{
-		for (float z = minValues.z; z < maxValues.z; z += stepZ)
-		{
-			glm::vec3 position = glm::vec3(x /* + (stepX)*/, 0.0f, z /*+ (stepZ)*/);
-			//std::cout << position.x << " " << position.y << " " << position.z << " " << std::endl;
-			GenerateBatchEntity(planeRH, batchingShader, glm::vec3(maxValues.x / (division * 2.f)), glm::vec3(0.f), glm::vec3(100.f), 20);
+			GenerateBatchEntity(carRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(25.f), 2000);
 		}
 	}
 
@@ -381,7 +378,10 @@ void Renderer::Init()
 	firstMouse = true;
 	lastX = SCR_WIDTH / 2.0f;
 	lastY = SCR_HEIGHT / 2.0f;
+	
 	isImgui = false;
+	isDebugAABB = true;
+
 	imguiCamPosX = -16.000;
 	imguiCamPosY = 75.f;
 	imguiCamPosZ = -10.f;

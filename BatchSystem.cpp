@@ -38,6 +38,9 @@ StaticBatch UploadToGPU(std::vector<Vertex>& vertices, std::vector<unsigned int>
 
 void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
 {
+	cell.lodBatches[0].clear();
+	cell.lodBatches[1].clear();
+
 	// para cada lod crear batch (hardcodeado como 2 niveles de lod)
 	for (int lodLevel = 0; lodLevel < 2; lodLevel++)
 	{
@@ -66,8 +69,8 @@ void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity
 			// unes toda la info de las entidades que comparten shader
 			for (auto& entity : groupEntities)
 			{
-				auto renderable = coordinator.GetComponent<Renderable>(entity);
-				auto transform = coordinator.GetComponent<Transform>(entity);
+				auto& renderable = coordinator.GetComponent<Renderable>(entity);
+				auto& transform = coordinator.GetComponent<Transform>(entity);
 				// voy a trabajar con Model por como lo tengo yo, quizas mereceria mas cambiar cosas para 
 					// usar el Mesh directamente
 				Model* model = EngineResources::GetModelManager().Get(renderable.model);
