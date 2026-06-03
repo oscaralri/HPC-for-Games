@@ -112,10 +112,12 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 
 void Renderer::ModelsInit()
 {
+	
 	glm::vec3 min = glm::vec3(0.f);
 	glm::vec3 max = glm::vec3(5000, 10, 5000); 
 	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(500.f));
 	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, -250, 250, -300, 0);
+	
 
 	// INSTANCING
 	instancingShader = EngineResources::GetShaderManager().LoadShader("shaders/instancing.vert", "shaders/instancing.frag");
@@ -126,12 +128,12 @@ void Renderer::ModelsInit()
 		{"models/buildings/building2/building2.obj", "models/buildings/building2Low/building2Low.obj"},
 		{"models/buildings/building3/building3.obj", "models/buildings/building3Low/building3Low.obj"},
 		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
-		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"}
+		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"},
 	};
 	int numEntities = 10;
 	for (auto& path : bdingsPath)
 	{
-		GenerateInstancedEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(1.f), 300, numEntities);
+		GenerateInstancedEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(0.5f), 300, numEntities);
 	}
 	
 	// NORMAL
@@ -147,8 +149,9 @@ void Renderer::ModelsInit()
 	};
 	for (auto& path : carsPath)
 	{
-		GenerateSimpleEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(1.f), 300);
+		GenerateSimpleEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(10.f), 300);
 	}
+	
 }
 
 int Renderer::WindowInit(int SCR_WIDTH, int SCR_HEIGHT)
@@ -268,7 +271,7 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 		grid->Insert(entity, worldMin, worldMax);
 
 		glm::mat4 modelMat = glm::mat4(1.f);
-		modelMat = glm::translate(modelMat, position);
+		modelMat = glm::translate(modelMat, newPosition);
 		modelMat = glm::scale(modelMat, scale);
 		modelMat = glm::rotate(modelMat, glm::radians(rotation.x), glm::vec3(1, 0, 0));
 		modelMat = glm::rotate(modelMat, glm::radians(rotation.y), glm::vec3(0, 1, 0));
@@ -447,7 +450,8 @@ void Renderer::Render()
 	}
 	
 	// Simple
-	RenderSimple(visibleSimple);
+	if(visibleSimple.size() > 0) 
+		RenderSimple(visibleSimple);
 
 	if (isDebugGrid)
 	{
@@ -471,7 +475,7 @@ void Renderer::Render()
 	ImGui::PopTextWrapPos();
 	ImGui::End();	
 
-	RenderImGUICamera(imguiCamera, projection, view);
+	//RenderImGUICamera(imguiCamera, projection, view);
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -593,7 +597,7 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 	{
 		auto& renderable = gCoordinator.GetComponent<Renderable>(entity);
 
-		if (renderable.model != lastModel || renderable.LodLevel != lastLOD)
+		if ((renderable.model != lastModel || renderable.LodLevel != lastLOD))
 		{
 			UpdateModelMat(modelGroup, gCoordinator);
 			renderSystem->RenderInstanced(gCoordinator, modelGroup);
@@ -603,6 +607,7 @@ void Renderer::RenderInstanced(std::vector<ECS::Entity> entities)
 		}
 
 		modelGroup.push_back(entity);
+		
 	}
 
 	UpdateModelMat(modelGroup, gCoordinator);
