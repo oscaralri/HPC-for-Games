@@ -33,7 +33,7 @@ public:
 	Mesh(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, float _texIndex) 
 		: vertices(_vertices), indices(_indices), texIndex(_texIndex)
 	{
-		setupMesh();
+		//setupMesh();
 	}
 	void Draw(Shader& shader);
 	void InstancedDraw(Shader& shader, int amount);

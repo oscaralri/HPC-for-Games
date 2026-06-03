@@ -53,10 +53,10 @@ void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity
 			if (renderable.renderType == RenderType::Batch)
 			{
 				auto model = EngineResources::GetModelManager().Get(renderable.model);
-				if (model->getLODs().size() > lodLevel)
-				{
+				//if (model->getLODs().size() > lodLevel)
+				//{
 					groups[renderable.shader].push_back(entity); // dentro del grupo en la posicion del rh shader meto esa entidad
-				}
+				//}
 			}
 		}
 

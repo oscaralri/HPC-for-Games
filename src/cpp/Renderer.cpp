@@ -214,7 +214,7 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(1000.f, 1000.f, 1000.f); // origin + maxValue 
+	glm::vec3 maxValues = glm::vec3(10000.f, 1000.f, 10000.f); // origin + maxValue 
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
 	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(maxValues.x, 1000.f, maxValues.z)); 
 
@@ -226,28 +226,11 @@ void Renderer::ModelsInit()
 	// BUILDINGS
 	std::vector<std::vector<std::string>> buildingPaths =
 	{
-		/*
+		
 		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
 		{"models/buildings/building2/building2.obj", "models/buildings/building2Low/building2Low.obj"},
-		{"models/buildings/building3/building3.obj", "models/buildings/building3Low/building3Low.obj"},
 		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
 		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"}
-		*/
-		/*
-		{"models/buildings/building1Low/building1Low.obj"},
-		{"models/buildings/building2Low/building2Low.obj"},
-		{"models/buildings/building3Low/building3Low.obj"},
-		{"models/buildings/building4Low/building4Low.obj"},
-		{"models/buildings/building6Low/building6Low.obj"}
-		*/
-
-
-		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
-		{"models/buildings/building2/building2.obj", "models/buildings/building1Low/building1Low.obj"},
-		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
-		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
-		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"}
-
 	};
 
 	for (auto& path : buildingPaths)
@@ -255,7 +238,7 @@ void Renderer::ModelsInit()
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 5);
 		for (int i = 0; i < 1; i++)
 		{
-			GenerateBatchEntity(bdingRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(10.f), 200);
+			GenerateBatchEntity(bdingRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(10.5f), 200);
 		}
 	}
 
@@ -265,14 +248,13 @@ void Renderer::ModelsInit()
 		{"models/cars/car1/car1.obj", "models/cars/car1Low/car1Low.obj"},
 		{"models/cars/car2/car2.obj", "models/cars/car2Low/car2Low.obj"},
 		{"models/cars/car3/car3.obj", "models/cars/car3Low/car3Low.obj"},
-		{"models/cars/car4/car4.obj", "models/cars/car4Low/car4Low.obj"},
 		{"models/cars/car5/car5.obj", "models/cars/car5Low/car5Low.obj"}
 	};
 
 	for (auto& path : carsPaths)
 	{
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
-		for (int i = 0; i < 0; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			GenerateBatchEntity(carRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(25.f), 2000);
 		}
@@ -560,11 +542,11 @@ void Renderer::RenderBatching(std::vector<GridCell>& cells, std::shared_ptr<Came
 			visibleBatching.push_back(batch);
 		}
 	}
-
+	
 	std::sort(visibleBatching.begin(), visibleBatching.end(), [](StaticBatch a, StaticBatch b) {
 		return a.shader < b.shader;
 		});
-
+		
 	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	renderSystem->RenderBatch(visibleBatching);;
 }
