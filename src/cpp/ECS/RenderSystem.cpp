@@ -3,22 +3,18 @@
 #include "EngineResources.h"
 #include "Application.h"
 
-void RenderSystem::RenderBatch(const std::vector<StaticBatch>& batches)
+void RenderSystem::RenderBatch(const StaticBatch& batch)
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, EngineResources::GetTextureManager().GetGlobalArrayID());
 
-	for (auto& batch : batches)
-	{
-		auto shader = EngineResources::GetShaderManager().Get(batch.shader);
-		shader->use();
+	auto shader = EngineResources::GetShaderManager().Get(batch.shader);
+	shader->use();
+	shader->setInt("uTextureArray", 0);
 
-		shader->setInt("uTextureArray", 0);	
+	glBindVertexArray(batch.vao);
 
-		glBindVertexArray(batch.vao);
+	glDrawElements(GL_TRIANGLES, batch.indexCount, GL_UNSIGNED_INT, 0);
 
-		glDrawElements(GL_TRIANGLES, batch.indexCount, GL_UNSIGNED_INT, 0);
-
-		glBindVertexArray(0);
-	}
+	glBindVertexArray(0);
 }

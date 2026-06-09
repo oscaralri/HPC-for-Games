@@ -14,7 +14,7 @@ struct StaticBatch
 {
     unsigned int vao, vbo, ebo;
     unsigned int indexCount;
-    ResourceHandle shader; // esto es lo que diferencia cada batch y define si pueden ir juntos
+    ResourceHandle shader;
 };
 
 struct GridCell
@@ -23,7 +23,7 @@ struct GridCell
     glm::vec3 max;
     std::vector<ECS::Entity> entities;
     std::vector<StaticBatch> lodBatches[2];
-    int lodDistance = 15000;
+    int lodDistance;
 };
 
 struct Grid
@@ -40,7 +40,6 @@ struct Grid
     Grid(const glm::vec3& origin_, const glm::vec3& worldSize, const glm::vec3& cellSize_) 
         : origin(origin_), cellSize(cellSize_)
     {
-        // esto es el numero de celdas en cada eje
         cellsX = worldSize.x / cellSize.x; 
         cellsY = worldSize.y / cellSize.y;
         cellsZ = worldSize.z / cellSize.z;
@@ -61,6 +60,7 @@ struct Grid
 
                     cells[index].min = cellMin;
                     cells[index].max = cellMax;
+                    cells[index].lodDistance = 10000;
                 }
             }
         }

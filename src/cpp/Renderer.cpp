@@ -78,10 +78,9 @@ void DebugAABB(glm::mat4 projection, glm::mat4 view, glm::vec3 min, glm::vec3 ma
 
 }
 
-void Renderer::GenerateBatchEntity(ResourceHandle modelRH, ResourceHandle shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
+void Renderer::GenerateBatchEntity(ResourceHandle modelRH, ResourceHandle shader, glm::vec3 position,
+	glm::vec3 rotation, glm::vec3 scale, int lodIncrement)
 {
-	//auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
-
 	auto entity = gCoordinator.CreateEntity();
 	gCoordinator.AddComponent(entity, Transform{
 		position,
@@ -216,7 +215,7 @@ void Renderer::ModelsInit()
 	// Grid(origin, worldSize, cellSize)
 	glm::vec3 maxValues = glm::vec3(10000.f, 1000.f, 10000.f); // origin + maxValue 
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
-	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(maxValues.x, 1000.f, maxValues.z)); 
+	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(maxValues.x / 2, 1000.f, maxValues.z / 2)); 
 
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
 	RandomGenerator random(ECS::MAX_ENTITIES, 120, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
@@ -226,7 +225,6 @@ void Renderer::ModelsInit()
 	// BUILDINGS
 	std::vector<std::vector<std::string>> buildingPaths =
 	{
-		
 		{"models/buildings/building1/building1.obj", "models/buildings/building1Low/building1Low.obj"},
 		{"models/buildings/building2/building2.obj", "models/buildings/building2Low/building2Low.obj"},
 		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
@@ -514,13 +512,15 @@ void Renderer::RenderImGUI(std::vector<GridCell> visibleCells)
 	ImGui::Begin("Render Info");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
 	ImGui::PushTextWrapPos(wrapWidth);
-	ImGui::Text("Outlist (VAO ids):");
 	std::string str;
+	/*
+	ImGui::Text("Outlist (VAO ids):");
 	for (size_t i = 0; i < visibleBatching.size(); ++i) {
 		str += std::to_string(visibleBatching[i].vao);
 		if (i != visibleBatching.size() - 1)
 			str += ", ";
 	}
+	*/
 	ImGui::Text("%s", str.c_str());
 	ImGui::Text("Num visibleCells:");
 	str = std::to_string(visibleCells.size());
@@ -531,24 +531,28 @@ void Renderer::RenderImGUI(std::vector<GridCell> visibleCells)
 
 void Renderer::RenderBatching(std::vector<GridCell>& cells, std::shared_ptr<Camera> camera)
 {
-	visibleBatching.clear();
+	batches.clear();
+	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
 	int lodLevel = 0;
+
 	for (const auto& cell : cells)
 	{
 		auto lodSystem = gCoordinator.GetSystem<LODSystem>();
 		lodLevel = lodSystem->SetLODFromAABB(cell, camera->Position);
 		for (auto& batch : cell.lodBatches[lodLevel])
 		{
-			visibleBatching.push_back(batch);
+			batches.push_back(batch);
 		}
-	}
-	
-	std::sort(visibleBatching.begin(), visibleBatching.end(), [](StaticBatch a, StaticBatch b) {
+	}	
+
+	std::sort(batches.begin(), batches.end(), [](StaticBatch a, StaticBatch b) {
 		return a.shader < b.shader;
 		});
-		
-	auto renderSystem = gCoordinator.GetSystem<RenderSystem>();
-	renderSystem->RenderBatch(visibleBatching);;
+
+	for (const auto& batch : batches)
+	{
+		renderSystem->RenderBatch(batch);
+	}
 }
 
 void Renderer::End()
@@ -629,6 +633,4 @@ void Renderer::processInput(GLFWwindow* window)
 		mainCamera->ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		mainCamera->ProcessKeyboard(RIGHT, deltaTime);
-
-
 }

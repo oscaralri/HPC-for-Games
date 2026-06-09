@@ -86,11 +86,7 @@ private:
 	float lastY;
 
 	std::vector<unsigned int> buffers;
-
-	std::vector<ECS::Entity> visibleInstanced;
-	std::vector<ECS::Entity> visibleNormal;
-	std::vector<StaticBatch> visibleBatching;
-
+	std::vector<StaticBatch> batches;
 	std::unique_ptr<Grid> grid;
 
 	// methods

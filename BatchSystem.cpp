@@ -38,14 +38,11 @@ StaticBatch UploadToGPU(std::vector<Vertex>& vertices, std::vector<unsigned int>
 
 void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
 {
-	cell.lodBatches[0].clear();
-	cell.lodBatches[1].clear();
-
-	// para cada lod crear batch (hardcodeado como 2 niveles de lod)
+	// 2 lod levels hardcoded
 	for (int lodLevel = 0; lodLevel < 2; lodLevel++)
 	{
 		std::map<ResourceHandle, std::vector<ECS::Entity>> groups;
-		// agrupar por shader (material)
+		// group by shader
 		for (auto& entity : entities)
 		{
 			auto& renderable = coordinator.GetComponent<Renderable>(entity);
@@ -53,40 +50,36 @@ void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity
 			if (renderable.renderType == RenderType::Batch)
 			{
 				auto model = EngineResources::GetModelManager().Get(renderable.model);
-				//if (model->getLODs().size() > lodLevel)
-				//{
-					groups[renderable.shader].push_back(entity); // dentro del grupo en la posicion del rh shader meto esa entidad
-				//}
+				if (model->getLODs().size() > lodLevel)
+				{
+					groups[renderable.shader].push_back(entity);
+				}
 			}
 		}
 
-		for (auto& [shader, groupEntities] : groups) // por cada RH Shader , Entity 
+		for (auto& [shader, groupEntities] : groups) 
 		{
 			std::vector<Vertex> mergedVertices;
 			std::vector<unsigned int> mergedIndices;
 			unsigned int vertexOffset = 0;
 
-			// unes toda la info de las entidades que comparten shader
+			// all entities that share shader
 			for (auto& entity : groupEntities)
 			{
 				auto& renderable = coordinator.GetComponent<Renderable>(entity);
 				auto& transform = coordinator.GetComponent<Transform>(entity);
-				// voy a trabajar con Model por como lo tengo yo, quizas mereceria mas cambiar cosas para 
-					// usar el Mesh directamente
 				Model* model = EngineResources::GetModelManager().Get(renderable.model);
 				glm::mat4 modelMat = transform.GetModelMatrix();
 				glm::mat3 normalMat = glm::mat3(glm::transpose(glm::inverse(modelMat)));
 
-				// trabajar creyendo que todo va a ir bien con los meshes
-				// para todos los meshes de ese nivel de lod
 				for (auto& mesh : model->getLODs()[lodLevel].meshes)
 				{
-					// transformar vertices a worldspace
+					// vertex to worldspace
 					for (const auto& v : mesh.vertices)
 					{
 						Vertex vWorld = v;
 						vWorld.Position = glm::vec3(modelMat * glm::vec4(v.Position, 1.0f));
-						vWorld.Normal = glm::normalize(normalMat * v.Normal); // esto me puede dar errores tener cuidado
+						vWorld.Normal = glm::normalize(normalMat * v.Normal); 
 						vWorld.TexIndex = mesh.texIndex;
 
 						mergedVertices.push_back(vWorld);

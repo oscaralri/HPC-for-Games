@@ -11,8 +11,6 @@
 class RenderSystem : public ECS::System
 {
 public:
-	void Render(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities);
-	void RenderInstanced(ECS::Coordinator& coordinator, std::vector<ECS::Entity>& entities);
-	void RenderBatch(const std::vector<StaticBatch>&);
+	void RenderBatch(const StaticBatch&);
 };
 
