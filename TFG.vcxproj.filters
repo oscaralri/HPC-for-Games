@@ -123,9 +123,6 @@
     <ClCompile Include="src\cpp\Grid.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\cpp\GridInitializer.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\cpp\LODSystem.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -255,9 +252,6 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\headers\Grid.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
-    <ClInclude Include="src\headers\GridInitializer.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="src\headers\LODSystem.h">

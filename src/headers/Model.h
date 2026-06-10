@@ -48,7 +48,6 @@ private:
 	void loadModel(std::string const& path);
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-	std::vector<ResourceHandle> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);
 	void FindAABBMinMax(const std::vector<Mesh> meshes, std::array<glm::vec3, 2>& aabb);
 };
 

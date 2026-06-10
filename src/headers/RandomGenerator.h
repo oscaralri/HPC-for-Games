@@ -26,7 +26,7 @@ public:
     const glm::vec3& GetPositionBding()
     {
         if (counterBding >= positionsBdings.size())
-            counterBding = 0; // evitar errores basico
+            counterBding = 0; 
 
         return positionsBdings[counterBding++];
     }
@@ -67,48 +67,6 @@ private:
         std::uniform_real_distribution<float> distX(minX, maxX);
         std::uniform_real_distribution<float> distY(minY, maxY);
         std::uniform_real_distribution<float> distZ(minZ, maxZ);
-        /*
-        while (positionsBdings.size() < size)
-        {
-            float x = distX(generator);
-            float z = distZ(generator);
-
-            bool inForbiddenZone = false;
-            for (const auto& zone : zones) {
-                if (zone.Contains(x, z)) {
-                    inForbiddenZone = true;
-                    break;
-                }
-            }
-
-            if (!inForbiddenZone) {
-                positions.emplace_back(x, distY(generator), z);
-            }
-        }
-        */
-        /*
-        for (int i = 0; i < size; i++)
-        {
-            float x = distX(generator);
-            float z = distZ(generator);
-
-            bool inForbiddenZone = false;
-            for (const auto& zone : zones) {
-                if (zone.Contains(x, z)) {
-                    inForbiddenZone = true;
-                    break;
-                }
-            }
-
-            if (!inForbiddenZone) {
-                positionsBdings.emplace_back(x, distY(generator), z);
-            }
-            else
-            {
-                positionsCars.emplace_back(x, distY(generator), z);
-            }
-        }
-        */
 
         for (int i = 0; i < size; i++)
         {

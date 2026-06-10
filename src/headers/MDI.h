@@ -14,11 +14,11 @@
 
 struct DrawElementsIndirectCommand
 {
-	uint32_t count; // n indices de la malla 
-	uint32_t instanceCount; // cuantas veces dibujar esa malla
-	uint32_t firstIndex; // donde empiezan los indices de esa malla en el ebo global 
-	uint32_t baseVertex; // desplazamiento en el vertex buffer 
-	uint32_t baseInstance; // id de instancia base, se añade al gl_instanceID en el shader
+	uint32_t count; //	index number
+	uint32_t instanceCount; // number of draws for this mesh
+	uint32_t firstIndex; // start of index of this mesh in global ebo 
+	uint32_t baseVertex; // offset in vertex data buffer 
+	uint32_t baseInstance; // base instance id, gl_InstanceID in shader
 
 	bool operator==(const DrawElementsIndirectCommand& other) const {
 		return count == other.count &&
@@ -49,13 +49,13 @@ struct EntityMeshes
 };
 
 struct InstanceData {
-	glm::mat4 modelMatrix;   // 64 bytes 
-	uint32_t entityID;       // 4 bytes
-	uint32_t diffuseLayer[2];   // 8 bytes  
+	glm::mat4 modelMatrix;   
+	uint32_t entityID;       
+	uint32_t diffuseLayer[2];     
 	uint32_t specLayer;     
-	uint32_t cmdIDs[2];      // 8 bytes  
-	uint32_t padding1;       // 4 bytes  
-	uint32_t padding2;		 // 8 bytes
+	uint32_t cmdIDs[2];   
+	uint32_t lodActive;
+	uint32_t padding;
 };
 
 
@@ -64,18 +64,15 @@ class MDI : public ECS::System
 public:
 	void GenerateMeshBuffers();
 	void GenerateDataBuffers();
-	MeshEntry AddMesh(ResourceHandle modelRH);
 	
-	EntityMeshes AddLodsMesh(ResourceHandle modelRH);
-
-	std::vector<DrawElementsIndirectCommand> GenerateDrawCmds(ECS::Coordinator& coordinator);
+	EntityMeshes AddMesh(ResourceHandle modelRH);
 	uint32_t GenerateDrawCmd(MeshEntry meshEntry);
 
 	GLuint& GetInstanceSSBO() { return instanceSSBO; }
 	GLuint& GetCommandsSSBO() { return commandsSSBO; }
 	GLuint& GetAABBSSBO() { return aabbSSBO; }
-	GLuint& GetDrawCountSSBO() { return drawCountSSBO; }
-	GLuint& GetFilteredCmdsSSBO() { return filteredCmdsBuffer; }
+	GLuint& GetDrawCountSSBO() { return drawCountACB; }
+	GLuint& GetFilteredCmdsSSBO() { return filteredCmdsSSBO; }
 	GLuint& GetVisibleIndicesSSBO() { return visibleIndicesSSBO; }
 
 	GLuint& GetGlobalVAO() { return globalVAO; }
@@ -98,8 +95,8 @@ private:
 	GLuint instanceSSBO;
 	GLuint commandsSSBO;
 	GLuint aabbSSBO;
-	GLuint filteredCmdsBuffer;
-	GLuint drawCountSSBO;
+	GLuint filteredCmdsSSBO;
+	GLuint drawCountACB;
 	GLuint visibleIndicesSSBO;
 
 	DrawElementsIndirectCommand* commandsPtr;
@@ -107,7 +104,6 @@ private:
 	AABB* aabbPtr;
 
 	std::unordered_map<ResourceHandle, MeshEntry> meshEntries;
-
 	std::vector<DrawElementsIndirectCommand> commands;
 };
 

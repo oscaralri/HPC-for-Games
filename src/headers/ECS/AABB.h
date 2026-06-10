@@ -2,8 +2,7 @@
 
 #include <glm/ext/vector_float4.hpp>
 
-// se cambia a vec4 para alinear en memoria gpu correctamente (16 bytes)
-	// el valor w no se utilza realmente
+// vec4 for better memory alignment
 struct AABB
 {
 	glm::vec4 min;

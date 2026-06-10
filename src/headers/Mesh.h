@@ -21,7 +21,6 @@ struct Vertex {
 class Mesh
 {
 public:
- // CAMBIAR ESTO A PRIVATE!!!!
 	unsigned int VAO;
 
 	std::vector<Vertex> vertices; 

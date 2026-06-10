@@ -1,14 +1,13 @@
 #version 460 
 
-struct InstanceData {
+struct InstanceData
+{
     mat4 modelMatrix;
     uint entityID;
     uint textureLayer;
     uint specLayer;
     uint padding0;    
     uint cmdIDs[2];
-    uint padding1;    
-    uint padding2;    
 };
 
 layout (location = 0) in vec3 inPos;

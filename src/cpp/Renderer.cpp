@@ -287,7 +287,7 @@ void Renderer::ModelsInit()
 
 	std::vector<std::string> roadPath = { "models/plane/road.obj" };
 	ResourceHandle roadRH = EngineResources::GetModelManager().LoadModelLOD(roadPath, 500);
-	auto roadMesh = mdiSystem->AddLodsMesh(roadRH);
+	auto roadMesh = mdiSystem->AddMesh(roadRH);
 	for (int i = 0; i < 4; i++)
 	{
 		float pos = (i * startPos) + margin;
@@ -321,7 +321,7 @@ void Renderer::ModelsInit()
 	for (auto& path : buildingPaths)
 	{
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
-		auto bdingMesh = mdiSystem->AddLodsMesh(bdingRH);
+		auto bdingMesh = mdiSystem->AddMesh(bdingRH);
 		
 		for (int i = 0; i < 5000; i++)
 		{
@@ -364,7 +364,7 @@ void Renderer::ModelsInit()
 		int velIdx = 0;
 
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
-		auto carMesh = mdiSystem->AddLodsMesh(carRH);
+		auto carMesh = mdiSystem->AddMesh(carRH);
 
 		for (int i = 0; i < 500; i++)
 		{
@@ -387,7 +387,7 @@ void Renderer::ModelsInit()
 	// PLANE
 	std::vector<std::string> planePath = { "models/plane/plane.obj" };
 	ResourceHandle planeRH = EngineResources::GetModelManager().LoadModelLOD(planePath, 500);
-	auto planeMesh = mdiSystem->AddLodsMesh(planeRH);
+	auto planeMesh = mdiSystem->AddMesh(planeRH);
 
 	float division = 4.f;
 	float stepX = (maxValues.x - minValues.x) / division;
@@ -485,7 +485,7 @@ void Renderer::showFPS(GLFWwindow* window) {
 
 void Renderer::Init()
 {
-	SCR_WIDTH = 1600; // porta: 1024 x 576, PC: 1366x768 
+	SCR_WIDTH = 1600; 
 	SCR_HEIGHT = 900;
 	near = 10.5f;
 	far = 100000.f;
@@ -505,7 +505,6 @@ void Renderer::Init()
 	lastY = SCR_HEIGHT / 2.0f;
 
 	isImgui = false;
-	isDebugGrid = false;
 	isCameraPos = true;
 
 	imguiCamPosX = -28.f;
@@ -583,15 +582,6 @@ void Renderer::Render()
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
 	scene->GetSkybox()->Draw(mainCamera->projection, skyboxView);
-
-	// DEBUG GRID
-	if (isDebugGrid)
-	{
-		for (const auto& cell : grid->cells)
-		{
-			DebugAABB(projection, view, cell.min, cell.max);
-		}
-	}
 		
 	// RENDER MDI
 	auto computeS = EngineResources::GetShaderManager().Get(computeShader);
@@ -601,8 +591,7 @@ void Renderer::Render()
 	renderSystem->RenderGPUCulling(gCoordinator, computeS, renderS);
 
 	// IMGUI
-	RenderImGUI();
-	RenderImGUICamera(imguiCamera, projection, view, computeS, renderS);
+	RenderImGUI(imguiCamera, projection, view, computeS, renderS);
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -623,7 +612,7 @@ void Renderer::Render()
 	glfwPollEvents();
 }
 
-void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS)
+void Renderer::RenderImGUI(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS)
 {
 	glm::mat4 imguiProj = glm::perspective(glm::radians(imguiCamera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, near, far);
 	glm::mat4 imguiView = glm::lookAt(imguiCamera->Position, imguiCamera->Position + imguiCamera->Front, imguiCamera->Up);
@@ -647,7 +636,6 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 
 		// draw on imgui
 		ImGui::Begin("Render Debug");
-		ImGui::Checkbox("Debug Grid", &isDebugGrid);
 		ImGui::Checkbox("ImguiCamera", &isImgui);
 		ImGui::Checkbox("Camera Pos", &isCameraPos);
 		ImGui::Image((ImTextureID)(intptr_t)imguiTextureBuffer, ImVec2(SCR_WIDTH / 3, SCR_HEIGHT / 3), ImVec2(0, 1), ImVec2(1, 0));
@@ -659,18 +647,9 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 	else
 	{
 		ImGui::Begin("Render Debug");
-		ImGui::Checkbox("Debug Grid", &isDebugGrid);
 		ImGui::Checkbox("ImguiCamera", &isImgui);
 		ImGui::Checkbox("Camera Pos", &isCameraPos);
 		ImGui::End();
-	}
-
-	if (isDebugGrid)
-	{
-		for (const auto& cell : grid->cells)
-		{
-			DebugAABB(imguiProj, imguiView, cell.min, cell.max);
-		}
 	}
 
 	if (isCameraPos)
@@ -679,11 +658,6 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 		ImGui::DragFloat3("CameraPos", &mainCamera->Position.x, 0.1f);
 		ImGui::End();
 	}
-}
-
-void Renderer::RenderImGUI()
-{
-	//ImGui::Begin("Render Info");
 }
 
 void Renderer::End()

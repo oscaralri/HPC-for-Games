@@ -4,7 +4,6 @@
 
 float LoadTexture(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
-	// esto creo que deberia funcionar pero como tal no tiene sentido el for
 	float texIndex = -1;
 	for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 	{

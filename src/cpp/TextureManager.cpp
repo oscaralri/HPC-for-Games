@@ -41,7 +41,6 @@ void TextureManager::LoadTextures(const std::string& jsonPath, TextureType type)
 	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
 	textureArrayIDs[type] = id;
 
-	// reservar memoria para todas las capas
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, texConfig.width, texConfig.height, layers);
 
 	for (int i = 0; i < layers; i++)
@@ -60,7 +59,6 @@ void TextureManager::LoadTextures(const std::string& jsonPath, TextureType type)
 		}	
 	}
 	
-	// puedo poner algun filtro mas (como hacia antes) lo he dejado mas sencillo por la duda
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 

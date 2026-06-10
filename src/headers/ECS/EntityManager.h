@@ -9,7 +9,7 @@ namespace ECS {
 	class EntityManager
 	{
 	public:
-		// crea una lista con todas las ids posibles disponibles
+		// all ids possible
 		EntityManager()
 		{
 			for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
@@ -22,7 +22,7 @@ namespace ECS {
 		{
 			assert(mLivingEntityCount < MAX_ENTITIES && "Too many entities in existence");
 
-			// coger ID del principio de cola (menor valor)
+			// select id first on queue (lower value)
 			Entity id = mAvailableEntities.front();
 			mAvailableEntities.pop();
 			++mLivingEntityCount;

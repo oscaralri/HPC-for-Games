@@ -25,7 +25,7 @@ Frustum CullingSystem::CreateFrustum(glm::mat4 projection, glm::mat4 view)
 	aux = projView[3] - projView[2];
 	frustum.planes[FAR_FRUSTUM] = Plane{ {aux.x, aux.y, aux.z}, aux.w };
 
-	// normalizar
+	// normalize
 	for (auto& plane : frustum.planes)
 	{
 		float len = glm::length(plane.n);
@@ -60,12 +60,12 @@ bool AABBIntersection(Frustum frustum, AABB aabb, Transform transform)
 		worldCorners[i] = glm::vec3(model * glm::vec4(corners[i], 1.0f));
 	}
 
-	// cada plano
+	// each plane
 	for (size_t i = 0; i < 6; i++)
 	{
 		int out = 0;
 
-		// cada punto
+		// each point
 		for (size_t j = 0; j < 8; j++)
 		{
 			if (glm::dot(worldCorners[j], frustum.planes[i].n) + frustum.planes[i].d < 0.f)

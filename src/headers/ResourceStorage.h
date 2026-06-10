@@ -39,7 +39,6 @@ struct ResourceHandle
 	}
 };
 
-// manera muy sencilla de hacer hash simplemente para poder utilizar ResourceHandle en unordered_map
 namespace std {
 	template <>
 	struct hash<ResourceHandle>
@@ -124,7 +123,7 @@ private:
 		return e.Alive && e.Gen == handle.Gen;
 	}
 
-	std::vector<ResourceEntry> Entries; // pool centralizado de los recursos
-	std::vector<int32_t> FreeList; // pila de indices libres porque se han eliminado lo que habia dentro
+	std::vector<ResourceEntry> Entries; 
+	std::vector<int32_t> FreeList;
 };
 

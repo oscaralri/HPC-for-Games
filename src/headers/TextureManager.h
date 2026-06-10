@@ -20,13 +20,6 @@ enum TextureType
 };
 
 using json = nlohmann::json;
-/*
-struct TextureHandle
-{
-	// esto sera mas necesario (aunque quizas no aqui) cuando/si trabajo con un array de arrays de texturas
-	float TexIndex;
-};
-*/
 
 struct Texture
 {
@@ -46,11 +39,7 @@ public:
 		if (it != textureArrayIDs.end()) { return it->second; }
 		return 0;
 	}
-
-	//ResourceHandle LoadTexture(const char* path, const std::string& directory, std::string typeName);
-	//void GenerateTextureBuffer();
 	Texture* Get(const ResourceHandle& rh);
-	//void Destroy(ResourceHandle& handle);
 
 private:
 	ResourceStorage<Texture> textureStorage;

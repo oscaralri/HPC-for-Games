@@ -27,14 +27,14 @@ public:
 		return instance;
 	}
 
-	void Init(); // definir e inicializar escena
+	void Init(); 
 	void Run(); // main Loop 
-	void ECSInit();
+	
 	Scene* GetActiveScene() { return scene; }
 
 private:
 	Scene* scene;
-
+	void ECSInit();
 	Application() = default;                                
 	Application(const Application&) = delete;               
 	Application& operator=(const Application&) = delete;   

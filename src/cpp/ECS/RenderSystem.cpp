@@ -8,7 +8,6 @@ void RenderSystem::UpdateGPUData(ECS::Coordinator& coordinator) {
 	auto mdiSystem = coordinator.GetSystem<MDI>();
 
 	InstanceData* gpuInstances = mdiSystem->GetInstanceDataPtr();
-	DrawElementsIndirectCommand* gpuCommands = mdiSystem->GetCommandsPtr();
 	AABB* gpuAABB = mdiSystem->GetAABBPtr();
 
 	for (auto const& entity : mEntities)
@@ -21,7 +20,7 @@ void RenderSystem::UpdateGPUData(ECS::Coordinator& coordinator) {
 		gpuInstances[entity].specLayer = meshEntry[0].specLayer;
 		gpuInstances[entity].entityID = (uint32_t)entity;
 		
-		// default values (se rellenan con valores default para evitar problemas de paralelismo)
+		// default values 
 		gpuInstances[entity].cmdIDs[0] = UINT32_MAX;
 		gpuInstances[entity].cmdIDs[1] = UINT32_MAX;
 		gpuInstances[entity].diffuseLayer[0] = meshEntry[0].diffuseLayer;
@@ -39,7 +38,7 @@ void RenderSystem::UpdateGPUData(ECS::Coordinator& coordinator) {
 	}
 }
 
-void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
+void RenderSystem::RenderMDI(Shader* shader)
 {
 	auto mdiSystem = gCoordinator.GetSystem<MDI>();
 
@@ -53,7 +52,7 @@ void RenderSystem::RenderMDI(Shader* shader, std::vector<ECS::Entity> entities)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, EngineResources::GetTextureManager().GetTextureArrayID(Specular));
 
-	// bindea counter y filtered
+	// bind counter and filtered
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdiSystem->GetFilteredCmdsSSBO());
 	glBindBuffer(GL_PARAMETER_BUFFER, mdiSystem->GetDrawCountSSBO());
 	
@@ -73,11 +72,10 @@ void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader* compu
 {
 	auto mdiSystem = coordinator.GetSystem<MDI>();
 	
+	// draw count to zero
 	int zero = 0;
 	glClearNamedBufferData(mdiSystem->GetDrawCountSSBO(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 	
-	//glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
-
 	computeShader->use();
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mdiSystem->GetInstanceSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mdiSystem->GetAABBSSBO());
@@ -86,10 +84,10 @@ void RenderSystem::RenderGPUCulling(ECS::Coordinator& coordinator, Shader* compu
 	glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 4, mdiSystem->GetDrawCountSSBO());
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, mdiSystem->GetVisibleIndicesSSBO());
 
-	glDispatchCompute((mEntities.size() + 7) / 8, 1, 1); // tamanyo elementos + grupo en shader , - 1 por size
+	glDispatchCompute((mEntities.size() + (8 - 1)) / 8, 1, 1); // size elements + shader thread group , -1 because of .size()
 
-	// barrera para que compute shader acabe
+	// barrier to let compute shader finish
 	glMemoryBarrier(GL_COMMAND_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT | GL_ATOMIC_COUNTER_BARRIER_BIT);
 
-	RenderMDI(renderShader, mEntities);
+	RenderMDI(renderShader);
 }

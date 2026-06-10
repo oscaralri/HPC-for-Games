@@ -59,8 +59,6 @@ namespace ECS {
             }
         }
 
-        //std::vector<T>& GetRawVector() { return mComponentVector; }
-
     private:
         std::vector<T> mComponentVector;
 

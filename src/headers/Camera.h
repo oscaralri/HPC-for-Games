@@ -27,7 +27,6 @@ public:
     glm::vec3 Right;
     glm::vec3 WorldUp;
 
-    // por ahora estas variables publicas (mejorable) 
     glm::mat4 projection;
     glm::mat4 view;
 

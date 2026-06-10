@@ -7,7 +7,7 @@ struct InstanceData {
     uint specLayer;   
     uint cmdIDs[2];
     uint lodActive;
-    uint padding2;    
+    uint padding;
 };
 
 layout (location = 0) in vec3 inPos;

@@ -37,7 +37,7 @@ public:
 	GLFWwindow* GetWindow() { return window; }
 
 	void Init();
-	void Render(); // main loop de render
+	void Render(); // main loop render
 	void End();
 
 private:
@@ -58,16 +58,13 @@ private:
 
 	Scene* scene;
 
-	//ImGUI
 	bool isImgui;
-	bool isDebugGrid;
 	bool isCameraPos;
 	float imguiCamPosX;
 	float imguiCamPosY;
 	float imguiCamPosZ;
 	unsigned int imguiTextureBuffer, imguiRBO;
 
-	// shaders 
 	ResourceHandle screenShader;
 	ResourceHandle renderShader;
 	ResourceHandle computeShader;
@@ -77,7 +74,6 @@ private:
 	unsigned int quadVAO, quadVBO;
 	unsigned int imguiFBO;
 
-	// time
 	float deltaTime;
 	float lastFrame;
 	int nbFrames;
@@ -92,10 +88,6 @@ private:
 	float lastX;
 	float lastY;
 
-
-	std::unique_ptr<Grid> grid;
-
-	// methods
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -106,8 +98,7 @@ private:
 	void ModelsInit();
 	void ShadersInit();
 
-	void RenderImGUI();
-	void RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS);
+	void RenderImGUI(std::shared_ptr<Camera> imguiCamera, glm::mat4 projection, glm::mat4 view, Shader* computeS, Shader* renderS);
 
 	ECS::Entity GenerateMDIEntity(ResourceHandle modelRH, EntityMeshes& entityMeshes, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale);
 

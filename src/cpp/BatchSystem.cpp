@@ -38,11 +38,9 @@ StaticBatch UploadToGPU(std::vector<Vertex>& vertices, std::vector<unsigned int>
 
 void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity>& entities, ECS::Coordinator& coordinator)
 {
-	// para cada lod crear batch (hardcodeado como 3 niveles de lod)
 	for (int lodLevel = 0; lodLevel < 1; lodLevel++)
 	{
 		std::map<ResourceHandle, std::vector<ECS::Entity>> groups;
-		// agrupar por shader (material)
 		for (auto& entity : entities)
 		{
 			auto& renderable = coordinator.GetComponent<Renderable>(entity);
@@ -67,22 +65,17 @@ void BatchSystem::BuildCellBatches(GridCell& cell, const std::vector<ECS::Entity
 			{
 				auto renderable = coordinator.GetComponent<Renderable>(entity);
 				auto transform = coordinator.GetComponent<Transform>(entity);
-				// voy a trabajar con Model por como lo tengo yo, quizas mereceria mas cambiar cosas para 
-					// usar el Mesh directamente
 				Model* model = EngineResources::GetModelManager().Get(renderable.model);
 				glm::mat4 modelMat = transform.GetModelMatrix();
 				glm::mat3 normalMat = glm::mat3(glm::transpose(glm::inverse(modelMat)));
 
-				// trabajar creyendo que todo va a ir bien con los meshes
-				// para todos los meshes de ese nivel de lod
 				for (auto& mesh : model->getLODs()[lodLevel].meshes)
 				{
-					// transformar vertices a worldspace
 					for (const auto& v : mesh.vertices)
 					{
 						Vertex vWorld = v;
 						vWorld.Position = glm::vec3(modelMat * glm::vec4(v.Position, 1.0f));
-						vWorld.Normal = glm::normalize(normalMat * v.Normal); // esto me puede dar errores tener cuidado
+						vWorld.Normal = glm::normalize(normalMat * v.Normal); 
 						vWorld.TexIndex = mesh.texIndex;
 
 						mergedVertices.push_back(vWorld);
