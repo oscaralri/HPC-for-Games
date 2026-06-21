@@ -18,6 +18,8 @@ struct InstanceData {
     uint diffuseLayer[2];
     uint specLayer;   
     uint cmdIDs[2];
+    uint lodActive;
+	uint padding;
 };
 
 layout(std430, binding = 0) buffer InstanceBuffer {

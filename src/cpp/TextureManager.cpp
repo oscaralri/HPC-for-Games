@@ -41,7 +41,7 @@ void TextureManager::LoadTextures(const std::string& jsonPath, TextureType type)
 	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
 	textureArrayIDs[type] = id;
 
-	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, texConfig.width, texConfig.height, layers);
+	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 12, GL_RGBA8, texConfig.width, texConfig.height, layers);
 
 	for (int i = 0; i < layers; i++)
 	{
@@ -59,11 +59,11 @@ void TextureManager::LoadTextures(const std::string& jsonPath, TextureType type)
 		}	
 	}
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 

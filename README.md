@@ -2,6 +2,8 @@
 
 A high-performance graphics engine built from scratch in C++ and OpenGL. The architecture follows **Data-Driven Design** principles and implements **AZDO (Approaching Zero Driver Overhead)** techniques to minimize CPU Driver overhead while also addressing other CPU and GPU bottlenecks.
 
+![Demo](./readme_files/demogif.gif)
+
 ## Implementation
 ### Data-Driven Design
 * **ECS (Entity Component System):** Implemented to decouple data from logic. Maximizes cache locality and allows systems to process entities in contiguous memory blocks.
@@ -20,7 +22,7 @@ A high-performance graphics engine built from scratch in C++ and OpenGL. The arc
 
 ## Performance 
 * **Target Hardware:** AMD Radeon RX 580 (8GB).
-* **Results:** 60 FPS rendering ~16 million vertices per frame.
+* **Results:** 60 FPS rendering ~20 million vertices per frame.
 
 ## Dependencies
 * **GLAD:** OpenGL function loader.

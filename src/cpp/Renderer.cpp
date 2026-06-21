@@ -288,18 +288,18 @@ void Renderer::ModelsInit()
 	std::vector<std::string> roadPath = { "models/plane/road.obj" };
 	ResourceHandle roadRH = EngineResources::GetModelManager().LoadModelLOD(roadPath, 500);
 	auto roadMesh = mdiSystem->AddMesh(roadRH);
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 30; i++)
 	{
 		float pos = (i * startPos) + margin;
 		roadsX.push_back({ initRoad, endRoad, pos, pos + width }); // 0-200000 , 2000-4000
 		GenerateMDIEntity(roadRH, roadMesh, glm::vec3(initRoad, 20.f, pos), glm::vec3(0.f), glm::vec3(endRoad - initRoad, 1.f, width/2));
 	}
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 30; i++)
 	{
 		float pos = (i * startPos) + margin;
 		roadsZ.push_back({ pos, pos + width, initRoad, endRoad });
-		GenerateMDIEntity(roadRH, roadMesh, glm::vec3(pos, 20.f, initRoad), glm::vec3(0.f), glm::vec3(width / 2, 1.f, endRoad - initRoad));
+		GenerateMDIEntity(roadRH, roadMesh, glm::vec3(pos, -20.f, initRoad), glm::vec3(0.f), glm::vec3(width / 2, 1.f, endRoad - initRoad));
 	}
 
 	glm::vec3 maxValues = glm::vec3(200000.f, 0.f, 200000.f); // origin + maxValue // old: 500k
@@ -366,7 +366,7 @@ void Renderer::ModelsInit()
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
 		auto carMesh = mdiSystem->AddMesh(carRH);
 
-		for (int i = 0; i < 500; i++)
+		for (int i = 0; i < 5000; i++)
 		{
 			auto entity = GenerateMDIEntity(carRH, carMesh, randomBdings.GetPositionCarsX(), rotations[idx], glm::vec3(100.f));
 			AddMovementEntity(entity, velocities[idx]);
@@ -375,7 +375,7 @@ void Renderer::ModelsInit()
 		}
 
 		idx = 2;
-		for (int j = 0; j < 500; j++)
+		for (int j = 0; j < 5000; j++)
 		{
 			auto entity = GenerateMDIEntity(carRH, carMesh, randomBdings.GetPositionCarsZ(), rotations[idx], glm::vec3(100.f));
 			AddMovementEntity(entity, velocities[idx]);
@@ -577,7 +577,7 @@ void Renderer::Render()
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	showFPS(window);
+	//showFPS(window);
 
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
@@ -591,7 +591,7 @@ void Renderer::Render()
 	renderSystem->RenderGPUCulling(gCoordinator, computeS, renderS);
 
 	// IMGUI
-	RenderImGUI(imguiCamera, projection, view, computeS, renderS);
+	//RenderImGUI(imguiCamera, projection, view, computeS, renderS);
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
