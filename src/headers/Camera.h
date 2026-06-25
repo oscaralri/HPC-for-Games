@@ -30,6 +30,9 @@ public:
     glm::mat4 projection;
     glm::mat4 view;
 
+    float Yaw;
+    float Pitch;
+
     Camera(glm::vec3 position,
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
         float yaw = YAW,
@@ -45,9 +48,6 @@ public:
     void ProcessMouseScroll(float yoffset);
 
 private:
-    float Yaw;
-    float Pitch;
-
     float MovementSpeed;
     float MouseSensitivity;
 

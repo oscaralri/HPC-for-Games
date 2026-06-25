@@ -656,8 +656,13 @@ void Renderer::RenderImGUI(std::shared_ptr<Camera> imguiCamera, glm::mat4 projec
 	{
 		ImGui::Begin("Camera Pos");
 		ImGui::DragFloat3("CameraPos", &mainCamera->Position.x, 0.1f);
+		ImGui::DragFloat("Yaw", &mainCamera->Yaw, 0.1f);
+		ImGui::DragFloat("Pitch", &mainCamera->Pitch, 0.1f);
 		ImGui::End();
 	}
+
+	showFPS(window);
+
 }
 
 void Renderer::End()
