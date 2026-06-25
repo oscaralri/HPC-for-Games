@@ -114,9 +114,9 @@ void Renderer::ModelsInit()
 {
 	
 	glm::vec3 min = glm::vec3(0.f);
-	glm::vec3 max = glm::vec3(5000, 10, 5000); 
+	glm::vec3 max = glm::vec3(50000, 10, 50000); 
 	grid = std::make_unique<Grid>(glm::vec3(-500.f), glm::vec3(1000.f), glm::vec3(500.f));
-	RandomGenerator random(ECS::MAX_ENTITIES, 123, -500, 500, -250, 250, -300, 0);
+	RandomGenerator random(ECS::MAX_ENTITIES, 123, 0, 1000, 0, 10, 0, 1000);
 	
 
 	// INSTANCING
@@ -130,15 +130,6 @@ void Renderer::ModelsInit()
 		{"models/buildings/building4/building4.obj", "models/buildings/building4Low/building4Low.obj"},
 		{"models/buildings/building6/building6.obj", "models/buildings/building6Low/building6Low.obj"},
 	};
-	int numEntities = 10;
-	for (auto& path : bdingsPath)
-	{
-		GenerateInstancedEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(0.5f), 300, numEntities);
-	}
-	
-	// NORMAL
-	auto basicShader = EngineResources::GetShaderManager().LoadShader("shaders/simpleShading.vert", "shaders/simpleShading.frag");
-	// cars
 	std::vector<std::vector<std::string>> carsPath =
 	{
 		{"models/cars/car1/car1.obj", "models/cars/car1Low/car1Low.obj"},
@@ -147,9 +138,23 @@ void Renderer::ModelsInit()
 		{"models/cars/car4/car4.obj", "models/cars/car4Low/car4Low.obj"},
 		{"models/cars/car5/car5.obj", "models/cars/car5Low/car5Low.obj"}
 	};
+
+	int numEntities = 3000;
 	for (auto& path : carsPath)
 	{
-		GenerateSimpleEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(10.f), 300);
+		GenerateInstancedEntity(path, random, glm::vec3(0.f), glm::vec3(2.f), 300, numEntities);
+	}
+	
+	// NORMAL
+	auto basicShader = EngineResources::GetShaderManager().LoadShader("shaders/simpleShading.vert", "shaders/simpleShading.frag");
+	// cars
+	
+	for (auto& path : bdingsPath)
+	{
+		for (int i = 0; i < 300; i++)
+		{
+			GenerateSimpleEntity(path, random.GetPosition(), glm::vec3(0.f), glm::vec3(0.5), 300);
+		}
 	}
 	
 }
@@ -239,7 +244,7 @@ void Renderer::GenerateSimpleEntity(std::vector<std::string>& modelPaths, glm::v
 	grid->Insert(entity, worldMin, worldMax);
 }
 
-void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities)
+void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, RandomGenerator random, glm::vec3 rotation, glm::vec3 scale, int lodIncrement, int numEntities)
 {
 	auto modelRH = EngineResources::GetModelManager().LoadModelLOD(modelPaths, lodIncrement);
 	auto model = EngineResources::GetModelManager().Get(modelRH);
@@ -253,7 +258,7 @@ void Renderer::GenerateInstancedEntity(std::vector<std::string>& modelPaths, glm
 	for (size_t i = 0; i < numEntities; i++)
 	{
 		auto entity = gCoordinator.CreateEntity();
-		auto newPosition = glm::vec3((i * 20) + position.x, position.y, position.z);
+		auto newPosition = glm::vec3(random.GetPosition());
 		gCoordinator.AddComponent(entity, Renderable{ modelRH, instancingShader, RenderType::Instanced });
 		gCoordinator.AddComponent(entity, Transform{
 			newPosition, // position
@@ -428,7 +433,7 @@ void Renderer::Render()
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	showFPS(window);
+	//showFPS(window);
 
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->view));
@@ -452,15 +457,7 @@ void Renderer::Render()
 	// Simple
 	if(visibleSimple.size() > 0) 
 		RenderSimple(visibleSimple);
-
-	if (isDebugGrid)
-	{
-		for (const auto& cell : grid->cells)
-		{
-			DebugAABB(projection, view, cell.min, cell.max);
-		}
-	}
-
+	/*
 	ImGui::Begin("OutList");
 	float wrapWidth = ImGui::GetWindowContentRegionMax().x;
 	ImGui::PushTextWrapPos(wrapWidth);
@@ -474,7 +471,7 @@ void Renderer::Render()
 	ImGui::Text("%s", str.c_str());
 	ImGui::PopTextWrapPos();
 	ImGui::End();	
-
+	*/
 	//RenderImGUICamera(imguiCamera, projection, view);
 
 	// BACK TO DEFAULT FBO
