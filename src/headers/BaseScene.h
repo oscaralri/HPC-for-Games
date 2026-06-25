@@ -8,7 +8,7 @@ class BaseScene : public Scene
 public:
 	void OnCreate() override
 	{
-		cameras["MainCamera"] = std::make_shared<Camera>(glm::vec3(5.0f, 0.0f, 5.0f));
+		cameras["MainCamera"] = std::make_shared<Camera>(glm::vec3(-5512.0f, 6527.0f, -5403.0f), glm::vec3(0.0f, 1.0f, 0.0f), 45.f, -11.6);
 		cameras["ImguiCamera"] = std::make_shared<Camera>(glm::vec3(0.0f, 10.0f, .0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -90.0f);
 	}
 

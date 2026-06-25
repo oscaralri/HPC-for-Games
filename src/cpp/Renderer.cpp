@@ -103,12 +103,12 @@ void Renderer::GenerateBatchEntity(ResourceHandle modelRH, ResourceHandle shader
 void SkyboxInit()
 {
 	std::vector<std::string> skyboxFaces = {
-		"textures/skybox/right.jpg",
-		"textures/skybox/left.jpg",
-		"textures/skybox/top.jpg",
-		"textures/skybox/bottom.jpg",
-		"textures/skybox/front.jpg",
-		"textures/skybox/back.jpg"
+		"textures/skybox/daylight/Cubemap_Sky_04_posx_1024.png",
+		"textures/skybox/daylight/Cubemap_Sky_04_negx_1024.png",
+		"textures/skybox/daylight/Cubemap_Sky_04_posy_1024.png",
+		"textures/skybox/daylight/Cubemap_Sky_04_negy_1024.png",
+		"textures/skybox/daylight/Cubemap_Sky_04_posz_1024.png",
+		"textures/skybox/daylight/Cubemap_Sky_04_negz_1024.png"
 	};
 	std::shared_ptr<Skybox> newSkybox = std::make_shared<Skybox>(skyboxFaces, "shaders/skybox.vert", "shaders/skybox.frag");
 	auto scene = Application::Get().GetActiveScene();
@@ -213,9 +213,9 @@ void Renderer::FBOInit(int SCR_WIDTH, int SCR_HEIGHT)
 void Renderer::ModelsInit()
 {
 	// Grid(origin, worldSize, cellSize)
-	glm::vec3 maxValues = glm::vec3(10000.f, 1000.f, 10000.f); // origin + maxValue 
+	glm::vec3 maxValues = glm::vec3(50000.f, 1000.f, 50000.f); // origin + maxValue 
 	glm::vec3 minValues = glm::vec3(0.f, 0.f, 0.f); // origin
-	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(maxValues.x / 2, 1000.f, maxValues.z / 2)); 
+	grid = std::make_unique<Grid>(minValues, maxValues, glm::vec3(maxValues.x / 8, 1000.f, maxValues.z / 8)); 
 
 	//RandomGenerator(int size, unsigned int seed, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
 	RandomGenerator random(ECS::MAX_ENTITIES, 120, minValues.x, minValues.x + maxValues.x, minValues.y, minValues.y + maxValues.y, minValues.z, minValues.z + maxValues.z);
@@ -234,7 +234,7 @@ void Renderer::ModelsInit()
 	for (auto& path : buildingPaths)
 	{
 		ResourceHandle bdingRH = EngineResources::GetModelManager().LoadModelLOD(path, 5);
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			GenerateBatchEntity(bdingRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(10.5f), 200);
 		}
@@ -252,7 +252,7 @@ void Renderer::ModelsInit()
 	for (auto& path : carsPaths)
 	{
 		ResourceHandle carRH = EngineResources::GetModelManager().LoadModelLOD(path, 500);
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 2000; i++)
 		{
 			GenerateBatchEntity(carRH, batchingShader, random.GetPosition(), glm::vec3(0.f), glm::vec3(25.f), 2000);
 		}
@@ -344,8 +344,8 @@ void Renderer::showFPS(GLFWwindow* window) {
 
 void Renderer::Init()
 {
-	SCR_WIDTH = 1024; // porta: 1024 x 576, PC: 1366x768 
-	SCR_HEIGHT = 576;
+	SCR_WIDTH = 1600; // porta: 1024 x 576, PC: 1366x768 
+	SCR_HEIGHT = 900;
 	near = 1.f;
 	far = 100000.f;
 	deltaTime = 0.0f;
@@ -429,7 +429,7 @@ void Renderer::Render()
 	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	showFPS(window);
+	//showFPS(window);
 
 	// SKYBOX
 	glm::mat4 skyboxView = glm::mat4(glm::mat3(mainCamera->GetViewMatrix()));
@@ -439,8 +439,8 @@ void Renderer::Render()
 	RenderBatching(visibleCells, mainCamera);
 
 	// RENDERIZAR TO IMGUI
-	RenderImGUI(visibleCells);
-	RenderImGUICamera(imguiCamera, projection, view);
+	//RenderImGUI(visibleCells);
+	//RenderImGUICamera(imguiCamera, projection, view);
 
 	// BACK TO DEFAULT FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -488,6 +488,7 @@ void Renderer::RenderImGUICamera(std::shared_ptr<Camera> imguiCamera, glm::mat4 
 		ImGui::DragFloat("X", &imguiCamPosX, 0.5f);
 		ImGui::DragFloat("Y", &imguiCamPosY, 0.5f);
 		ImGui::DragFloat("Z", &imguiCamPosZ, 0.5f);
+		ImGui::DragFloat3("CameraPos", &mainCamera->Position.x, 0.1f);
 		ImGui::End();
 	}
 	else
