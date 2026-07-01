@@ -351,8 +351,8 @@ void Renderer::UpdateModelMat(std::vector<ECS::Entity>& entities, ECS::Coordinat
 
 void Renderer::Init()
 {
-	SCR_WIDTH = 1366;
-	SCR_HEIGHT = 768;
+	SCR_WIDTH = 1600;
+	SCR_HEIGHT = 900;
 	near = 0.5f;
 	far = 10000.f;
 	
