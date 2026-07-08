@@ -13,7 +13,7 @@ A high-performance graphics engine built from scratch in C++ and OpenGL. The arc
 * **GPU-Driven Pipeline:** Offloaded visibility determination to the GPU. Instead of the CPU submitting individual draw calls, the engine uses Compute Shaders to evaluate visibility and filter draw commands, drastically reducing driver overhead.
 * **Compute Shader:**
     * **Frustum Culling & LOD:** Visibility testing and Level of Detail (LOD) selection are performed on the GPU. By using **Atomic Counters** and **SSBOs**, the engine processes object visibility per-frame and dispatches only visible geometry.
-    * **Bindless Textures:** Eliminated driver state changes and texture binding bottlenecks by using bindless textures, allowing shaders to access this resource directly from global memory. This approach seamlessly integrates with the custom resource handle system.
+    * **Texture Arrays**: Used texture arrays to store and group textures of the same dimensions. Access to individual textures within the array is managed directly by mapping them to the engine's custom resource handles, drastically reducing driver state changes.
 * **Multi-Draw Indirect (MDI):** Used `glMultiDrawElementsIndirectCount` to render thousands of objects with minimal state changes and zero CPU intervention per-object.
 
 ## Tools
